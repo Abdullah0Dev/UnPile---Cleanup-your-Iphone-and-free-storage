@@ -1,7 +1,7 @@
 import React from "react";
 import { Sparkles } from "lucide-react";
+import { navItems } from "@/constants";
 
-const navLinks = ["How it works", "Features", "Privacy", "FAQ"];
 
 const Footer = () => {
   return (
@@ -24,13 +24,13 @@ const Footer = () => {
 
         {/* Nav links */}
         <nav className="flex flex-wrap items-center justify-center gap-6">
-          {navLinks.map((item) => (
+          {navItems.map((link) => (
             <a
-              key={item}
-              href="#"
+              key={link.item}
+              href={link.href}
               className="text-sm text-foreground-muted transition-colors hover:text-foreground"
             >
-              {item}
+              {link.item}
             </a>
           ))}
         </nav>

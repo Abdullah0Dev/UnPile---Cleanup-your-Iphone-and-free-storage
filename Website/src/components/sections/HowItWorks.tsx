@@ -55,7 +55,7 @@ const duplicateThumbs = [
 
 const HowItWorks = () => {
   return (
-    <section className="relative overflow-hi dden bg-background py-5 sm:pt-12">
+    <section className="relative overflow-hi dden bg-background py-5 sm:pt-12" id="how-it-works">
       {/* soft ambient glow behind the big phone */}
       <div className="pointer-events-none absolute right-0 top-1/4 h-[420px] w-[420px] rounded-full bg-glow-purple/25 blur-[120px]" />
       <div className="pointer-events-none absolute right-[15%] top-1/3 h-[300px] w-[300px] rounded-full bg-glow-blue/20 blur-[100px]" />

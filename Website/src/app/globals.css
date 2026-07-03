@@ -2,6 +2,9 @@
 @plugin "@tailwindcss/typography";
  
 :root {
+  /* Scroll */
+  scroll-behavior: smooth;
+
   /* Core neutrals — dark theme */
   --background: #0a0a0f;          /* near-black page background */
   --background-elevated: #12121a; /* card/panel background, slightly lighter */

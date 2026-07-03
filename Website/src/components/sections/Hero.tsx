@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Mail,
 } from "lucide-react";
+import WaitlistForm from "../ui/waitlist-form";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 24 },
@@ -175,7 +176,7 @@ const Hero = () => {
       {/* ---------- Hero Content ---------- */}
       <div className="relative z-10 mx-auto grid max-w-6xl grid-cols-1 items-center gap-16 px-6 pt-12 lg:grid-cols-2 lg:gap-20 max-md:pt-28">
         {/* Left Column: Copy */}
-        <div className="flex flex-col">
+        <div className="flex flex-col items-start">
           <motion.h1
             initial="hidden"
             animate="show"
@@ -198,30 +199,10 @@ const Hero = () => {
             Unpile finds the clutter others miss so you can free up space, stay
             organized, and enjoy your memories again.
           </motion.p>
+          <div className="w-md">  
 
-          <motion.form
-            initial="hidden"
-            animate="show"
-            custom={2}
-            variants={fadeUp}
-            className="mt-8 flex max-w-md flex-col gap-3 sm:flex-row items-center"
-          >
-            <div className="relative w-full flex-1 h-14">
-              <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-subtle" />
-              <input
-                type="email"
-                required
-                placeholder="Enter your email"
-                className="w-full rounded-xl h-full bg-background-elevated border border-border-light  px-10 py-3.5 text-sm text-foreground placeholder:text-foreground-subtle outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary/20"
-              />
-            </div>
-            <button
-              type="submit"
-              className="whitespace-nowrap max-sm:w-full h-13.5 rounded-[10px] bg-[#2dd4bf] px-6 py-2 text-sm font-semibold text-[#0a0a0f] transition-all hover:bg-[#14b8a6] hover:shadow-lg hover:shadow-[#2dd4bf]/30"
-            >
-              Get Early Access
-            </button>
-          </motion.form>
+          <WaitlistForm />
+          </div>
 
           <motion.div
             initial="hidden"

@@ -6,6 +6,7 @@ import {
   PrivacyFirst,
   CTAButton,
   Footer,
+  Support,
 } from "@/components/sections";
 import Navbar from "@/components/ui/navbar";
 import React from "react";
@@ -18,6 +19,8 @@ const HomePage = () => {
       <TheProblem />
       <HowItWorks />
       <Features />
+      <Support />
+      
       <PrivacyFirst />
       <CTAButton />
       <Footer />

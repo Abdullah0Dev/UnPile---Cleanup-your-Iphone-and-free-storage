@@ -43,7 +43,7 @@ const privacyPoints = [
 
 const PrivacyFirst = () => {
   return (
-    <section className="relative overflow-hidden bg-background py-20 sm:py-28">
+    <section className="relative overflow-hidden bg-background py-20 sm:py-28" id="privacy">
       {/* ambient background glow */}
       <div className="pointer-events-none absolute right-[8%] top-1/2 h-[420px] w-[420px] -translate-y-1/2 rounded-full bg-glow-blue/15 blur-[130px]" />
       <div className="pointer-events-none absolute right-[20%] top-1/3 h-[280px] w-[280px] rounded-full bg-glow-purple/15 blur-[110px]" />

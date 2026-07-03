@@ -5,6 +5,7 @@ import Features from "./Features";
 import PrivacyFirst from "./PrivacyFirst";
 import CTAButton from "./CTAButton";
 import Footer from "./Footer";
+import Support from "./Support";
 
 export {
   Hero,
@@ -14,4 +15,5 @@ export {
   PrivacyFirst,
   CTAButton,
   Footer,
+  Support,
 };
