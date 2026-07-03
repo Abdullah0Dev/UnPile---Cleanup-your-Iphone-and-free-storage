@@ -199,9 +199,8 @@ const Hero = () => {
             Unpile finds the clutter others miss so you can free up space, stay
             organized, and enjoy your memories again.
           </motion.p>
-          <div className="w-md">  
-
-          <WaitlistForm />
+          <div className="sm:w-md w-full ">
+            <WaitlistForm />
           </div>
 
           <motion.div

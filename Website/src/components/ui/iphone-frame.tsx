@@ -2,6 +2,7 @@
 
 import React, { ReactNode } from "react";
 import { BatteryMedium, Signal, Wifi } from "lucide-react";
+import { isMobile } from "@/lib/utils";
 
 // ─── CSS Keyframes (Self-contained) ──────────────────────────────────────────
 const FRAME_CSS = `
@@ -14,11 +15,11 @@ const FRAME_CSS = `
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type PhoneModel = "13-pro-max" | "15-pro-max" | "17-pro-max";
 export type PhoneFrameStyle = "flat" | "3d";
-export type PhoneColor = 
-  | "natural-titanium" 
-  | "black-titanium" 
-  | "space-gray" 
-  | "deep-purple" 
+export type PhoneColor =
+  | "natural-titanium"
+  | "black-titanium"
+  | "space-gray"
+  | "deep-purple"
   | "silver"
   | "desert-titanium" // 17 Pro Max New Colors
   | "sapphire-blue"
@@ -38,7 +39,10 @@ interface IPhoneFrameProps {
 }
 
 // ─── Frame Configurations ─────────────────────────────────────────────────────
-const MODEL_CONFIGS: Record<PhoneModel, { notchType: "notch" | "dynamic-island" }> = {
+const MODEL_CONFIGS: Record<
+  PhoneModel,
+  { notchType: "notch" | "dynamic-island" }
+> = {
   "13-pro-max": { notchType: "notch" },
   "15-pro-max": { notchType: "dynamic-island" },
   "17-pro-max": { notchType: "dynamic-island" },
@@ -49,7 +53,7 @@ const COLOR_CONFIGS: Record<PhoneColor, { bg: string; border: string }> = {
   "black-titanium": { bg: "#1C1C1E", border: "#2C2C2E" },
   "space-gray": { bg: "#2C2C2E", border: "#3A3A3C" },
   "deep-purple": { bg: "#3B2F4D", border: "#514263" },
-  "silver": { bg: "#D1D1D6", border: "#E5E5EA" },
+  silver: { bg: "#D1D1D6", border: "#E5E5EA" },
   // NEW 17 PRO COLORS
   "desert-titanium": { bg: "#A86535", border: "#C17A35" },
   "sapphire-blue": { bg: "#2A537A", border: "#4B7EAE" },
@@ -57,7 +61,7 @@ const COLOR_CONFIGS: Record<PhoneColor, { bg: string; border: string }> = {
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-const getGlossyGradient = (bg: string, border: string) => 
+const getGlossyGradient = (bg: string, border: string) =>
   `linear-gradient(145deg, ${border} 0%, ${bg} 40%, ${border} 70%, ${bg} 100%)`;
 
 // ─── Shared Sub-Components ────────────────────────────────────────────────────
@@ -73,7 +77,14 @@ const StatusBar = () => (
       zIndex: 20,
     }}
   >
-    <span style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,.9)", letterSpacing: ".5px" }}>
+    <span
+      style={{
+        fontSize: 14,
+        fontWeight: 700,
+        color: "rgba(255,255,255,.9)",
+        letterSpacing: ".5px",
+      }}
+    >
       9:41
     </span>
     <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
@@ -104,8 +115,24 @@ const NotchRenderer = ({ type }: { type: "notch" | "dynamic-island" }) => {
           gap: 14,
         }}
       >
-        <div style={{ width: 50, height: 5, background: "#181818", borderRadius: 3, border: "1px solid #252525" }} />
-        <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#050505", border: "1.5px solid #1e1e1e" }} />
+        <div
+          style={{
+            width: 50,
+            height: 5,
+            background: "#181818",
+            borderRadius: 3,
+            border: "1px solid #252525",
+          }}
+        />
+        <div
+          style={{
+            width: 10,
+            height: 10,
+            borderRadius: "50%",
+            background: "#050505",
+            border: "1.5px solid #1e1e1e",
+          }}
+        />
       </div>
     );
   }
@@ -130,8 +157,24 @@ const NotchRenderer = ({ type }: { type: "notch" | "dynamic-island" }) => {
         boxShadow: "0 0 0 1px rgba(255,255,255,.05)",
       }}
     >
-      <div style={{ width: 44, height: 5, background: "#181818", borderRadius: 3, border: "1px solid #252525" }} />
-      <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#050505", border: "1.5px solid #1e1e1e" }} />
+      <div
+        style={{
+          width: 44,
+          height: 5,
+          background: "#181818",
+          borderRadius: 3,
+          border: "1px solid #252525",
+        }}
+      />
+      <div
+        style={{
+          width: 10,
+          height: 10,
+          borderRadius: "50%",
+          background: "#050505",
+          border: "1.5px solid #1e1e1e",
+        }}
+      />
     </div>
   );
 };
@@ -149,7 +192,7 @@ const IPhoneFrame: React.FC<IPhoneFrameProps> = ({
   const is3D = frameStyle === "3d";
 
   // ── Style Definitions ──
-  
+
   // 1. Modern, ultra-premium flat frame with glass edge glow
   const flatStyles = {
     wrapper: {
@@ -173,15 +216,16 @@ const IPhoneFrame: React.FC<IPhoneFrameProps> = ({
       boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.05)",
     },
     buttons: {
-      background: `linear-gradient(to bottom, ${colorConfig.border}, ${colorConfig.bg})`, 
-      shadow: `-2px 0 6px rgba(0,0,0,0.6), inset -1px 0 0 rgba(255,255,255,0.2)`
-    }
+      background: `linear-gradient(to bottom, ${colorConfig.border}, ${colorConfig.bg})`,
+      shadow: `-2px 0 6px rgba(0,0,0,0.6), inset -1px 0 0 rgba(255,255,255,0.2)`,
+    },
   };
 
   // 2. Dramatic 3D glossy frame with hero perspective
   const d3Styles = {
     wrapper: {
-      transform: "perspective(1400px) rotateY(-12deg) rotateX(4deg) scale(1.03)",
+      transform:
+        "perspective(1400px) rotateY(-12deg) rotateX(4deg) scale(1.03)",
       transformOrigin: "center center" as const,
       transformStyle: "preserve-3d" as const,
     },
@@ -200,12 +244,13 @@ const IPhoneFrame: React.FC<IPhoneFrameProps> = ({
     screen: {
       background: "#0a0a0a",
       borderRadius: 44,
-      boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.15), inset 0 0 25px rgba(0,0,0,0.7)",
+      boxShadow:
+        "inset 0 0 0 1px rgba(255,255,255,0.15), inset 0 0 25px rgba(0,0,0,0.7)",
     },
     buttons: {
       background: getGlossyGradient(colorConfig.bg, colorConfig.border),
-      shadow: `-2px 0 8px rgba(0,0,0,0.9), inset 0 1px 2px rgba(255,255,255,0.3)`
-    }
+      shadow: `-2px 0 8px rgba(0,0,0,0.9), inset 0 1px 2px rgba(255,255,255,0.3)`,
+    },
   };
 
   const activeStyles = is3D ? d3Styles : flatStyles;
@@ -214,21 +259,21 @@ const IPhoneFrame: React.FC<IPhoneFrameProps> = ({
     <>
       <style>{FRAME_CSS}</style>
 
-      <div 
-        className={className} 
-        style={{ 
-          display: "flex", 
-          alignItems: "center", 
+      <div
+        className={className}
+        style={{
+          display: "flex",
+          alignItems: "center",
           justifyContent: "center", 
-          padding: "50px 0 50px 50px" 
-        }}
+          padding:  !isMobile ? "50px 0 50px 50px" : "0px",
+        }} 
       >
         {/* ── Outer Container with Perspective ── */}
         <div
           style={{
             position: "relative",
             animation: "phoneIn .9s cubic-bezier(.16,1,.3,1) both",
-            ...activeStyles.wrapper, 
+            ...activeStyles.wrapper,
           }}
         >
           {/* Dual-Layer Studio Ambient Glow */}
@@ -324,7 +369,9 @@ const IPhoneFrame: React.FC<IPhoneFrameProps> = ({
                 height: 60,
                 background: activeStyles.buttons.background,
                 borderRadius: "0 3px 3px 0",
-                boxShadow: is3D ? "2px 0 8px rgba(0,0,0,0.9), inset 1px 0 2px rgba(255,255,255,0.3)" : "inset 2px 0 6px rgba(0,0,0,0.5), inset -1px 0 0 rgba(255,255,255,0.1)",
+                boxShadow: is3D
+                  ? "2px 0 8px rgba(0,0,0,0.9), inset 1px 0 2px rgba(255,255,255,0.3)"
+                  : "inset 2px 0 6px rgba(0,0,0,0.5), inset -1px 0 0 rgba(255,255,255,0.1)",
               }}
             />
 
@@ -344,7 +391,16 @@ const IPhoneFrame: React.FC<IPhoneFrameProps> = ({
               <NotchRenderer type={notchType} />
 
               {/* Status Bar (Absolute Top) */}
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 10, paddingTop: 10 }}>
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  zIndex: 10,
+                  paddingTop: 10,
+                }}
+              >
                 <StatusBar />
               </div>
 
@@ -370,8 +426,21 @@ const IPhoneFrame: React.FC<IPhoneFrameProps> = ({
                 </div>
 
                 {/* Home Indicator */}
-                <div style={{ display: "flex", justifyContent: "center", paddingBottom: 6 }}>
-                  <div style={{ width: 112, height: 5, background: "#2a2a2a", borderRadius: 3 }} />
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    paddingBottom: 6,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 112,
+                      height: 5,
+                      background: "#2a2a2a",
+                      borderRadius: 3,
+                    }}
+                  />
                 </div>
               </div>
 
