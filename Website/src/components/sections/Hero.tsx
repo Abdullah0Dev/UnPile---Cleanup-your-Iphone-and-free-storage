@@ -51,7 +51,7 @@ const avatarGroup = [
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen overflow-x-hidden den bg-background pt-4 pb-12 lg:pb-24 flex items-center justify-center">
+    <section className="relative min-h-screen overflow-hidden den bg-background pt-4 pb-12 lg:pb-24 flex items-center justify-center">
       {/* ---------- Background Glow Orbs ---------- */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {/* Left Cyan/Mint glow (behind text) */}

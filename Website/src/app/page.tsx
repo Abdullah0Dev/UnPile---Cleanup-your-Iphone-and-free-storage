@@ -13,7 +13,7 @@ import React from "react";
 
 const HomePage = () => {
   return (
-    <main>
+    <main className="overflow-x-clip">
       <Navbar />
       <Hero />
       <TheProblem />
