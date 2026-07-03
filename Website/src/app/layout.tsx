@@ -123,8 +123,8 @@ export default function RootLayout({
       className={`${roboto.variable} ${montserrat.variable} ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
-        {/* Preload important above-the-fold images (Replace these with your actual hero/product images) */}
-        <link rel="preload" as="image" href="/images/hero-phone.webp" />
+        {/* Preload important above-the-fold images */}
+        <link rel="preload" as="image" href="/images/logo.png" />
 
         {/* General SEO */}
         <meta name="robots" content="index, follow" />
