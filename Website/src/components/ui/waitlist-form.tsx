@@ -42,7 +42,7 @@ const WaitlistForm = () => {
     
           if (res.ok) {
             setMessage({
-              text: "You're on the list! Check your inbox for confirmation ✨",
+              text: "You're on the list! Check your inbox for any updates ✨",
               type: "success",
             });
             setEmail(""); // Clear input on success
