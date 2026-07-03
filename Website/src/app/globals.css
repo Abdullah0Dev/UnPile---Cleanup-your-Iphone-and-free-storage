@@ -1,0 +1,99 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+ 
+:root {
+  /* Core neutrals — dark theme */
+  --background: #0a0a0f;          /* near-black page background */
+  --background-elevated: #12121a; /* card/panel background, slightly lighter */
+  --background-muted: #1a1a24;    /* nested cards, stat tiles, quick-stats bg */
+  --foreground: #ffffff;          /* headings, primary text */
+  --foreground-muted: #9ca3af;    /* body copy, descriptions */
+  --foreground-subtle: #6b7280;   /* captions, meta text */
+  --border: #26262f;              /* card borders, dividers */
+  --border-light: #33333f;        /* lighter hairline borders on dark cards */
+  --muted: oklch(0.967 0.001 286.375);
+
+  /* Brand primary — violet/purple (logo badge, step numbers, gradient) */
+  --primary: #8b5cf6;             /* violet-500, step number circles, "Smart Clean" dial */
+  --primary-dark: #7c3aed;        /* violet-600, deeper accents */
+  --primary-light: #a78bfa;       /* violet-400, lighter accents */
+
+  /* Accent — electric blue (glow, links, "Review Items" button, connecting line) */
+  --accent: #3b82f6;              /* blue-500, review items button, quick-stat highlights */
+  --accent-light: #60a5fa;        /* blue-400 */
+
+  /* CTA — mint/emerald green (Get Early Access buttons) */
+  --cta: #2dd4bf;                 /* teal-400ish mint used for CTA buttons */
+  --cta-hover: #14b8a6;           /* teal-500, hover state */
+  --cta-foreground: #0a0a0f;      /* dark text on mint button */
+
+  /* Semantic status */
+  --success: #22c55e;             /* checkmark circle (Clean step complete) */
+  --danger: #ef4444;              /* "Delete Selected" button */
+
+  /* Glow / gradient stops (hero background blur) */
+  --glow-purple: #a855f7;
+  --glow-blue: #3b82f6;
+  --glow-pink: #ec4899;
+
+  /* Card tints for feature icons */
+  --icon-bg: #1e1b2e;             /* icon badge background on feature/problem cards */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-background-elevated: var(--background-elevated);
+  --color-background-muted: var(--background-muted);
+  --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-subtle: var(--foreground-subtle);
+  --color-border: var(--border);
+  --color-border-light: var(--border-light);
+
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-primary-light: var(--primary-light);
+
+  --color-accent: var(--accent);
+  --color-accent-light: var(--accent-light);
+
+  --color-cta: var(--cta);
+  --color-cta-hover: var(--cta-hover);
+  --color-cta-foreground: var(--cta-foreground);
+
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+
+  --color-glow-purple: var(--glow-purple);
+  --color-glow-blue: var(--glow-blue);
+  --color-glow-pink: var(--glow-pink);
+
+  --color-icon-bg: var(--icon-bg);
+
+  --font-sans: var(--font-inter);
+
+
+  /* old stuff */
+    --color-muted: var(--muted);
+
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Prose tables */
+.prose table {
+  @apply w-full border-collapse border border-border text-[15px];
+}
+.prose th {
+  @apply border border-border bg-muted px-4 py-2 text-left font-semibold text-foreground;
+}
+.prose td {
+  @apply border border-border px-4 py-2 text-foreground;
+}
+.prose tbody tr:nth-child(even) {
+  @apply bg-muted/50;
+}
