@@ -19,7 +19,7 @@ const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin"],
 });
-const DOMAIN = `https://unpile.app`;
+const DOMAIN = `https://unpile.vercel.app`;
 export const metadata: Metadata = {
   // Set your actual live domain here
   metadataBase: new URL(DOMAIN),
