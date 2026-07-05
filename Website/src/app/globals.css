@@ -25,7 +25,7 @@
   --accent: #3b82f6;              /* blue-500, review items button, quick-stat highlights */
   --accent-light: #60a5fa;        /* blue-400 */
 
-  /* CTA — mint/emerald green (Get Early Access buttons) */
+  /* CTA — mint/emerald green (Join Waitlist buttons) */
   --cta: #2dd4bf;                 /* teal-400ish mint used for CTA buttons */
   --cta-hover: #14b8a6;           /* teal-500, hover state */
   --cta-foreground: #0a0a0f;      /* dark text on mint button */

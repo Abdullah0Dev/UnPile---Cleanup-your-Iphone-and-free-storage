@@ -111,7 +111,7 @@ const WaitlistForm = () => {
                 Submitting...
               </>
             ) : (
-              "Get Early Access"
+              "Join Waitlist"
             )}{" "}
           </motion.button>
         </motion.form>
