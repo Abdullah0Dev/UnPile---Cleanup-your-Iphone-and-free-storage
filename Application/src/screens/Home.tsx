@@ -95,6 +95,8 @@ const Home = () => {
   const headerEntrance = useEntrance(0);
   const titleEntrance = useEntrance(60);
   const statCardEntrance = useEntrance(140);
+  const sectionHeaderEntrance = useEntrance(220); // same as first row
+
   const ctaEntrance = useEntrance(
     140 + CATEGORIES.length * ROW_STAGGER_MS + 160,
   );
@@ -105,13 +107,19 @@ const Home = () => {
   const handleReviewItems = () => {
     router.push("/delete-confirmation"); //all-categories
   };
+  const handleSeeAllCategories = () => router.push("/all-categories");
 
   return (
     <SafeAreaView style={styles.screen}>
       {/* ── Header ───────────────────────────────────────────────── */}
       <Animated.View style={[styles.header, headerEntrance]}>
         <Pressable onPress={handleGoBack}>
-          <ChevronLeft strokeWidth={2} color={Brand.textPrimary} />
+          {/* <ChevronLeft strokeWidth={2} color={Brand.textPrimary} /> */}
+          <Image
+            source={require("@/assets/icons/back-arrow.png")}
+            alt="back arrow"
+            style={{ width: 28, height: 28 }}
+          />
         </Pressable>
       </Animated.View>
 
@@ -140,7 +148,12 @@ const Home = () => {
           {TOTAL_ITEMS.toLocaleString()} items
         </Text>
       </Animated.View>
-
+      <Animated.View style={[styles.sectionHeader, sectionHeaderEntrance]}>
+        <Text style={styles.sectionTitle}>Categories</Text>
+        <Pressable onPress={handleSeeAllCategories}>
+          <Text style={styles.seeAllButton}>See All</Text>
+        </Pressable>
+      </Animated.View>
       {/* ── Category list — each row cascades in ─────────────────── */}
       <CategoriesList />
 
@@ -251,6 +264,27 @@ const styles = StyleSheet.create({
   statSubtitle: {
     color: Brand.textSecondary,
     fontSize: FontSizes.caption,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: Spacing.one, // subtle alignment with rows
+    marginBottom: Spacing.three,
+    marginTop: Spacing.three,
+  },
+  sectionTitle: {
+    color: Brand.textPrimary,
+    fontSize: FontSizes.title, // or a bit smaller if you prefer
+    fontWeight: FontWeights.semibold as any,
+  },
+  seeAllButton: {
+    color: Brand.primary, // or Brand.textSecondary with a tint
+    fontSize: FontSizes.body,
+    fontWeight: FontWeights.medium as any,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    // optional: add a subtle underline or background on press
   },
   categoryList: {
     marginBottom: Spacing.five,

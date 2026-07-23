@@ -35,6 +35,32 @@ export function useEntrance(delay: number = 0, distance: number = 14) {
 }
 
 /**
+ * Slide-up-as-a-sheet entrance — for bottom bars / footers that should feel
+ * like a layer sliding into place from below, not a hero pop or a text rise.
+ * Distance defaults large enough to clear typical footer heights.
+ */
+export function useSheetEntrance(delay: number = 0, distance: number = 60) {
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(distance);
+
+  useEffect(() => {
+    opacity.value = withDelay(
+      delay,
+      withTiming(1, { duration: 320, easing: Easing.out(Easing.ease) }),
+    );
+    translateY.value = withDelay(
+      delay,
+      withSpring(0, { damping: 18, stiffness: 160 }),
+    );
+  }, []);
+
+  return useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+}
+
+/**
  * Pop-in entrance with a spring overshoot — reserved for the single
  * "hero" element on a screen (logo, badge, icon), not for text rows.
  */

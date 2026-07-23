@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View, Dimensions } from "react-native";
 import { FlashList, ListRenderItemInfo } from "@shopify/flash-list";
 import { Image } from "expo-image";
@@ -8,7 +8,7 @@ import { ChevronLeft, Check } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import Animated from "react-native-reanimated";
-
+import { useColorScheme } from "react-native";
 import { GradientButton } from "@/components/ui/gradient-button";
 import {
   Brand,
@@ -17,7 +17,7 @@ import {
   Radii,
   Spacing,
 } from "@/constants/theme";
-import { useEntrance, useHeroEntrance } from "@/hooks/use-entrance";
+import { useEntrance, useSheetEntrance } from "@/hooks/use-entrance";
 
 // ─────────────────────────────────────────────────────────────────────────
 // Types
@@ -27,13 +27,9 @@ export type CategoryVariant = "screenshots" | "duplicates" | "blurry" | "live";
 
 type PhotoItem = {
   id: string;
-  /** Placeholder image source — swap for real asset/uri later. */
   image: any;
-  /** Pre-selected for deletion by the "smart" auto-select logic. */
   selected: boolean;
-  /** Only relevant for the "duplicates" variant: marks the kept/best photo in a group. */
   isBest?: boolean;
-  /** Only relevant for "duplicates": groups photos into visual clusters. */
   groupId?: string;
 };
 
@@ -48,7 +44,7 @@ type CategoryDetailsProps = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
-// Variant metadata (title, subtitle counts, header label style)
+// Variant metadata
 // ─────────────────────────────────────────────────────────────────────────
 
 const VARIANT_META: Record<
@@ -62,8 +58,7 @@ const VARIANT_META: Record<
 };
 
 // ─────────────────────────────────────────────────────────────────────────
-// Placeholder data generation
-// Replace image sources with real asset/URI data when wiring up.
+// Placeholder data generation — replace with real asset/URI data later.
 // ─────────────────────────────────────────────────────────────────────────
 
 function buildGridItems(
@@ -122,16 +117,17 @@ const DUPLICATE_TILE_SIZE =
   (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * (DUPLICATE_COLUMNS - 1)) /
   DUPLICATE_COLUMNS;
 
-// Only the first N cells get a staggered mount-in animation. Cells beyond
-// this (reached by scrolling) render immediately at full opacity — this
-// avoids FlashList's cell-recycling replaying the animation on every scroll,
-// which would look janky rather than smooth.
-const MAX_STAGGERED_CELLS = 16;
-const CELL_STAGGER_MS = 28;
+// Stagger is keyed by ROW, not raw index — every cell in the same row
+// animates together, and only the first few rows animate at all (cells
+// reached by scrolling render instantly; FlashList recycles views, so
+// animating recycled cells on every scroll would look broken, which is
+// exactly the "half animate, half don't" bug this replaces).
+const MAX_STAGGERED_ROWS = 5;
+const ROW_STAGGER_MS = 55;
 const GRID_BASE_DELAY = 260;
 
 // ─────────────────────────────────────────────────────────────────────────
-// Selection indicator (filled checkmark vs. empty ring)
+// Selection indicator
 // ─────────────────────────────────────────────────────────────────────────
 
 const SelectionBadge = ({ selected }: { selected: boolean }) => {
@@ -146,28 +142,28 @@ const SelectionBadge = ({ selected }: { selected: boolean }) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
-// Thumbnail cell — renders differently per variant, staggers in on first mount
+// Thumbnail cell — row-based stagger, not per-cell index
 // ─────────────────────────────────────────────────────────────────────────
 
 const PhotoThumbnail = ({
   item,
   variant,
   size,
-  index,
+  row,
   onToggle,
 }: {
   item: PhotoItem;
   variant: CategoryVariant;
   size: number;
-  index: number;
+  row: number;
   onToggle: (id: string) => void;
 }) => {
   const isBlurry = variant === "blurry";
   const isLive = variant === "live";
 
-  const shouldAnimate = index < MAX_STAGGERED_CELLS;
+  const shouldAnimate = row < MAX_STAGGERED_ROWS;
   const entrance = useEntrance(
-    shouldAnimate ? GRID_BASE_DELAY + index * CELL_STAGGER_MS : 0,
+    shouldAnimate ? GRID_BASE_DELAY + row * ROW_STAGGER_MS : 0,
     shouldAnimate ? 10 : 0,
   );
 
@@ -181,9 +177,6 @@ const PhotoThumbnail = ({
           source={item.image}
           style={StyleSheet.absoluteFill}
           contentFit="cover"
-          // Recycled FlashList cells reuse this component instance; a stable
-          // cache key keyed on the item id (not array index) keeps the right
-          // image bound to the right cell as rows recycle.
           recyclingKey={item.id}
         />
 
@@ -212,7 +205,7 @@ const PhotoThumbnail = ({
 };
 
 // ─────────────────────────────────────────────────────────────────────────
-// Duplicate group row — its own staggered entrance, rendered as a FlashList item
+// Duplicate group row
 // ─────────────────────────────────────────────────────────────────────────
 
 const DuplicateGroupRow = ({
@@ -224,7 +217,7 @@ const DuplicateGroupRow = ({
   index: number;
   onToggle: (id: string) => void;
 }) => {
-  const shouldAnimate = index < 6; // duplicate groups are few; animate them all reasonably
+  const shouldAnimate = index < 6;
   const entrance = useEntrance(
     shouldAnimate ? GRID_BASE_DELAY + index * 90 : 0,
     shouldAnimate ? 12 : 0,
@@ -307,6 +300,11 @@ const CategoryDetails = ({ variant }: CategoryDetailsProps) => {
     );
   };
 
+  const totalItemCount =
+    variant === "duplicates"
+      ? duplicateGroups.reduce((sum, g) => sum + g.items.length, 0)
+      : gridItems.length;
+
   const selectedCount =
     variant === "duplicates"
       ? duplicateGroups.reduce(
@@ -315,40 +313,104 @@ const CategoryDetails = ({ variant }: CategoryDetailsProps) => {
         )
       : gridItems.filter((i) => i.selected).length;
 
+  const allSelected = totalItemCount > 0 && selectedCount === totalItemCount;
+
+  // ── "Select" header action → real select-all / deselect-all toggle ──
+  const handleToggleSelectAll = () => {
+    if (variant === "duplicates") {
+      setDuplicateGroups((prev) =>
+        prev.map((group) => ({
+          ...group,
+          items: group.items.map((it) => ({ ...it, selected: !allSelected })),
+        })),
+      );
+    } else {
+      setGridItems((prev) =>
+        prev.map((it) => ({ ...it, selected: !allSelected })),
+      );
+    }
+  };
+
+  // ── Navigate to Delete Confirmation, carrying this category's context ──
+  const handleDeleteSelectedCategory = () => {
+    router.push({
+      pathname: "/delete-confirmation",
+      params: {
+        variant,
+        label: meta.title,
+        itemCount: String(selectedCount),
+        totalSize: meta.totalSize,
+      },
+    });
+  };
+
   // ── Shared entrance timings ──────────────────────────────────────────
   const headerEntrance = useEntrance(0);
   const subtitleEntrance = useEntrance(80);
-  const footerEntrance = useHeroEntrance(GRID_BASE_DELAY + 500);
+  // Footer slides up like a sheet, independent of grid row count so it
+  // doesn't wait on scrollable content that may never fully render.
+  const footerEntrance = useSheetEntrance(420);
 
   const handleGoBack = () => router.back();
 
   const renderHeaderRight = () => (
-    <Pressable hitSlop={8}>
-      <Text style={styles.headerAction}>Select</Text>
+    <Pressable hitSlop={8} onPress={handleToggleSelectAll}>
+      <Text style={styles.headerAction}>
+        {allSelected ? "Deselect All" : "Select All"}
+      </Text>
     </Pressable>
   );
-
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
   const Footer = () => (
-    <Animated.View style={[styles.footer, footerEntrance]}>
+    <Animated.View
+      style={[
+        styles.footer,
+        footerEntrance,
+        {
+          width: SCREEN_WIDTH * 0.92,
+          alignSelf: "center",
+          backgroundColor: !isDark
+            ? 'rgba(8, 7, 26, 0.8)'   // matches your background
+            : 'rgba(255, 255, 255, 0.2)',
+          borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
+        },
+      ]}
+    >
+      {/* Glass background */}
+      <BlurView
+          intensity={isDark ? 30 : 60}  // higher for light mode
+        tint={isDark ? "dark" : "light"}
+        style={StyleSheet.absoluteFill}
+      />
+      {/* Optional subtle gradient overlay (for colour accent) */}
       <LinearGradient
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0.8 }}
         colors={[
           "rgba(108, 60, 224, 0)",
-          "rgba(108, 60, 224, 0.08)",
-          "rgba(108, 60, 224, 0.25)",
-          "rgba(108, 60, 224, 0.08)",
+          "rgba(108, 60, 224, 0.05)",
+          "rgba(108, 60, 224, 0.15)",
+          "rgba(108, 60, 224, 0.05)",
           "rgba(108, 60, 224, 0)",
         ]}
         locations={[0, 0.3, 0.5, 0.7, 1]}
         style={styles.summaryGradient}
+        pointerEvents="none" // let touches pass through to buttons
       />
-      <View style={styles.footerLeft}>
-        <Text style={styles.footerCount}>{selectedCount} Selected</Text>
-        <Text style={styles.footerSize}>{meta.totalSize}</Text>
-      </View>
-      <View style={{ width: "50%" }}>
-        <GradientButton title="Delete" onPress={() => {}} />
+      {/* Content */}
+      <View style={styles.footerContent}>
+        <View style={styles.footerLeft}>
+          <Text style={styles.footerCount}>{selectedCount} Selected</Text>
+          <Text style={styles.footerSize}>{meta.totalSize}</Text>
+        </View>
+        <View style={{ width: "50%" }}>
+          <GradientButton
+            title="Delete"
+            onPress={handleDeleteSelectedCategory}
+            disabled={selectedCount === 0}
+          />
+        </View>
       </View>
     </Animated.View>
   );
@@ -359,7 +421,11 @@ const CategoryDetails = ({ variant }: CategoryDetailsProps) => {
       <SafeAreaView style={styles.screen}>
         <Animated.View style={[styles.header, headerEntrance]}>
           <Pressable onPress={handleGoBack}>
-            <ChevronLeft strokeWidth={2} color={Brand.textPrimary} />
+            <Image
+              source={require("@/assets/icons/back-arrow.png")}
+              alt="back arrow"
+              style={{ width: 28, height: 28 }}
+            />
           </Pressable>
           <Text style={styles.title}>{meta.title}</Text>
           {renderHeaderRight()}
@@ -387,12 +453,16 @@ const CategoryDetails = ({ variant }: CategoryDetailsProps) => {
     );
   }
 
-  // ── Screenshots / Blurry / Live: uniform grid, styling differs per-cell ──
+  // ── Screenshots / Blurry / Live: uniform grid ────────────────────────
   return (
     <SafeAreaView style={styles.screen}>
       <Animated.View style={[styles.header, headerEntrance]}>
         <Pressable onPress={handleGoBack}>
-          <ChevronLeft strokeWidth={2} color={Brand.textPrimary} />
+          <Image
+            source={require("@/assets/icons/back-arrow.png")}
+            alt="back arrow"
+            style={{ width: 28, height: 28 }}
+          />
         </Pressable>
         <Text style={styles.title}>{meta.title}</Text>
         {renderHeaderRight()}
@@ -407,22 +477,29 @@ const CategoryDetails = ({ variant }: CategoryDetailsProps) => {
         numColumns={COLUMNS}
         // estimatedItemSize={TILE_SIZE}
         contentContainerStyle={{ paddingBottom: Spacing.four }}
-        ItemSeparatorComponent={() => <View style={{ height: GRID_GAP }} />}
-        renderItem={({ item, index }: ListRenderItemInfo<PhotoItem>) => (
-          <View
-            style={{
-              paddingRight: (index + 1) % COLUMNS === 0 ? 0 : GRID_GAP,
-            }}
-          >
-            <PhotoThumbnail
-              item={item}
-              variant={variant}
-              size={TILE_SIZE}
-              index={index}
-              onToggle={toggleGridItem}
-            />
-          </View>
-        )}
+        // Gap is handled purely by margin on each cell wrapper (below) —
+        // no ItemSeparatorComponent + manual paddingRight math, which was
+        // the source of uneven-looking rows before.
+        renderItem={({ item, index }: ListRenderItemInfo<PhotoItem>) => {
+          const row = Math.floor(index / COLUMNS);
+          const isLastInRow = (index + 1) % COLUMNS === 0;
+          return (
+            <View
+              style={{
+                marginRight: isLastInRow ? 0 : GRID_GAP,
+                marginBottom: GRID_GAP,
+              }}
+            >
+              <PhotoThumbnail
+                item={item}
+                variant={variant}
+                size={TILE_SIZE}
+                row={row}
+                onToggle={toggleGridItem}
+              />
+            </View>
+          );
+        }}
       />
 
       <Footer />
@@ -545,17 +622,22 @@ const styles = StyleSheet.create({
   },
 
   footer: {
+    position: "absolute",
+    bottom: 20, // or use safe area insets
+    borderRadius: Radii.xlarge,
+    overflow: "hidden",
+
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
+    paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.four,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: Spacing.three,
-    paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.three,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Brand.divider,
-    borderTopRightRadius: Radii.xlarge,
-    borderTopLeftRadius: Radii.xlarge,
-    overflow: "hidden",
   },
   summaryGradient: {
     position: "absolute",
@@ -563,18 +645,26 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    opacity: 0.9,
+    borderRadius: Radii.xlarge,
+  },
+  footerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    zIndex: 2,
   },
   footerLeft: {
-    gap: 2,
+    flex: 1,
   },
   footerCount: {
     color: Brand.textPrimary,
     fontSize: FontSizes.body,
-    fontWeight: FontWeights.semibold as any,
+    fontWeight: FontWeights.semibold,
   },
   footerSize: {
     color: Brand.textSecondary,
     fontSize: FontSizes.caption,
+    marginTop: 2,
   },
 });

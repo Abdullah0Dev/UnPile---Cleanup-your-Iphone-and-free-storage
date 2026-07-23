@@ -140,7 +140,11 @@ const ScanningProgress = ({
       {/* ── Header ───────────────────────────────────────────────── */}
       <Animated.View style={[styles.header, headerEntrance]}>
         <Pressable onPress={handleGoBack}>
-          <ChevronLeft strokeWidth={2} color={Brand.textPrimary} />
+          <Image
+            source={require("@/assets/icons/back-arrow.png")}
+            alt="back arrow"
+            style={{ width: 28, height: 28 }}
+          />
         </Pressable>
       </Animated.View>
 
