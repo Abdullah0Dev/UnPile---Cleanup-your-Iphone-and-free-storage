@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "unpile",
+    "name": "UnPile",
     "slug": "unpile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -8,17 +8,9 @@
     "scheme": "unpile",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
-    },
-    "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
-      },
-      "predictiveBackGestureEnabled": false,
-      "package": "com.abdullahdev.unpile"
+      "icon": "./assets/images/icon.png",
+      "backgroundColor": "#0D0446",
+      "bundleIdentifier": "com.abdullahdev.unpile"
     },
     "web": {
       "output": "static",
@@ -29,15 +21,18 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#070223",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 230
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "android": {
+      "package": "com.abdullahdev.unpile"
     }
   }
 }

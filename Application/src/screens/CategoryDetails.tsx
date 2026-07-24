@@ -360,8 +360,6 @@ const CategoryDetails = ({ variant }: CategoryDetailsProps) => {
       </Text>
     </Pressable>
   );
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
   const Footer = () => (
     <Animated.View
       style={[
@@ -370,17 +368,15 @@ const CategoryDetails = ({ variant }: CategoryDetailsProps) => {
         {
           width: SCREEN_WIDTH * 0.92,
           alignSelf: "center",
-          backgroundColor: !isDark
-            ? 'rgba(8, 7, 26, 0.8)'   // matches your background
-            : 'rgba(255, 255, 255, 0.2)',
-          borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
+          backgroundColor: "rgba(8, 7, 26, 0.8)",
+          borderColor: "rgba(8, 7, 26, 0.4)",
         },
       ]}
     >
       {/* Glass background */}
       <BlurView
-          intensity={isDark ? 30 : 60}  // higher for light mode
-        tint={isDark ? "dark" : "light"}
+        intensity={40} // higher for light mode
+        tint={ "dark"  }
         style={StyleSheet.absoluteFill}
       />
       {/* Optional subtle gradient overlay (for colour accent) */}

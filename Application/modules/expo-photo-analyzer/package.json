@@ -1,0 +1,12 @@
+{
+  "name": "expo-photo-analyzer",
+  "version": "0.0.1",
+   "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "build": "expo-module build"
+  },
+  "dependencies": {
+    "expo-modules-core": "~1.12.0"
+  }
+}

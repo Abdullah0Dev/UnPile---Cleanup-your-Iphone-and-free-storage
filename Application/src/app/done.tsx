@@ -5,12 +5,12 @@ import { router } from "expo-router";
 
 const DonePage = () => {
   const handleViewLibrary = () => {
-    router.back();
+    router.navigate("/home-results");
   };
   const handleDone = () => {
     router.navigate("/home-results");
   };
-  return <DoneCleaning onDone={handleDone} />;
+  return <DoneCleaning onDone={handleDone} onViewLibrary={handleViewLibrary} />;
 };
 
 export default DonePage;

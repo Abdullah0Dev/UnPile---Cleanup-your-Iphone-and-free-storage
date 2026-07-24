@@ -3,9 +3,6 @@ import * as SplashScreen from "expo-splash-screen";
 import { useColorScheme } from "react-native";
 
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
-import AppTabs from "@/components/app-tabs";
-import ProtectionScreen from ".";
-import { GetStarted } from "@/screens";
 import { Slot } from 'expo-router';
 
 SplashScreen.preventAutoHideAsync();
