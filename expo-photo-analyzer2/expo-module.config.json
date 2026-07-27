@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple"],
+  "apple": {
+    "modules": ["ExpoPhotoAnalyzerModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.photoanalyzer.ExpoPhotoAnalyzerModule"]
+  }
+}

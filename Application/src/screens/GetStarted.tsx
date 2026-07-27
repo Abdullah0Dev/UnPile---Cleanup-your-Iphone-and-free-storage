@@ -19,8 +19,8 @@ const GetStarted = () => {
   const handleStartScanning = () => {
     console.log("hiii");
 
-    // router.push("/scanning");
-    router.push("/test");
+    router.push("/scanning");
+    // router.push("/test");
   };
   return (
     <SafeAreaView style={styles.screen}>

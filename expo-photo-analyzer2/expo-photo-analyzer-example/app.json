@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "expo-photo-analyzer-example",
+    "slug": "expo-photo-analyzer-example",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "com.abdullahdev.expo-photo-analyzer-example"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "package": "com.abdullahdev.expophotoanalyzerexample"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

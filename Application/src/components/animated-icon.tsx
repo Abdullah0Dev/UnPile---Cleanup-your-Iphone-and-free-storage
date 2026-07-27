@@ -97,14 +97,10 @@ const glowKeyframe = new Keyframe({
 
 export function AnimatedIcon() {
   return (
-    <View style={styles.iconContainer}>
-      <Animated.View entering={glowKeyframe.duration(60 * 1000 * 4)} style={styles.glow}>
-        <Image style={styles.glow} source={require('@/assets/images/logo-glow.png')} />
-      </Animated.View>
-
+    <View style={styles.iconContainer}> 
       <Animated.View entering={keyframe.duration(DURATION)} style={styles.background} />
       <Animated.View style={styles.imageContainer} entering={logoKeyframe.duration(DURATION)}>
-        <Image style={styles.image} source={require('@/assets/images/logo.png')} />
+        <Image style={styles.image} source={require('@/assets/images/icon.png')} />
       </Animated.View>
     </View>
   );
@@ -128,19 +124,19 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
   image: {
-    width: 230,
-    height: 230,
+    width: 300,
+    height: 300,
   },
   background: {
     borderRadius: 40,
-    experimental_backgroundImage: `linear-gradient(180deg, #0D0446, #3A2E6E)`,
+    experimental_backgroundImage: `linear-gradient(180deg, #060423, #0D0446)`,
     width: 128,
     height: 128,
     position: 'absolute',
   },
   splashOverlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: '#08071A',
+    backgroundColor: '#060423',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1000,
