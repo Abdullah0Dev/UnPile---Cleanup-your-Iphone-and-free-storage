@@ -35,8 +35,7 @@ func dateFromMilliseconds(_ milliseconds: Double) throws -> Date {
 8. Build UI of Upgrade and then its functionality and think about the monitization
 9. remove un-need code, and make it more reusable and get red of ai'sh
 
-make re-scan button when no clutters to delete as a empty state in the flatlist
-think about making the AI view the image and think if it's needed or not.. not just based on quality and age  
+ 
 in screenshots it drops the header as no safe are and decide there is
 
 

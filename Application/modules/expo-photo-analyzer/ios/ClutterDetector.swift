@@ -5,28 +5,47 @@ class ClutterDetector {
 
     // MARK: - Configuration
 
-    /// Minimum age (in days) – images older than this are considered forgotten.
+    /// Minimum age (in days) for regular images (photos, personal content).
     var ageThresholdDays: Int = 30
 
-    /// Maximum file size (in bytes) – images smaller than this are likely cache/thumbnails.
-    var maxFileSizeBytes: Int64 = 500 * 1024   // 500 KB
+    /// Minimum age (in days) for images with suspicious filenames (WhatsApp, Telegram, Download, etc.).
+    var downloadAgeThresholdDays: Int = 10
 
-    /// Minimum pixel count (width * height) – images smaller than this are low resolution.
+    var maxFileSizeBytes: Int64 = 500 * 1024
     var minPixelCount: Int = 480 * 480
 
-    /// Quality threshold (1‑10) – images with score below this are low quality.
     var qualityThreshold: Float = 4.0
-
-    /// If true, use ML quality assessment.
     var useQualityAssessment: Bool = true
 
-    /// If true, print debug logs to the console.
-    var debugMode: Bool = false
+    var useContentClassification: Bool = true
+    var contentClassifierConfidenceThreshold: Float = 0.5
+
+    var useFilenameCheck: Bool = true
+    var unwantedFilenameKeywords: Set<String> = [
+        "WhatsApp", "Telegram", "Signal", "WeChat", "Line",
+        "Download", "Cache", "Temp", "Saved", "Screenshot",
+        "IMG_", "VID_", "PANO_", "BURST_"  // Often auto‑generated, but we might not want to catch all of these.
+    ]
+
+    var debugMode: Bool = true
 
     // MARK: - Private
 
     private let qualityAnalyzer = QualityAnalyzer()
+    private let contentClassifier = ContentClassifier()  // nil if model unavailable
     private let targetSize = CGSize(width: 300, height: 300)
+
+    private let unneededLabels: Set<String> = [
+        "laptop", "notebook", "monitor", "display",
+        "whiteboard", "chalkboard",
+        "document", "paper", "receipt", "invoice",
+        "id", "passport", "driver_license",
+        "card", "business_card",
+        "keyboard", "mouse", "computer",
+        "desk", "office",
+        "book", "magazine",
+        "screenshot",
+    ]
 
     // MARK: - Public API
 
@@ -69,36 +88,60 @@ class ClutterDetector {
             return false
         }
 
-        // Age check
+        // Age check – we'll determine threshold based on filename
         guard let creationDate = asset.creationDate else { return false }
         let ageInDays = Calendar.current.dateComponents([.day], from: creationDate, to: Date()).day ?? 0
-        if ageInDays < ageThresholdDays {
-            if debugMode { print("🟢 Not clutter: too recent (\(ageInDays) days)") }
+
+        // ---- Filename check (NEW) ----
+        var isDownload = false
+        var filename: String? = nil
+        if useFilenameCheck, let name = originalFilename(for: asset) {
+            filename = name
+            let lowercased = name.lowercased()
+            for keyword in unwantedFilenameKeywords {
+                if lowercased.contains(keyword.lowercased()) {
+                    isDownload = true
+                    break
+                }
+            }
+        }
+
+        // Determine effective age threshold
+        let effectiveThreshold = isDownload ? downloadAgeThresholdDays : ageThresholdDays
+
+        if ageInDays < effectiveThreshold {
+            if debugMode {
+                let type = isDownload ? "download" : "regular"
+                print("🟢 Not clutter: too recent (\(ageInDays) days) for \(type) image")
+            }
             return false
         }
 
+        // ---- If it's a download and old enough, flag it immediately ----
+        if isDownload {
+            if debugMode {
+                print("🔴 Clutter: download filename (\(filename ?? "unknown")) is older than \(downloadAgeThresholdDays) days")
+            }
+            return true
+        }
+
+        // ---- Regular images: apply other heuristics ----
         let pixelCount = asset.pixelWidth * asset.pixelHeight
         let fileSize = fileSize(for: asset) ?? 0
 
         // ---- PROTECT LARGE, HIGH-QUALITY PHOTOS ----
-        // If the image is larger than 1 megapixel and larger than 1 MB,
-        // it is likely a real photo, not clutter.
         if pixelCount > 1_000_000 && fileSize > 1_000_000 {
-            // Only flag if quality is extremely poor (below 3.0)
             if useQualityAssessment, let analyzer = qualityAnalyzer {
                 if let score = getQualityScore(for: asset, using: analyzer), score < 3.0 {
                     if debugMode { print("🔴 Clutter: large photo but extremely low quality (\(score))") }
                     return true
                 }
             }
-            // Otherwise, keep it.
             if debugMode { print("🟢 Not clutter: large, high-quality photo") }
             return false
         }
 
         // ---- SMALLER / SUSPICIOUS PHOTOS ----
-        // Apply heuristics for smaller files and downloads
-
         // 1. Low resolution
         if pixelCount < minPixelCount {
             if debugMode { print("🔴 Clutter: low resolution (\(pixelCount) < \(minPixelCount))") }
@@ -117,11 +160,22 @@ class ClutterDetector {
             return true
         }
 
-        // 4. Low ML quality (below threshold)
+        // 4. Low ML quality (NIMA score)
         if useQualityAssessment, let analyzer = qualityAnalyzer {
             if let score = getQualityScore(for: asset, using: analyzer), score < qualityThreshold {
                 if debugMode { print("🔴 Clutter: low quality score (\(score) < \(qualityThreshold))") }
                 return true
+            }
+        }
+
+        // 5. Content classification (MobileNetV4)
+        if useContentClassification, let classifier = contentClassifier {
+            if let label = getContentLabel(for: asset, using: classifier) {
+                let isUnneeded = unneededLabels.contains { label.lowercased().contains($0) }
+                if isUnneeded {
+                    if debugMode { print("🔴 Clutter: content is '\(label)' which is likely not needed after \(ageThresholdDays) days") }
+                    return true
+                }
             }
         }
 
@@ -135,6 +189,11 @@ class ClutterDetector {
     private func fileSize(for asset: PHAsset) -> Int64? {
         guard let resource = PHAssetResource.assetResources(for: asset).first else { return nil }
         return resource.value(forKey: "fileSize") as? Int64
+    }
+
+    private func originalFilename(for asset: PHAsset) -> String? {
+        guard let resource = PHAssetResource.assetResources(for: asset).first else { return nil }
+        return resource.originalFilename
     }
 
     private func getQualityScore(for asset: PHAsset, using analyzer: QualityAnalyzer) -> Float? {
@@ -165,5 +224,35 @@ class ClutterDetector {
 
         semaphore.wait()
         return score
+    }
+
+    private func getContentLabel(for asset: PHAsset, using classifier: ContentClassifier) -> String? {
+        let options = PHImageRequestOptions()
+        options.isSynchronous = false
+        options.deliveryMode = .highQualityFormat
+        options.resizeMode = .exact
+        options.isNetworkAccessAllowed = true
+
+        var label: String? = nil
+        let semaphore = DispatchSemaphore(value: 0)
+
+        PHImageManager.default().requestImage(
+            for: asset,
+            targetSize: targetSize,
+            contentMode: .aspectFit,
+            options: options
+        ) { image, _ in
+            guard let image = image else {
+                semaphore.signal()
+                return
+            }
+            classifier.classify(image) { result in
+                label = result
+                semaphore.signal()
+            }
+        }
+
+        semaphore.wait()
+        return label
     }
 }
