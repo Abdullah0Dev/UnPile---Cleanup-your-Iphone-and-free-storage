@@ -1,14 +1,13 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View, Dimensions } from "react-native";
 import { FlashList, ListRenderItemInfo } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
-import { ChevronLeft, Check } from "lucide-react-native";
+import { Check } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import Animated from "react-native-reanimated";
-import { useColorScheme } from "react-native";
 import { GradientButton } from "@/components/ui/gradient-button";
 import {
   Brand,
@@ -18,12 +17,12 @@ import {
   Spacing,
 } from "@/constants/theme";
 import { useEntrance, useSheetEntrance } from "@/hooks/use-entrance";
+import { useAnalysis, CategoryKey } from "@/context/AnalysisContext";
 
 // ─────────────────────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────────────────────
-
-export type CategoryVariant = "screenshots" | "duplicates" | "blurry" | "live";
+export type CategoryVariant = CategoryKey;
 
 type PhotoItem = {
   id: string;
@@ -39,300 +38,99 @@ type DuplicateGroup = {
   items: PhotoItem[];
 };
 
-type CategoryDetailsProps = {
-  variant: CategoryVariant;
-};
-
 // ─────────────────────────────────────────────────────────────────────────
-// Variant metadata
+// Helper: format bytes
 // ─────────────────────────────────────────────────────────────────────────
-
-const VARIANT_META: Record<
-  CategoryVariant,
-  { title: string; itemCount: number; totalSize: string }
-> = {
-  screenshots: { title: "Screenshots", itemCount: 874, totalSize: "4.2 GB" },
-  duplicates: { title: "Duplicates", itemCount: 342, totalSize: "8.7 GB" },
-  blurry: { title: "Blurry Photos", itemCount: 218, totalSize: "2.1 GB" },
-  live: { title: "Live Photos", itemCount: 220, totalSize: "8.6 GB" },
-};
-
-// ─────────────────────────────────────────────────────────────────────────
-// Placeholder data generation — replace with real asset/URI data later.
-// ─────────────────────────────────────────────────────────────────────────
-
-function buildGridItems(
-  count: number,
-  autoSelectPattern: (i: number) => boolean,
-): PhotoItem[] {
-  return Array.from({ length: count }, (_, i) => ({
-    id: `item-${i}`,
-    image: { uri: `https://picsum.photos/seed/unpile-${i}/300/300` },
-    selected: autoSelectPattern(i),
-  }));
+function formatBytes(bytes: number): string {
+  const units = ["B", "KB", "MB", "GB"];
+  let size = bytes;
+  let unitIndex = 0;
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex++;
+  }
+  return `${size.toFixed(1)} ${units[unitIndex]}`;
 }
 
-function buildDuplicateGroups(groupCount: number): DuplicateGroup[] {
-  const groups: DuplicateGroup[] = [];
-  for (let g = 0; g < groupCount; g++) {
-    const groupId = `group-${g}`;
-    groups.push({
-      groupId,
-      label: g === 0 ? "Best Photo" : "Best",
-      items: [
-        {
-          id: `${groupId}-best`,
-          image: { uri: `https://picsum.photos/seed/dup-${g}-0/300/300` },
-          selected: false,
-          isBest: true,
-          groupId,
-        },
-        {
-          id: `${groupId}-1`,
-          image: { uri: `https://picsum.photos/seed/dup-${g}-1/300/300` },
-          selected: true,
-          groupId,
-        },
-        {
-          id: `${groupId}-2`,
-          image: { uri: `https://picsum.photos/seed/dup-${g}-2/300/300` },
-          selected: true,
-          groupId,
-        },
-      ],
-    });
+// ─────────────────────────────────────────────────────────────────────────
+// Screen
+// ─────────────────────────────────────────────────────────────────────────
+const CategoryDetails = () => {
+  const { category: variant } = useLocalSearchParams<{ category : CategoryVariant }>();
+  const { result, getCategoryItems, toggleSelection, setAllSelected } = useAnalysis();
+
+  // Guard: no result or invalid variant → redirect
+  if (!result || !variant) {
+    router.replace("/");
+    return null;
   }
-  return groups;
-}
 
-const SCREEN_WIDTH = Dimensions.get("window").width;
-const GRID_PADDING = Spacing.four;
-const GRID_GAP = Spacing.two;
-const COLUMNS = 4;
-const TILE_SIZE =
-  (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * (COLUMNS - 1)) / COLUMNS;
+  // ── Get items from context (no local state) ──────────────────────
+  const rawItems = getCategoryItems(variant);
+  const categorySavings = result.categorySavings || {};
 
-const DUPLICATE_COLUMNS = 3;
-const DUPLICATE_TILE_SIZE =
-  (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * (DUPLICATE_COLUMNS - 1)) /
-  DUPLICATE_COLUMNS;
-
-// Stagger is keyed by ROW, not raw index — every cell in the same row
-// animates together, and only the first few rows animate at all (cells
-// reached by scrolling render instantly; FlashList recycles views, so
-// animating recycled cells on every scroll would look broken, which is
-// exactly the "half animate, half don't" bug this replaces).
-const MAX_STAGGERED_ROWS = 5;
-const ROW_STAGGER_MS = 55;
-const GRID_BASE_DELAY = 260;
-
-// ─────────────────────────────────────────────────────────────────────────
-// Selection indicator
-// ─────────────────────────────────────────────────────────────────────────
-
-const SelectionBadge = ({ selected }: { selected: boolean }) => {
-  if (selected) {
-    return (
-      <View style={styles.badgeSelected}>
-        <Check size={12} strokeWidth={3} color={Brand.textOnPrimary} />
-      </View>
-    );
-  }
-  return <View style={styles.badgeUnselected} />;
-};
-
-// ─────────────────────────────────────────────────────────────────────────
-// Thumbnail cell — row-based stagger, not per-cell index
-// ─────────────────────────────────────────────────────────────────────────
-
-const PhotoThumbnail = ({
-  item,
-  variant,
-  size,
-  row,
-  onToggle,
-}: {
-  item: PhotoItem;
-  variant: CategoryVariant;
-  size: number;
-  row: number;
-  onToggle: (id: string) => void;
-}) => {
-  const isBlurry = variant === "blurry";
-  const isLive = variant === "live";
-
-  const shouldAnimate = row < MAX_STAGGERED_ROWS;
-  const entrance = useEntrance(
-    shouldAnimate ? GRID_BASE_DELAY + row * ROW_STAGGER_MS : 0,
-    shouldAnimate ? 10 : 0,
-  );
-
-  return (
-    <Animated.View style={shouldAnimate ? entrance : undefined}>
-      <Pressable
-        onPress={() => onToggle(item.id)}
-        style={[styles.thumbnail, { width: size, height: size }]}
-      >
-        <Image
-          source={item.image}
-          style={StyleSheet.absoluteFill}
-          contentFit="cover"
-          recyclingKey={item.id}
-        />
-
-        {isBlurry && (
-          <BlurView
-            intensity={35}
-            tint="dark"
-            style={StyleSheet.absoluteFill}
-            pointerEvents="none"
-          />
-        )}
-
-        {isLive && (
-          <View style={styles.liveBadge}>
-            <View style={styles.liveDot} />
-            <Text style={styles.liveBadgeText}>LIVE</Text>
-          </View>
-        )}
-
-        <View style={styles.thumbnailBadgeWrap}>
-          <SelectionBadge selected={item.selected} />
-        </View>
-      </Pressable>
-    </Animated.View>
-  );
-};
-
-// ─────────────────────────────────────────────────────────────────────────
-// Duplicate group row
-// ─────────────────────────────────────────────────────────────────────────
-
-const DuplicateGroupRow = ({
-  group,
-  index,
-  onToggle,
-}: {
-  group: DuplicateGroup;
-  index: number;
-  onToggle: (id: string) => void;
-}) => {
-  const shouldAnimate = index < 6;
-  const entrance = useEntrance(
-    shouldAnimate ? GRID_BASE_DELAY + index * 90 : 0,
-    shouldAnimate ? 12 : 0,
-  );
-
-  return (
-    <Animated.View
-      style={[styles.duplicateGroup, shouldAnimate ? entrance : undefined]}
-    >
-      <View style={styles.bestLabelRow}>
-        <Text style={styles.bestLabelIcon}>👑</Text>
-        <Text style={styles.bestLabelText}>{group.label}</Text>
-      </View>
-      <View style={styles.duplicateGroupRow}>
-        {group.items.map((item) => (
-          <Pressable
-            key={item.id}
-            onPress={() => onToggle(item.id)}
-            style={[
-              styles.thumbnail,
-              { width: DUPLICATE_TILE_SIZE, height: DUPLICATE_TILE_SIZE },
-            ]}
-          >
-            <Image
-              source={item.image}
-              style={StyleSheet.absoluteFill}
-              contentFit="cover"
-              recyclingKey={item.id}
-            />
-            <View style={styles.thumbnailBadgeWrap}>
-              <SelectionBadge selected={item.selected} />
-            </View>
-          </Pressable>
-        ))}
-      </View>
-    </Animated.View>
-  );
-};
-
-// ─────────────────────────────────────────────────────────────────────────
-// Main component
-// ─────────────────────────────────────────────────────────────────────────
-
-const CategoryDetails = ({ variant }: CategoryDetailsProps) => {
-  const meta = VARIANT_META[variant];
-
-  const [gridItems, setGridItems] = useState<PhotoItem[]>(() => {
-    switch (variant) {
-      case "screenshots":
-        return buildGridItems(40, (i) => ![2, 9].includes(i));
-      case "blurry":
-        return buildGridItems(40, (i) =>
-          [0, 2, 5, 7, 9, 12, 15, 16, 19].includes(i),
-        );
-      case "live":
-        return buildGridItems(40, (i) => ![2, 6, 10, 13, 17].includes(i));
-      default:
-        return [];
+  // ── For duplicates: group items ──────────────────────────────────
+  const duplicateGroups = useMemo(() => {
+    if (variant !== "duplicates") return [];
+    const groups: DuplicateGroup[] = [];
+    let groupIndex = 0;
+    let currentGroup: PhotoItem[] = [];
+    for (const item of rawItems) {
+      if (item.isBest) {
+        if (currentGroup.length > 0) {
+          groups.push({
+            groupId: `group-${groupIndex}`,
+            label: "Best Photo",
+            items: currentGroup,
+          });
+          groupIndex++;
+        }
+        currentGroup = [item];
+      } else {
+        currentGroup.push(item);
+      }
     }
-  });
+    if (currentGroup.length > 0) {
+      groups.push({
+        groupId: `group-${groupIndex}`,
+        label: "Best Photo",
+        items: currentGroup,
+      });
+    }
+    return groups;
+  }, [rawItems, variant]);
 
-  const [duplicateGroups, setDuplicateGroups] = useState<DuplicateGroup[]>(
-    () => (variant === "duplicates" ? buildDuplicateGroups(6) : []),
-  );
+  // ── Metadata ──────────────────────────────────────────────────────
+  const meta = useMemo(() => {
+    const titleMap: Record<CategoryVariant, string> = {
+      screenshots: "Screenshots",
+      duplicates: "Duplicates",
+      clutter: "Clutter",
+      blurry: "Blurry Photos",
+      live: "Live Photos",
+    };
+    const totalItems = rawItems.length;
+    const selectedItems = rawItems.filter((i) => i.selected).length;
+    const sizeBytes = categorySavings[variant] || 0;
+    const sizeFormatted = formatBytes(sizeBytes);
 
-  const toggleGridItem = (id: string) => {
-    setGridItems((prev) =>
-      prev.map((it) => (it.id === id ? { ...it, selected: !it.selected } : it)),
-    );
-  };
+    return {
+      title: titleMap[variant] || variant,
+      itemCount: totalItems,
+      selectedCount: selectedItems,
+      totalSize: sizeFormatted,
+    };
+  }, [variant, rawItems, categorySavings]);
 
-  const toggleDuplicateItem = (id: string) => {
-    setDuplicateGroups((prev) =>
-      prev.map((group) => ({
-        ...group,
-        items: group.items.map((it) =>
-          it.id === id ? { ...it, selected: !it.selected } : it,
-        ),
-      })),
-    );
-  };
-
-  const totalItemCount =
-    variant === "duplicates"
-      ? duplicateGroups.reduce((sum, g) => sum + g.items.length, 0)
-      : gridItems.length;
-
-  const selectedCount =
-    variant === "duplicates"
-      ? duplicateGroups.reduce(
-          (sum, g) => sum + g.items.filter((i) => i.selected).length,
-          0,
-        )
-      : gridItems.filter((i) => i.selected).length;
-
+  const selectedCount = meta.selectedCount;
+  const totalItemCount = meta.itemCount;
   const allSelected = totalItemCount > 0 && selectedCount === totalItemCount;
 
-  // ── "Select" header action → real select-all / deselect-all toggle ──
   const handleToggleSelectAll = () => {
-    if (variant === "duplicates") {
-      setDuplicateGroups((prev) =>
-        prev.map((group) => ({
-          ...group,
-          items: group.items.map((it) => ({ ...it, selected: !allSelected })),
-        })),
-      );
-    } else {
-      setGridItems((prev) =>
-        prev.map((it) => ({ ...it, selected: !allSelected })),
-      );
-    }
+    setAllSelected(variant, !allSelected);
   };
 
-  // ── Navigate to Delete Confirmation, carrying this category's context ──
-  const handleDeleteSelectedCategory = () => {
+  const handleDeleteSelected = () => {
     router.push({
       pathname: "/delete-confirmation",
       params: {
@@ -344,11 +142,9 @@ const CategoryDetails = ({ variant }: CategoryDetailsProps) => {
     });
   };
 
-  // ── Shared entrance timings ──────────────────────────────────────────
+  // ── Entrance animations ──────────────────────────────────────────
   const headerEntrance = useEntrance(0);
   const subtitleEntrance = useEntrance(80);
-  // Footer slides up like a sheet, independent of grid row count so it
-  // doesn't wait on scrollable content that may never fully render.
   const footerEntrance = useSheetEntrance(420);
 
   const handleGoBack = () => router.back();
@@ -360,26 +156,21 @@ const CategoryDetails = ({ variant }: CategoryDetailsProps) => {
       </Text>
     </Pressable>
   );
+
   const Footer = () => (
     <Animated.View
       style={[
         styles.footer,
         footerEntrance,
         {
-          width: SCREEN_WIDTH * 0.92,
+          width: Dimensions.get("window").width * 0.95,
           alignSelf: "center",
           backgroundColor: "rgba(8, 7, 26, 0.8)",
           borderColor: "rgba(8, 7, 26, 0.4)",
         },
       ]}
     >
-      {/* Glass background */}
-      <BlurView
-        intensity={40} // higher for light mode
-        tint={ "dark"  }
-        style={StyleSheet.absoluteFill}
-      />
-      {/* Optional subtle gradient overlay (for colour accent) */}
+      <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
       <LinearGradient
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0.8 }}
@@ -392,9 +183,8 @@ const CategoryDetails = ({ variant }: CategoryDetailsProps) => {
         ]}
         locations={[0, 0.3, 0.5, 0.7, 1]}
         style={styles.summaryGradient}
-        pointerEvents="none" // let touches pass through to buttons
+        pointerEvents="none"
       />
-      {/* Content */}
       <View style={styles.footerContent}>
         <View style={styles.footerLeft}>
           <Text style={styles.footerCount}>{selectedCount} Selected</Text>
@@ -403,7 +193,7 @@ const CategoryDetails = ({ variant }: CategoryDetailsProps) => {
         <View style={{ width: "50%" }}>
           <GradientButton
             title="Delete"
-            onPress={handleDeleteSelectedCategory}
+            onPress={handleDeleteSelected}
             disabled={selectedCount === 0}
           />
         </View>
@@ -411,7 +201,20 @@ const CategoryDetails = ({ variant }: CategoryDetailsProps) => {
     </Animated.View>
   );
 
-  // ── Duplicates: grouped-by-3 layout with "Best Photo" label ──────────
+  // ── Dimensions ────────────────────────────────────────────────────
+  const SCREEN_WIDTH = Dimensions.get("window").width;
+  const GRID_PADDING = Spacing.four;
+  const GRID_GAP = Spacing.two;
+  const COLUMNS = 4;
+  const TILE_SIZE =
+    (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * (COLUMNS - 1)) / COLUMNS;
+
+  const DUPLICATE_COLUMNS = 3;
+  const DUPLICATE_TILE_SIZE =
+    (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * (DUPLICATE_COLUMNS - 1)) /
+    DUPLICATE_COLUMNS;
+
+  // ── Render: Duplicates ───────────────────────────────────────────
   if (variant === "duplicates") {
     return (
       <SafeAreaView style={styles.screen}>
@@ -433,13 +236,14 @@ const CategoryDetails = ({ variant }: CategoryDetailsProps) => {
         <FlashList
           data={duplicateGroups}
           keyExtractor={(g) => g.groupId}
-          // estimatedItemSize={DUPLICATE_TILE_SIZE + 40}
           contentContainerStyle={styles.duplicatesListContent}
           renderItem={({ item, index }: ListRenderItemInfo<DuplicateGroup>) => (
             <DuplicateGroupRow
               group={item}
               index={index}
-              onToggle={toggleDuplicateItem}
+              onToggle={toggleSelection}
+              category={variant}
+              tileSize={DUPLICATE_TILE_SIZE}
             />
           )}
         />
@@ -449,7 +253,7 @@ const CategoryDetails = ({ variant }: CategoryDetailsProps) => {
     );
   }
 
-  // ── Screenshots / Blurry / Live: uniform grid ────────────────────────
+  // ── Render: Other categories (grid) ─────────────────────────────
   return (
     <SafeAreaView style={styles.screen}>
       <Animated.View style={[styles.header, headerEntrance]}>
@@ -468,14 +272,10 @@ const CategoryDetails = ({ variant }: CategoryDetailsProps) => {
       </Animated.Text>
 
       <FlashList
-        data={gridItems}
+        data={rawItems}
         keyExtractor={(i) => i.id}
         numColumns={COLUMNS}
-        // estimatedItemSize={TILE_SIZE}
         contentContainerStyle={{ paddingBottom: Spacing.four }}
-        // Gap is handled purely by margin on each cell wrapper (below) —
-        // no ItemSeparatorComponent + manual paddingRight math, which was
-        // the source of uneven-looking rows before.
         renderItem={({ item, index }: ListRenderItemInfo<PhotoItem>) => {
           const row = Math.floor(index / COLUMNS);
           const isLastInRow = (index + 1) % COLUMNS === 0;
@@ -491,7 +291,8 @@ const CategoryDetails = ({ variant }: CategoryDetailsProps) => {
                 variant={variant}
                 size={TILE_SIZE}
                 row={row}
-                onToggle={toggleGridItem}
+                onToggle={toggleSelection}
+                category={variant}
               />
             </View>
           );
@@ -506,14 +307,154 @@ const CategoryDetails = ({ variant }: CategoryDetailsProps) => {
 export default CategoryDetails;
 
 // ─────────────────────────────────────────────────────────────────────────
-// Styles
+// Subcomponents
 // ─────────────────────────────────────────────────────────────────────────
 
+// Selection badge
+const SelectionBadge = ({ selected }: { selected: boolean }) => {
+  if (selected) {
+    return (
+      <View style={styles.badgeSelected}>
+        <Check size={12} strokeWidth={3} color={Brand.textOnPrimary} />
+      </View>
+    );
+  }
+  return <View style={styles.badgeUnselected} />;
+};
+
+// Photo thumbnail (grid)
+const PhotoThumbnail = ({
+  item,
+  variant,
+  size,
+  row,
+  onToggle,
+  category,
+}: {
+  item: PhotoItem;
+  variant: CategoryVariant;
+  size: number;
+  row: number;
+  onToggle: (category: CategoryVariant, id: string) => void;
+  category: CategoryVariant;
+}) => {
+  const isBlurry = variant === "blurry";
+  const isLive = variant === "live";
+
+  const shouldAnimate = row < 12;
+  const entrance = useEntrance(
+    shouldAnimate ? 260 + row * 55 : 0,
+    shouldAnimate ? 10 : 0,
+  );
+
+  return (
+    <Animated.View style={shouldAnimate ? entrance : undefined}>
+      <Pressable
+        onPress={() => onToggle(category, item.id)}
+        style={[styles.thumbnail, { width: size, height: size }]}
+      >
+        <Image
+          source={{ uri: item.image }}
+          style={StyleSheet.absoluteFill}
+          contentFit="cover"
+          recyclingKey={item.id}
+        />
+
+        {isBlurry && (
+          <BlurView
+            intensity={35}
+            tint="dark"
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
+        )}
+
+        {isLive && (
+          <View style={styles.liveBadge}>
+            <View style={styles.liveDot} />
+            <Text style={styles.liveBadgeText}>LIVE</Text>
+          </View>
+        )}
+
+        {item.isBest && (
+          <View style={styles.bestBadge}>
+            <Text style={styles.bestBadgeText}>👑</Text>
+          </View>
+        )}
+
+        <View style={styles.thumbnailBadgeWrap}>
+          <SelectionBadge selected={item.selected} />
+        </View>
+      </Pressable>
+    </Animated.View>
+  );
+};
+
+// Duplicate group row
+const DuplicateGroupRow = ({
+  group,
+  index,
+  onToggle,
+  category,
+  tileSize,
+}: {
+  group: DuplicateGroup;
+  index: number;
+  onToggle: (category: CategoryVariant, id: string) => void;
+  category: CategoryVariant;
+  tileSize: number;
+}) => {
+  const shouldAnimate = index < 6;
+  const entrance = useEntrance(
+    shouldAnimate ? 260 + index * 90 : 0,
+    shouldAnimate ? 12 : 0,
+  );
+
+  return (
+    <Animated.View
+      style={[styles.duplicateGroup, shouldAnimate ? entrance : undefined]}
+    >
+      <View style={styles.bestLabelRow}>
+        <Text style={styles.bestLabelIcon}>👑</Text>
+        <Text style={styles.bestLabelText}>{group.label}</Text>
+      </View>
+      <View style={styles.duplicateGroupRow}>
+        {group.items.map((item) => (
+          <Pressable
+            key={item.id}
+            onPress={() => onToggle(category, item.id)}
+            style={[styles.thumbnail, { width: tileSize, height: tileSize }]}
+          >
+            <Image
+              source={{ uri: item.image }}
+              style={StyleSheet.absoluteFill}
+              contentFit="cover"
+              recyclingKey={item.id}
+            />
+            {item.isBest && (
+              <View style={styles.bestBadge}>
+                <Text style={styles.bestBadgeText}>👑</Text>
+              </View>
+            )}
+            <View style={styles.thumbnailBadgeWrap}>
+              <SelectionBadge selected={item.selected} />
+            </View>
+          </Pressable>
+        ))}
+      </View>
+    </Animated.View>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Styles (unchanged – copy from your file)
+// ─────────────────────────────────────────────────────────────────────────
+// ... (keep your existing styles)
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: Brand.appBackground,
-    paddingHorizontal: Spacing.four,
+    paddingHorizontal: Spacing.three,
   },
   header: {
     flexDirection: "row",
@@ -537,7 +478,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: Spacing.three,
   },
-
   thumbnail: {
     borderRadius: Radii.small,
     overflow: "hidden",
@@ -566,7 +506,18 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "rgba(255,255,255,0.7)",
   },
-
+  bestBadge: {
+    position: "absolute",
+    top: 4,
+    left: 4,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    borderRadius: Radii.small,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  bestBadgeText: {
+    fontSize: 12,
+  },
   liveBadge: {
     position: "absolute",
     top: 4,
@@ -591,7 +542,6 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: FontWeights.semibold as any,
   },
-
   duplicatesListContent: {
     paddingBottom: Spacing.four,
   },
@@ -614,15 +564,13 @@ const styles = StyleSheet.create({
   },
   duplicateGroupRow: {
     flexDirection: "row",
-    gap: GRID_GAP,
+    gap: Spacing.two,
   },
-
   footer: {
     position: "absolute",
-    bottom: 20, // or use safe area insets
+    bottom: 20,
     borderRadius: Radii.xlarge,
     overflow: "hidden",
-
     borderWidth: 1,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },

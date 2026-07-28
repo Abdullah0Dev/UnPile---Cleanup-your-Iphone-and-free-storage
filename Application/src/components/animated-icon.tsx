@@ -33,7 +33,7 @@ export function AnimatedSplashOverlay() {
     },
   });
 
-  const image = <Image style={styles.image} source={require('@/assets/images/logo.png')} />;
+  const image = <Image style={styles.image} source={require('@/assets/images/icon.png')} />;
 
   return animate ? (
     <Animated.View

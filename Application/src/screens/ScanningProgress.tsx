@@ -14,47 +14,36 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
-  withDelay,
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
-import { ChevronLeft } from "lucide-react-native";
-import {
-  Brand,
-  FontSizes,
-  FontWeights,
-  Radii,
-  Spacing,
-} from "@/constants/theme";
+import { Brand, FontSizes, FontWeights, Radii, Spacing } from "@/constants/theme";
 import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import { useEntrance, useHeroEntrance } from "@/hooks/use-entrance";
 import { router } from "expo-router";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-// ── Ring geometry — matches the ring proportions in the reference design ──
 const RING_SIZE = 210;
 const STROKE = 10;
 const RADIUS = (RING_SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 type ScanningProgressProps = {
-  /** 0–100 target progress. Wire up to real scan progress later. */
+  /** Dynamic progress 0–100, updated from native events */
   progress?: number;
-  /** Total item count being scanned. */
+  /** Total items being scanned (optional) */
   totalItems?: number;
-  /** Duration of the count-up animation in ms. */
-  durationMs?: number;
+  categoryProgress?: string;
 };
 
 const ScanningProgress = ({
-  progress = 80,
-  totalItems = 12345,
-  durationMs = 2600,
+  progress = 0,
+  totalItems = 0,
+  categoryProgress = "Scanning Library"
 }: ScanningProgressProps) => {
-  // ── Screen entrance — same cascade rhythm as every other screen ──────
+  // ── Screen entrance ──────────────────────────────────────────────────
   const headerEntrance = useEntrance(0);
   const titleEntrance = useEntrance(60);
   const ringEntrance = useHeroEntrance(140);
@@ -62,7 +51,7 @@ const ScanningProgress = ({
   const scanningSubtitleEntrance = useEntrance(420);
   const privacyCardEntrance = useEntrance(500);
 
-  // --- Continuous "alive" comet sweep (always running, independent of progress) ---
+  // ── Comet sweep (always running) ──────────────────────────────────
   const sweepProgress = useSharedValue(0);
 
   useEffect(() => {
@@ -73,25 +62,19 @@ const ScanningProgress = ({
     );
   }, []);
 
-  // --- Reactive progress fill, animated 0 → target on the UI thread ---
-  // Delayed to start just after the ring itself has popped in.
+  // ── Animated progress (smoothly follows the `progress` prop) ─────
   const animatedProgress = useSharedValue(0);
-
-  // JS-side mirror of the number, updated from the UI thread so the
-  // <Text> actually counts up frame by frame instead of just re-rendering once.
   const [displayPercent, setDisplayPercent] = useState(0);
 
+  // React to prop changes: animate to new value smoothly
   useEffect(() => {
-    animatedProgress.value = 0;
-    animatedProgress.value = withDelay(
-      140,
-      withTiming(progress, {
-        duration: durationMs,
-        easing: Easing.out(Easing.cubic),
-      }),
-    );
-  }, [progress, durationMs]);
+    animatedProgress.value = withTiming(progress, {
+      duration: 400,
+      easing: Easing.out(Easing.cubic),
+    });
+  }, [progress]);
 
+  // Mirror the rounded value to JS state for the <Text>
   useAnimatedReaction(
     () => Math.round(animatedProgress.value),
     (current, previous) => {
@@ -101,7 +84,7 @@ const ScanningProgress = ({
     },
   );
 
-  // Progress arc dash offset (fills clockwise from top, 12 o'clock start)
+  // Progress arc dash offset
   const progressDashOffset = useDerivedValue(
     () => CIRCUMFERENCE - (CIRCUMFERENCE * animatedProgress.value) / 100,
   );
@@ -109,7 +92,7 @@ const ScanningProgress = ({
     strokeDashoffset: progressDashOffset.value,
   }));
 
-  // Comet highlight continuously chasing around the track
+  // Comet highlight
   const sweepDashOffset = useDerivedValue(
     () => -sweepProgress.value * CIRCUMFERENCE,
   );
@@ -117,15 +100,13 @@ const ScanningProgress = ({
     strokeDashoffset: sweepDashOffset.value,
   }));
 
-  // Subtle pulsing scale on the percent label while counting, settles at rest
+  // Subtle pulse on the percent label
   const pulseStyle = useAnimatedStyle(() => {
-    const isDone = animatedProgress.value >= progress - 0.1;
+    const isDone = animatedProgress.value >= 99.9;
     return {
       transform: [
         {
-          scale: isDone
-            ? 1
-            : 1 + Math.sin(animatedProgress.value * 0.3) * 0.003,
+          scale: isDone ? 1 : 1 + Math.sin(animatedProgress.value * 0.3) * 0.003,
         },
       ],
     };
@@ -149,14 +130,14 @@ const ScanningProgress = ({
       </Animated.View>
 
       <Animated.Text style={[styles.title, titleEntrance]}>
-        Scanning Library
+      Scanning Library
       </Animated.Text>
 
       {/* ── Progress ring ────────────────────────────────────────── */}
       <Animated.View style={[styles.ringWrap, ringEntrance]}>
         <View style={styles.glow} pointerEvents="none" />
 
-        {/* Static track (unfilled base circle) */}
+        {/* Static track */}
         <Svg
           width={RING_SIZE}
           height={RING_SIZE}
@@ -196,7 +177,7 @@ const ScanningProgress = ({
             </SvgLinearGradient>
           </Defs>
 
-          {/* Filled progress arc, starts at 12 o'clock, grows clockwise */}
+          {/* Filled progress arc */}
           <AnimatedCircle
             cx={RING_SIZE / 2}
             cy={RING_SIZE / 2}
@@ -211,7 +192,7 @@ const ScanningProgress = ({
             origin={`${RING_SIZE / 2}, ${RING_SIZE / 2}`}
           />
 
-          {/* Comet highlight riding along the already-filled portion */}
+          {/* Comet highlight */}
           <AnimatedCircle
             cx={RING_SIZE / 2}
             cy={RING_SIZE / 2}
@@ -227,7 +208,7 @@ const ScanningProgress = ({
           />
         </Svg>
 
-        {/* Center percent label — counts up 0 → target in real time */}
+        {/* Center percent label */}
         <Animated.View style={pulseStyle}>
           <Text style={styles.percentText}>{displayPercent}%</Text>
         </Animated.View>
@@ -235,7 +216,7 @@ const ScanningProgress = ({
 
       {/* ── Status copy ──────────────────────────────────────────── */}
       <Animated.Text style={[styles.scanningLabel, scanningLabelEntrance]}>
-        Scanning {totalItems.toLocaleString()} items...
+        {totalItems > 0 ? `Scanning ${totalItems.toLocaleString()} items...` : categoryProgress}
       </Animated.Text>
       <Animated.Text
         style={[styles.scanningSubtitle, scanningSubtitleEntrance]}
@@ -263,12 +244,11 @@ const ScanningProgress = ({
 };
 
 export default ScanningProgress;
-
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: Brand.appBackground,
-    paddingHorizontal: Spacing.four,
+    paddingHorizontal: Spacing.three,
     alignItems: "center",
   },
   header: {

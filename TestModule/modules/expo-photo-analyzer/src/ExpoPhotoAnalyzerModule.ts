@@ -1,22 +1,19 @@
-import { NativeModule, requireNativeModule } from 'expo';
-import { AnalysisResult } from './ExpoPhotoAnalyzer.types';
+import { NativeModule, requireNativeModule } from "expo-modules-core";
 
+export type OnProgressEventPayload = {
+  progress: number;
+  category: string;
+};
 
-export interface ExpoPhotoAnalyzerModule extends NativeModule {
-  /**
-   * Starts the photo analysis process.
-   * @returns A promise that resolves with the analysis result.
-   * @throws {Error} if permissions are not granted or analysis fails.
-   */
-  analyzePhotos(): Promise<AnalysisResult>;
+export type ExpoPhotoAnalyzerModuleEvents = {
+  onProgress: (params: OnProgressEventPayload) => void;
+};
 
-  /**
-   * Simple test function.
-   * @returns A greeting string.
-   */
+declare class ExpoPhotoAnalyzerModule extends NativeModule<ExpoPhotoAnalyzerModuleEvents> {
   hello(): string;
+  analyzePhotos(): Promise<any>;
 }
 
-// MARK: - Export
-
-export default requireNativeModule<ExpoPhotoAnalyzerModule>('ExpoPhotoAnalyzer');
+export default requireNativeModule<ExpoPhotoAnalyzerModule>(
+  "ExpoPhotoAnalyzer",
+);

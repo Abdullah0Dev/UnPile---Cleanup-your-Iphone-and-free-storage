@@ -1,27 +1,68 @@
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React, { useState, useEffect } from "react";
+import { StyleSheet, Text, View, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
 import Animated from "react-native-reanimated";
+import * as ImagePicker from "expo-image-picker";
+import { router } from "expo-router";
 
 import { Brand, FontSizes, FontWeights, Gradients } from "@/constants/theme";
 import { GradientText } from "@/components/ui/gradient-text";
 import { GradientButton } from "@/components/ui/gradient-button";
 import { useEntrance, useHeroEntrance } from "@/hooks/use-entrance";
-import { router } from "expo-router";
-
+import { useAnalysis } from "@/context/AnalysisContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 const GetStarted = () => {
   const logoEntrance = useHeroEntrance(0);
   const wordmarkEntrance = useEntrance(160);
   const subtitleEntrance = useEntrance(240);
   const buttonEntrance = useEntrance(360);
 
-  const handleStartScanning = () => {
-    console.log("hiii");
+  const { startAnalysis, isLoading, clearResult } = useAnalysis();
+  const [permissionGranted, setPermissionGranted] = useState(false);
+  const [isCheckingPermission, setIsCheckingPermission] = useState(false);
 
-    router.push("/scanning");
-    // router.push("/test");
+  // Check permission on mount
+  useEffect(() => {
+    const checkPermission = async () => {
+      const { status } = await ImagePicker.getMediaLibraryPermissionsAsync();
+      setPermissionGranted(status === "granted");
+    };
+    checkPermission();
+  }, []);
+
+  const requestPermission = async (): Promise<boolean> => {
+    setIsCheckingPermission(true);
+    try {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const granted = status === "granted";
+      setPermissionGranted(granted);
+      if (!granted) {
+        Alert.alert(
+          "Permission Required",
+          "Please grant photo library access in Settings to scan your photos.",
+          [{ text: "OK", style: "default" }],
+        );
+      }
+      return granted;
+    } catch (error) {
+      console.error("Permission error:", error);
+      return false;
+    } finally {
+      setIsCheckingPermission(false);
+    }
   };
+  const handleStartScanning = async () => {
+    if (!permissionGranted) {
+      const granted = await requestPermission();
+      if (!granted) return;
+    }
+    // Just navigate – analysis starts on the scanning screen
+    router.push("/scanning");
+  };
+  const isButtonDisabled = isLoading || isCheckingPermission;
+
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.container}>
@@ -56,8 +97,12 @@ const GetStarted = () => {
       </View>
 
       <Animated.View style={buttonEntrance}>
-        <GradientButton onPress={handleStartScanning} title="Start Scanning" />
-      </Animated.View>
+        <GradientButton
+          onPress={handleStartScanning}
+          title={isCheckingPermission ? "Checking..." : "Start Scanning"}
+          disabled={isButtonDisabled}
+        />
+      </Animated.View> 
     </SafeAreaView>
   );
 };

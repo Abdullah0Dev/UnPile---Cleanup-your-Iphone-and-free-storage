@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, Text, View, Pressable } from "react-native";
 import { Image, ImageSource } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { ChevronLeft, Sparkles } from "lucide-react-native";
+import { Sparkles } from "lucide-react-native";
 import Animated from "react-native-reanimated";
 
 import { GradientButton } from "@/components/ui/gradient-button";
@@ -16,96 +16,134 @@ import {
 } from "@/constants/theme";
 import { useEntrance } from "@/hooks/use-entrance";
 import { router } from "expo-router";
+import { useAnalysis } from "@/context/AnalysisContext";
 import { CategoryVariant } from "./CategoryDetails";
 
-// Category icons — same assets used on the Home / Scan Complete screen.
+// Category icons
 const ScreenshotsIcon = require("@/assets/icons/screenshots.png");
 const DuplicatesIcon = require("@/assets/icons/duplicates.png");
 const BlurryPhotosIcon = require("@/assets/icons/blurry.png");
 const LivePhotosIcon = require("@/assets/icons/live-photos.png");
+const ClutterIcon = require("@/assets/icons/trash.png");
 
-type CategoryTileData = {
-  key: CategoryVariant;
-  label: string;
-  itemCount: number;
-  size: string;
-  image: ImageSource;
-};
-const CATEGORIES: CategoryTileData[] = [
-  {
-    key: "screenshots",
-    label: "Screenshots",
-    itemCount: 874,
-    size: "4.2 GB",
-    image: ScreenshotsIcon,
-  },
-  {
-    key: "duplicates",
-    label: "Duplicates",
-    itemCount: 342,
-    size: "8.7 GB",
-    image: DuplicatesIcon,
-  },
-  {
-    key: "blurry",
-    label: "Blurry Photos",
-    itemCount: 218,
-    size: "2.1 GB",
-    image: BlurryPhotosIcon,
-  },
-  {
-    key: "live",
-    label: "Live Photos",
-    itemCount: 220,
-    size: "8.6 GB",
-    image: LivePhotosIcon,
-  },
-];
+// Helper: format bytes
+function formatBytes(bytes: number): string {
+  const units = ["B", "KB", "MB", "GB"];
+  let size = bytes;
+  let unitIndex = 0;
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex++;
+  }
+  return `${size.toFixed(1)} ${units[unitIndex]}`;
+}
 
-const TOTAL_FREEABLE_GB = "23.6 GB";
-const TOTAL_ITEMS = 1654;
-
-// One tile's worth of stagger delay, applied on top of the grid's base delay.
 const TILE_STAGGER_MS = 80;
 const GRID_BASE_DELAY = 140;
 
 const AllCategories = () => {
   const headerEntrance = useEntrance(0);
+  const { result } = useAnalysis();
+
+  // If no result, redirect to get started
+  if (!result) {
+    router.replace("/");
+    return null;
+  }
+
+  // ── Compute category data ──────────────────────────────────────────
+  const categories = useMemo(() => {
+    const screenshotCandidates = result.screenshotCandidates || [];
+    const duplicateIds = result.duplicateGroups.flatMap(
+      (g) => g.duplicateAssetIds,
+    );
+    const blurryCount = result.blurry?.length || 0;
+    const liveCandidateCount = result.livePhotoCandidates?.length || 0;
+    const clutterCount = result.clutter?.length || 0;
+
+    const totalFreeableItems =
+      screenshotCandidates.length +
+      duplicateIds.length +
+      blurryCount +
+      liveCandidateCount +
+      clutterCount;
+
+    const totalFreeableBytes = result.totalSavingsBytes || 0;
+    const categorySavings = result.categorySavings || {};
+
+    const rows = [
+      {
+        key: "screenshots" as CategoryVariant,
+        label: "Screenshots",
+        itemCount: screenshotCandidates.length,
+        sizeBytes: categorySavings.screenshots || 0,
+        image: ScreenshotsIcon,
+      },
+      {
+        key: "clutter" as CategoryVariant,
+        label: "Clutter",
+        itemCount: clutterCount,
+        sizeBytes: categorySavings.clutter || 0,
+        image: ClutterIcon,
+      },
+      {
+        key: "duplicates" as CategoryVariant,
+        label: "Duplicates",
+        itemCount: duplicateIds.length,
+        sizeBytes: categorySavings.duplicates || 0,
+        image: DuplicatesIcon,
+      },
+      {
+        key: "blurry" as CategoryVariant,
+        label: "Blurry Photos",
+        itemCount: blurryCount,
+        sizeBytes: categorySavings.blurry || 0,
+        image: BlurryPhotosIcon,
+      },
+      {
+        key: "live" as CategoryVariant,
+        label: "Live Photos",
+        itemCount: liveCandidateCount,
+        sizeBytes: categorySavings.livePhotos || 0,
+        image: LivePhotosIcon,
+      },
+    ];
+
+    return { rows, totalFreeableItems, totalFreeableBytes };
+  }, [result]);
+
+  const { rows, totalFreeableItems, totalFreeableBytes } = categories;
+
   const summaryCardEntrance = useEntrance(
-    GRID_BASE_DELAY + CATEGORIES.length * TILE_STAGGER_MS + 120,
+    GRID_BASE_DELAY + rows.length * TILE_STAGGER_MS + 120,
   );
-  const handleGoBack = () => {
-    router.back();
-  };
+
+  const handleGoBack = () => router.back();
 
   return (
     <SafeAreaView style={styles.screen}>
-      {/* ── Header ───────────────────────────────────────────────── */}
-      <View style={{ paddingHorizontal: Spacing.four }}>
+      <View style={{ paddingHorizontal: Spacing.three }}>
         <Animated.View style={[styles.header, headerEntrance]}>
           <Pressable onPress={handleGoBack}>
-              <Image
-                        source={require("@/assets/icons/back-arrow.png")}
-                        alt="back arrow"
-                        style={{ width: 28, height: 28 }}
-                      />
+            <Image
+              source={require("@/assets/icons/back-arrow.png")}
+              alt="back arrow"
+              style={{ width: 28, height: 28 }}
+            />
           </Pressable>
           <Text style={styles.title}>All Categories</Text>
-          {/* <Pressable hitSlop={8}>
-            <Text style={styles.selectLink}>Select</Text>
-          </Pressable> */}
           <View />
         </Animated.View>
 
-        {/* ── 2x2 category grid — each tile cascades in ─────────────── */}
+        {/* ── 2x2 category grid ──────────────────────────────────── */}
         <View style={styles.grid}>
-          {CATEGORIES.map(({ key, label, itemCount, size, image }, index) => (
+          {rows.map(({ key, label, itemCount, sizeBytes, image }, index) => (
             <CategoryTile
               key={key}
               id={key}
               label={label}
               itemCount={itemCount}
-              size={size}
+              size={formatBytes(sizeBytes)}
               image={image}
               delay={GRID_BASE_DELAY + index * TILE_STAGGER_MS}
             />
@@ -129,10 +167,10 @@ const AllCategories = () => {
           style={styles.summaryGradient}
         />
         <Text style={styles.summaryValue}>
-          {TOTAL_FREEABLE_GB} can be freed up
+          {formatBytes(totalFreeableBytes)} can be freed up
         </Text>
         <Text style={styles.summarySubtitle}>
-          {TOTAL_ITEMS.toLocaleString()} items
+          {totalFreeableItems.toLocaleString()} items
         </Text>
 
         <View style={styles.smartDeleteWrap}>
@@ -149,7 +187,7 @@ const AllCategories = () => {
 
 export default AllCategories;
 
-// Small subcomponent so each tile can own its own animated hook instance.
+// ── Subcomponent ──────────────────────────────────────────────────
 const CategoryTile = ({
   id,
   label,
@@ -158,22 +196,20 @@ const CategoryTile = ({
   image,
   delay,
 }: {
-  label: string;
   id: CategoryVariant;
+  label: string;
   itemCount: number;
   size: string;
   image: ImageSource;
   delay: number;
 }) => {
   const tileEntrance = useEntrance(delay, 12);
-  const handleReviewACategory = (category: CategoryVariant) => {
-    console.log("pressed: ", id);
-
-    router.navigate(`/category-details/${category}`);
+  const handlePress = () => {
+    router.navigate(`/category-details/${id}`);
   };
   return (
     <Animated.View style={[styles.tileWrap, tileEntrance]}>
-      <Pressable onPress={() => handleReviewACategory(id)}>
+      <Pressable onPress={handlePress}>
         <LinearGradient
           colors={["#120E38", Brand.appBackground]}
           style={styles.tile}
@@ -190,6 +226,7 @@ const CategoryTile = ({
   );
 };
 
+// ── Styles (unchanged) ─────────────────────────────────────────────
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
@@ -206,17 +243,10 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.headline,
     fontWeight: FontWeights.semibold as any,
   },
-  selectLink: {
-    color: Brand.primaryLight,
-    fontSize: FontSizes.body,
-    fontWeight: FontWeights.medium as any,
-  },
-
-  // 2x2 grid
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: Spacing.two + Spacing.half, // ~10
+    gap: Spacing.two + Spacing.half,
     marginBottom: Spacing.four,
   },
   tileWrap: {
@@ -260,11 +290,8 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.body,
     fontWeight: FontWeights.medium as any,
   },
-
-  // Bottom summary card
   summaryCard: {
     marginTop: "auto",
-    // marginBottom: Spacing.five,
     borderWidth: 1,
     borderColor: Brand.cardBorder,
     borderTopRightRadius: Radii.xlarge,

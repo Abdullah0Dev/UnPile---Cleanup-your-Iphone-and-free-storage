@@ -81,7 +81,7 @@ function AssetThumbnail({ assetId, size }: { assetId: string; size: number }) {
 function SummarySection({ result }: { result: AnalysisResult }) {
   const totalDuplicateAssets = result.duplicateGroups.reduce(
     (sum, g) => sum + g.duplicateAssetIds.length,
-    0
+    0,
   );
   const totalBestPhotos = result.duplicateGroups.length;
 
@@ -94,7 +94,9 @@ function SummarySection({ result }: { result: AnalysisResult }) {
       </View>
       <View style={styles.summaryRow}>
         <Text style={styles.summaryLabel}>⏰ Screenshot candidates:</Text>
-        <Text style={styles.summaryValue}>{result.screenshotCandidates.length}</Text>
+        <Text style={styles.summaryValue}>
+          {result.screenshotCandidates.length}
+        </Text>
       </View>
       <View style={styles.summaryRow}>
         <Text style={styles.summaryLabel}>📁 Clutter:</Text>
@@ -169,12 +171,7 @@ function GridSection({
         </View>
       )}
       {borderColor && (
-        <View
-          style={[
-            styles.borderOverlay,
-            { borderColor: borderColor },
-          ]}
-        />
+        <View style={[styles.borderOverlay, { borderColor: borderColor }]} />
       )}
     </View>
   );
@@ -224,7 +221,10 @@ function DuplicateGroupsSection({ groups }: { groups: DuplicateGroup[] }) {
             </View>
             {/* Duplicates */}
             {group.duplicateAssetIds.map((id) => (
-              <View key={id} style={[styles.thumbnailWrapper, { width: 80, height: 80 }]}>
+              <View
+                key={id}
+                style={[styles.thumbnailWrapper, { width: 80, height: 80 }]}
+              >
                 <AssetThumbnail assetId={id} size={80} />
                 <View style={[styles.borderOverlay, { borderColor: "red" }]} />
                 <View
@@ -251,27 +251,27 @@ function DuplicateGroupsSection({ groups }: { groups: DuplicateGroup[] }) {
 export default function HomeScreen() {
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [category, setCategory] = useState("");
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Check permission on mount
   useEffect(() => {
-    checkPermission();
+    const subscription = ExpoPhotoAnalyzerModule.addListener(
+      "onProgress",
+      (event: { progress: number; category: string }) => {
+        setProgress(event.progress);
+        setCategory(event.category);
+      },
+    );
+    return () => subscription.remove();
   }, []);
-
-  const checkPermission = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    setPermissionGranted(status === "granted");
-  };
-
-  const requestPermission = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    setPermissionGranted(status === "granted");
-  };
 
   const runAnalysis = async () => {
     setIsScanning(true);
     setError(null);
+    setProgress(0);
+    setCategory("Starting...");
     try {
       const data = await ExpoPhotoAnalyzerModule.analyzePhotos();
       setResult(data);
@@ -281,6 +281,16 @@ export default function HomeScreen() {
     } finally {
       setIsScanning(false);
     }
+  };
+
+  const checkPermission = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    setPermissionGranted(status === "granted");
+  };
+
+  const requestPermission = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    setPermissionGranted(status === "granted");
   };
 
   return (
@@ -300,8 +310,18 @@ export default function HomeScreen() {
             <Button title="Request Photo Access" onPress={requestPermission} />
           ) : isScanning ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" />
-              <Text style={styles.loadingText}>Scanning photos...</Text>
+              <View style={styles.progressBarTrack}>
+                <View
+                  style={[
+                    styles.progressBarFill,
+                    { width: `${Math.round(progress * 100)}%` },
+                  ]}
+                />
+              </View>
+              <Text style={styles.loadingText}>{category}</Text>
+              <Text style={styles.progressPercentText}>
+                {Math.round(progress * 100)}%
+              </Text>
             </View>
           ) : result ? (
             <View style={styles.resultContainer}>
@@ -353,9 +373,7 @@ export default function HomeScreen() {
             <Button title="Start Scanning" onPress={runAnalysis} />
           )}
 
-          {error && (
-            <Text style={styles.errorText}>Error: {error}</Text>
-          )}
+          {error && <Text style={styles.errorText}>Error: {error}</Text>}
 
           {/* Dev Hints */}
           <ThemedView type="backgroundElement" style={styles.stepContainer}>
@@ -553,5 +571,22 @@ const styles = StyleSheet.create({
   duplicateGroupRow: {
     flexDirection: "row",
     gap: 4,
+  },
+  progressBarTrack: {
+    width: "100%",
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    overflow: "hidden",
+  },
+  progressBarFill: {
+    height: "100%",
+    backgroundColor: "#4CAF50",
+    borderRadius: 4,
+  },
+  progressPercentText: {
+    fontSize: 12,
+    color: "#999",
+    marginTop: 4,
   },
 });

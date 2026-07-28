@@ -1,36 +1,51 @@
 import ExpoModulesCore
 import Photos
+import Combine
 
 public class ExpoPhotoAnalyzerModule: Module {
+    private var cancellables = Set<AnyCancellable>()
+    private var analyzer: PhotoAnalyzer?
+
     public func definition() -> ModuleDefinition {
         Name("ExpoPhotoAnalyzer")
 
-        // MARK: - Main analysis function
+        // Declare the event name so JS can subscribe to it
+        Events("onProgress")
+
         AsyncFunction("analyzePhotos") { (promise: Promise) in
-            // 1. Check photo library permissions
             let status = PHPhotoLibrary.authorizationStatus()
             guard status == .authorized || status == .limited else {
                 promise.reject("PERMISSION_DENIED", "Photo library access is required. Please grant permission.")
                 return
             }
 
-            // 2. Create the analyzer
             let analyzer = PhotoAnalyzer()
+            self.analyzer = analyzer
 
-            // 3. Start analysis with completion
-            analyzer.analyzePhotos { result in
-                let dict = self.convertResult(result)
+            // Bridge the same @Published progress/category the SwiftUI version used,
+            // and forward every change to JS as a native event.
+            Publishers.CombineLatest(analyzer.$progress, analyzer.$category)
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] progress, category in
+                    self?.sendEvent("onProgress", [
+                        "progress": progress,
+                        "category": category
+                    ])
+                }
+                .store(in: &self.cancellables)
+
+            analyzer.analyzePhotos { [weak self] result in
+                let dict = self?.convertResult(result) ?? [:]
                 promise.resolve(dict)
+                self?.cancellables.removeAll()
+                self?.analyzer = nil
             }
         }
 
-        // MARK: - Test function
         Function("hello") {
             return "Hello from ExpoPhotoAnalyzer! 🌎"
         }
     }
-
-    // MARK: - Helpers
 
     private func convertResult(_ result: AnalysisResult) -> [String: Any] {
         return [

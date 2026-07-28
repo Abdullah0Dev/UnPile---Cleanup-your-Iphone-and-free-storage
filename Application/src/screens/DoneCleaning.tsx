@@ -23,7 +23,7 @@ import {
 } from "@/constants/theme";
 
 type DoneCleaningProps = {
-  freedUpGb?: number;
+  freedUpBytes?: number;
   itemsDeleted?: number;
   onViewLibrary?: () => void;
   onDone?: () => void;
@@ -35,7 +35,10 @@ function useEntrance(delay: number) {
   const translateY = useSharedValue(14);
 
   useEffect(() => {
-    opacity.value = withDelay(delay, withTiming(1, { duration: 420, easing: Easing.out(Easing.cubic) }));
+    opacity.value = withDelay(
+      delay,
+      withTiming(1, { duration: 420, easing: Easing.out(Easing.cubic) }),
+    );
     translateY.value = withDelay(
       delay,
       withSpring(0, { damping: 14, stiffness: 120 }),
@@ -48,9 +51,26 @@ function useEntrance(delay: number) {
   }));
 }
 
+// Helper: format bytes to appropriate unit (KB, MB, GB)
+function formatBytes(bytes: number): { value: number; unit: string } {
+  if (bytes < 1024) {
+    return { value: bytes, unit: "B" };
+  }
+  const kb = bytes / 1024;
+  if (kb < 1024) {
+    return { value: kb, unit: "KB" };
+  }
+  const mb = kb / 1024;
+  if (mb < 1024) {
+    return { value: mb, unit: "MB" };
+  }
+  const gb = mb / 1024;
+  return { value: gb, unit: "GB" };
+}
+
 const DoneCleaning = ({
-  freedUpGb = 23.6,
-  itemsDeleted = 1654,
+  freedUpBytes = 0,
+  itemsDeleted = 0,
   onViewLibrary,
   onDone,
 }: DoneCleaningProps) => {
@@ -63,7 +83,10 @@ const DoneCleaning = ({
   const glowScale = useSharedValue(0.85);
 
   useEffect(() => {
-    badgeOpacity.value = withTiming(1, { duration: 260, easing: Easing.out(Easing.ease) });
+    badgeOpacity.value = withTiming(1, {
+      duration: 260,
+      easing: Easing.out(Easing.ease),
+    });
     badgeScale.value = withSequence(
       withTiming(1.12, { duration: 340, easing: Easing.out(Easing.cubic) }),
       withSpring(1, { damping: 8, stiffness: 160 }),
@@ -78,8 +101,14 @@ const DoneCleaning = ({
       500,
       withRepeat(
         withSequence(
-          withTiming(1.08, { duration: 1600, easing: Easing.inOut(Easing.ease) }),
-          withTiming(0.96, { duration: 1600, easing: Easing.inOut(Easing.ease) }),
+          withTiming(1.08, {
+            duration: 1600,
+            easing: Easing.inOut(Easing.ease),
+          }),
+          withTiming(0.96, {
+            duration: 1600,
+            easing: Easing.inOut(Easing.ease),
+          }),
         ),
         -1,
         true,
@@ -103,12 +132,20 @@ const DoneCleaning = ({
   const statSubtitleEntrance = useEntrance(420);
   const buttonsEntrance = useEntrance(520);
 
+  // Format the freed-up bytes to appropriate unit
+  const { value: formattedValue, unit } = formatBytes(freedUpBytes);
+  const displayValue = formattedValue.toFixed(1);
+  const displayUnit = unit;
+
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.container}>
         {/* ── Glowing done badge ──────────────────────────────────── */}
         <View style={styles.badgeWrap}>
-          <Animated.View style={[styles.glow, glowStyle]} pointerEvents="none" />
+          <Animated.View
+            style={[styles.glow, glowStyle]}
+            pointerEvents="none"
+          />
           <Animated.View style={badgeStyle}>
             <Image
               source={require("@/assets/icons/done.png")}
@@ -125,7 +162,7 @@ const DoneCleaning = ({
           You freed up
         </Animated.Text>
         <Animated.Text style={[styles.statValue, statValueEntrance]}>
-          {freedUpGb.toFixed(1)} GB
+          {displayValue} {displayUnit}
         </Animated.Text>
         <Animated.Text style={[styles.statSubtitle, statSubtitleEntrance]}>
           {itemsDeleted.toLocaleString()} items deleted

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { GradientButton } from "@/components/ui/gradient-button";
 import {
@@ -11,110 +11,194 @@ import {
 import { Image, ImageSource } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { ChevronLeft } from "lucide-react-native";
 import Animated from "react-native-reanimated";
+import { router } from "expo-router";
 
 import { useEntrance } from "@/hooks/use-entrance";
-import { router } from "expo-router";
+import { useAnalysis } from "@/context/AnalysisContext";
 import { CategoryVariant } from "./CategoryDetails";
 
+// ── Icons ──────────────────────────────────────────────────────────────
 const ScreenshotsIcon = require("@/assets/icons/screenshots.png");
 const DuplicatesIcon = require("@/assets/icons/duplicates.png");
 const BlurryPhotosIcon = require("@/assets/icons/blurry.png");
 const LivePhotosIcon = require("@/assets/icons/live-photos.png");
+const ClutterIcon = require("@/assets/icons/trash.png"); // ← add this asset
 
+// ── Types ──────────────────────────────────────────────────────────────
 type CategoryRowData = {
   key: CategoryVariant;
   label: string;
   itemCount: number;
-  size: string;
+  sizeBytes: number;
   image: ImageSource;
 };
 
-export const CATEGORIES: CategoryRowData[] = [
-  {
-    key: "screenshots",
-    label: "Screenshots",
-    itemCount: 874,
-    size: "4.2 GB",
-    image: ScreenshotsIcon,
-  },
-  {
-    key: "duplicates",
-    label: "Duplicates",
-    itemCount: 342,
-    size: "8.7 GB",
-    image: DuplicatesIcon,
-  },
-  {
-    key: "blurry",
-    label: "Blurry Photos",
-    itemCount: 218,
-    size: "2.1 GB",
-    image: BlurryPhotosIcon,
-  },
-  {
-    key: "live",
-    label: "Live Photos",
-    itemCount: 220,
-    size: "8.6 GB",
-    image: LivePhotosIcon,
-  },
-];
-
-const TOTAL_FREEABLE_GB = "23.6 GB";
-const TOTAL_ITEMS = 1654;
-
-// One row's worth of stagger delay, applied on top of the list's base delay.
 const ROW_STAGGER_MS = 70;
 
-export const CategoriesList = ({
+// ── Helper: format bytes ──────────────────────────────────────────
+function formatBytes(bytes: number): string {
+  const units = ["B", "KB", "MB", "GB"];
+  let size = bytes;
+  let unitIndex = 0;
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex++;
+  }
+  return `${size.toFixed(1)} ${units[unitIndex]}`;
+}
+export function CategoriesList({
+  categoryRows,
   marginTop = false,
 }: {
+  categoryRows: CategoryRowData[];
   marginTop?: boolean;
-}) => {
+}) {
+  const [containerHeight, setContainerHeight] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
+
+  // Enable scrolling only if content overflows
+  const isScrollable = contentHeight > containerHeight;
   return (
-    <View
-      style={[styles.categoryList, marginTop && { marginTop: Spacing.five }]}
+    <Animated.ScrollView
+      contentContainerStyle={[styles.categoryList, marginTop && { marginTop: Spacing.three}]}
+      style={marginTop ?{ width: "100%" }: {}}
+      scrollEnabled={isScrollable} // disable when not needed
+      bounces={false} // no bounce on iOS
+      showsVerticalScrollIndicator={false} // cleaner UI
+      onLayout={(e) => setContainerHeight(e.nativeEvent.layout.height)}
+      onContentSizeChange={(w, h) => setContentHeight(h)}
     >
-      {CATEGORIES.map(({ key, label, itemCount, size, image }, index) => (
-        <CategoryRow
-          id={key}
-          key={key}
-          label={label}
-          itemCount={itemCount}
-          size={size}
-          image={image}
-          delay={220 + index * ROW_STAGGER_MS}
-        />
-      ))}
-    </View>
+      {categoryRows.map(
+        ({ key, label, itemCount, sizeBytes, image }, index) => (
+          <CategoryRow
+            id={key}
+            key={key}
+            label={label}
+            itemCount={itemCount}
+            sizeBytes={sizeBytes}
+            image={image}
+            delay={220 + index * ROW_STAGGER_MS}
+          />
+        ),
+      )}
+    </Animated.ScrollView>
   );
-};
+}
+// ── Home Screen ──────────────────────────────────────────────────────
 const Home = () => {
   const headerEntrance = useEntrance(0);
   const titleEntrance = useEntrance(60);
   const statCardEntrance = useEntrance(140);
-  const sectionHeaderEntrance = useEntrance(220); // same as first row
+  const sectionHeaderEntrance = useEntrance(220);
+  const ctaEntrance = useEntrance(140 + 5 * ROW_STAGGER_MS + 160);
 
-  const ctaEntrance = useEntrance(
-    140 + CATEGORIES.length * ROW_STAGGER_MS + 160,
+  const { result, clearResult } = useAnalysis();
+
+  // If no result, redirect to get started
+  if (!result) {
+    router.replace("/");
+    return null;
+  }
+
+  // ── Compute category stats ──────────────────────────────────────────
+  const categories = useMemo(() => {
+    const screenshotCandidates = result.screenshotCandidates || [];
+    const duplicateIds = result.duplicateGroups.flatMap(
+      (g) => g.duplicateAssetIds,
+    );
+    const blurryCount = result.blurry?.length || 0;
+    const liveCandidateCount = result.livePhotoCandidates?.length || 0;
+    const clutterCount = result.clutter?.length || 0;
+
+    const totalFreeableItems =
+      screenshotCandidates.length +
+      duplicateIds.length +
+      blurryCount +
+      liveCandidateCount +
+      clutterCount;
+
+    const totalFreeableBytes = result.totalSavingsBytes || 0;
+    const categorySavings = result.categorySavings || {};
+
+    return {
+      screenshotCandidates: screenshotCandidates.length,
+      duplicateCount: duplicateIds.length,
+      blurryCount,
+      liveCandidateCount,
+      clutterCount,
+      totalFreeableItems,
+      totalFreeableBytes,
+      categorySavings,
+    };
+  }, [result]);
+
+  const {
+    screenshotCandidates,
+    duplicateCount,
+    blurryCount,
+    liveCandidateCount,
+    clutterCount,
+    totalFreeableItems,
+    totalFreeableBytes,
+    categorySavings,
+  } = categories;
+
+  // Category rows (including Clutter)
+  const mainCategoryRows: CategoryRowData[] = [
+    {
+      key: "screenshots",
+      label: "Screenshots",
+      itemCount: screenshotCandidates,
+      sizeBytes: categorySavings.screenshots || 0,
+      image: ScreenshotsIcon,
+    },
+    {
+      key: "clutter",
+      label: "Clutter",
+      itemCount: clutterCount,
+      sizeBytes: categorySavings.clutter || 0,
+      image: ClutterIcon,
+    },
+    {
+      key: "duplicates",
+      label: "Duplicates",
+      itemCount: duplicateCount,
+      sizeBytes: categorySavings.duplicates || 0,
+      image: DuplicatesIcon,
+    },
+    {
+      key: "blurry",
+      label: "Blurry Photos",
+      itemCount: blurryCount,
+      sizeBytes: categorySavings.blurry || 0,
+      image: BlurryPhotosIcon,
+    },
+    {
+      key: "live",
+      label: "Live Photos",
+      itemCount: liveCandidateCount,
+      sizeBytes: categorySavings.livePhotos || 0,
+      image: LivePhotosIcon,
+    },
+  ];
+  const categoryRows = mainCategoryRows.filter(
+    (category) => category.itemCount > 0,
   );
 
-  const handleGoBack = () => {
-    router.back();
+  const handleGoBack = async () => {
+    await clearResult();
+    router.dismissAll();
+    router.replace("/");
   };
-  const handleReviewItems = () => {
-    router.push("/delete-confirmation"); //all-categories
-  };
+  const handleReviewItems = () => router.push("/delete-confirmation");
   const handleSeeAllCategories = () => router.push("/all-categories");
 
   return (
     <SafeAreaView style={styles.screen}>
-      {/* ── Header ───────────────────────────────────────────────── */}
+      {/* Header */}
       <Animated.View style={[styles.header, headerEntrance]}>
         <Pressable onPress={handleGoBack}>
-          {/* <ChevronLeft strokeWidth={2} color={Brand.textPrimary} /> */}
           <Image
             source={require("@/assets/icons/back-arrow.png")}
             alt="back arrow"
@@ -127,7 +211,7 @@ const Home = () => {
         Scan Complete ✨
       </Animated.Text>
 
-      {/* ── Highlighted stat card ────────────────────────────────── */}
+      {/* Stat Card */}
       <Animated.View style={[styles.statCard, statCardEntrance]}>
         <LinearGradient
           start={{ x: 0, y: 0 }}
@@ -143,21 +227,24 @@ const Home = () => {
           style={styles.statCardGradient}
         />
         <Text style={styles.statLabel}>You can free up</Text>
-        <Text style={styles.statValue}>{TOTAL_FREEABLE_GB}</Text>
+        <Text style={styles.statValue}>{formatBytes(totalFreeableBytes)}</Text>
         <Text style={styles.statSubtitle}>
-          {TOTAL_ITEMS.toLocaleString()} items
+          {totalFreeableItems.toLocaleString()} items
         </Text>
       </Animated.View>
+
+      {/* Categories Header */}
       <Animated.View style={[styles.sectionHeader, sectionHeaderEntrance]}>
         <Text style={styles.sectionTitle}>Categories</Text>
         <Pressable onPress={handleSeeAllCategories}>
           <Text style={styles.seeAllButton}>See All</Text>
         </Pressable>
       </Animated.View>
-      {/* ── Category list — each row cascades in ─────────────────── */}
-      <CategoriesList />
 
-      {/* ── CTA ──────────────────────────────────────────────────── */}
+      {/* Category List */}
+      <CategoriesList categoryRows={categoryRows} />
+
+      {/* CTA */}
       <Animated.View style={[styles.ctaWrap, ctaEntrance]}>
         <GradientButton title="Review Items" onPress={handleReviewItems} />
       </Animated.View>
@@ -167,30 +254,33 @@ const Home = () => {
 
 export default Home;
 
-// Small subcomponent so each row can own its own animated hook instance.
+// ── Category Row Component ─────────────────────────────────────────
 export const CategoryRow = ({
-  label,
   id,
+  label,
   itemCount,
-  size,
+  sizeBytes,
   image,
   delay,
 }: {
   id: CategoryVariant;
   label: string;
   itemCount: number;
-  size: string;
+  sizeBytes: number;
   image: ImageSource;
   delay: number;
 }) => {
   const rowEntrance = useEntrance(delay, 10);
-  const handleReviewACategory = (category: CategoryVariant) => {
-    console.log("pressed: ", id);
 
-    router.navigate(`/category-details/${category}`);
+  const handlePress = () => {
+    //     console.log(`/category-details/${id}`);
+
+    // return;
+    router.navigate(`/category-details/${id}`);
   };
+
   return (
-    <Pressable onPress={() => handleReviewACategory(id)}>
+    <Pressable onPress={handlePress}>
       <Animated.View style={[styles.categoryRow, rowEntrance]}>
         <View style={styles.categoryIconWrap}>
           <Image style={{ width: 32, height: 32 }} source={image} />
@@ -199,27 +289,23 @@ export const CategoryRow = ({
           <Text style={styles.categoryLabel}>{label}</Text>
           <Text style={styles.categoryCount}>{itemCount} items</Text>
         </View>
-        <Text style={styles.categorySize}>{size}</Text>
+        <Text style={styles.categorySize}>{formatBytes(sizeBytes)}</Text>
       </Animated.View>
     </Pressable>
   );
 };
 
+// ── Styles (unchanged) ─────────────────────────────────────────────
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: Brand.appBackground,
-    paddingHorizontal: Spacing.four,
+    paddingHorizontal: Spacing.three,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: Spacing.four,
-  },
-  backChevron: {
-    color: Brand.textPrimary,
-    fontSize: 26,
-    fontWeight: FontWeights.regular as any,
   },
   title: {
     color: Brand.textPrimary,
@@ -238,7 +324,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   statCardGradient: {
-    height: "100%",
+    height: "160%",
     width: "100%",
     borderBottomEndRadius: 50,
     borderBottomStartRadius: 50,
@@ -269,22 +355,21 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: Spacing.one, // subtle alignment with rows
+    paddingHorizontal: Spacing.one,
     marginBottom: Spacing.three,
     marginTop: Spacing.three,
   },
   sectionTitle: {
     color: Brand.textPrimary,
-    fontSize: FontSizes.title, // or a bit smaller if you prefer
+    fontSize: FontSizes.title,
     fontWeight: FontWeights.semibold as any,
   },
   seeAllButton: {
-    color: Brand.primary, // or Brand.textSecondary with a tint
+    color: Brand.primary,
     fontSize: FontSizes.body,
     fontWeight: FontWeights.medium as any,
     paddingVertical: 4,
     paddingHorizontal: 8,
-    // optional: add a subtle underline or background on press
   },
   categoryList: {
     marginBottom: Spacing.five,
@@ -301,10 +386,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Brand.cardBorder,
     borderRadius: Radii.large,
-  },
-  categoryRowDivider: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Brand.divider,
   },
   categoryIconWrap: {
     width: 36,
