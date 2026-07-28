@@ -1,5 +1,13 @@
-import React, { useMemo } from "react";
-import { Pressable, StyleSheet, Text, View, Dimensions } from "react-native";
+import React, { useMemo, useState } from "react";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  Dimensions,
+  Modal,
+  TouchableOpacity,
+} from "react-native";
 import { FlashList, ListRenderItemInfo } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -56,8 +64,19 @@ function formatBytes(bytes: number): string {
 // Screen
 // ─────────────────────────────────────────────────────────────────────────
 const CategoryDetails = () => {
-  const { category: variant } = useLocalSearchParams<{ category : CategoryVariant }>();
-  const { result, getCategoryItems, toggleSelection, setAllSelected } = useAnalysis();
+  const { category: variant } = useLocalSearchParams<{
+    category: CategoryVariant;
+  }>();
+  const {
+    result,
+    getCategoryItems,
+    toggleSelection,
+    setAllSelected,
+    getSelectedSize,
+  } = useAnalysis();
+
+  // ── Preview state ──────────────────────────────────────────────────
+  const [previewImageId, setPreviewImageId] = useState<string | null>(null);
 
   // Guard: no result or invalid variant → redirect
   if (!result || !variant) {
@@ -65,9 +84,8 @@ const CategoryDetails = () => {
     return null;
   }
 
-  // ── Get items from context (no local state) ──────────────────────
+  // ── Get items from context ──────────────────────────────────────
   const rawItems = getCategoryItems(variant);
-  const categorySavings = result.categorySavings || {};
 
   // ── For duplicates: group items ──────────────────────────────────
   const duplicateGroups = useMemo(() => {
@@ -100,7 +118,7 @@ const CategoryDetails = () => {
     return groups;
   }, [rawItems, variant]);
 
-  // ── Metadata ──────────────────────────────────────────────────────
+  // ── Metadata using context helpers ─────────────────────────────
   const meta = useMemo(() => {
     const titleMap: Record<CategoryVariant, string> = {
       screenshots: "Screenshots",
@@ -109,22 +127,31 @@ const CategoryDetails = () => {
       blurry: "Blurry Photos",
       live: "Live Photos",
     };
+
     const totalItems = rawItems.length;
-    const selectedItems = rawItems.filter((i) => i.selected).length;
-    const sizeBytes = categorySavings[variant] || 0;
-    const sizeFormatted = formatBytes(sizeBytes);
+    const selectedCount = rawItems.filter((i) => i.selected).length;
+
+    // Use context helper to get total size of selected items
+    const selectedSizeBytes = getSelectedSize(variant);
+    const selectedSizeFormatted = formatBytes(selectedSizeBytes);
 
     return {
       title: titleMap[variant] || variant,
       itemCount: totalItems,
-      selectedCount: selectedItems,
-      totalSize: sizeFormatted,
+      selectedCount,
+      selectedSizeBytes,
+      selectedSizeFormatted,
     };
-  }, [variant, rawItems, categorySavings]);
+  }, [variant, rawItems, getSelectedSize]);
 
-  const selectedCount = meta.selectedCount;
-  const totalItemCount = meta.itemCount;
-  const allSelected = totalItemCount > 0 && selectedCount === totalItemCount;
+  const {
+    selectedCount,
+    selectedSizeBytes,
+    selectedSizeFormatted,
+    itemCount,
+    title,
+  } = meta;
+  const allSelected = itemCount > 0 && selectedCount === itemCount;
 
   const handleToggleSelectAll = () => {
     setAllSelected(variant, !allSelected);
@@ -135,9 +162,10 @@ const CategoryDetails = () => {
       pathname: "/delete-confirmation",
       params: {
         variant,
-        label: meta.title,
+        label: title,
         itemCount: String(selectedCount),
-        totalSize: meta.totalSize,
+        totalSize: selectedSizeFormatted,
+        totalSizeBytes: String(selectedSizeBytes),
       },
     });
   };
@@ -188,7 +216,7 @@ const CategoryDetails = () => {
       <View style={styles.footerContent}>
         <View style={styles.footerLeft}>
           <Text style={styles.footerCount}>{selectedCount} Selected</Text>
-          <Text style={styles.footerSize}>{meta.totalSize}</Text>
+          <Text style={styles.footerSize}>{selectedSizeFormatted}</Text>
         </View>
         <View style={{ width: "50%" }}>
           <GradientButton
@@ -226,17 +254,18 @@ const CategoryDetails = () => {
               style={{ width: 28, height: 28 }}
             />
           </Pressable>
-          <Text style={styles.title}>{meta.title}</Text>
+          <Text style={styles.title}>{title}</Text>
           {renderHeaderRight()}
         </Animated.View>
         <Animated.Text style={[styles.subtitle, subtitleEntrance]}>
-          {meta.itemCount} items · {meta.totalSize}
+          {itemCount} items · {selectedCount} selected · {selectedSizeFormatted}
         </Animated.Text>
 
         <FlashList
           data={duplicateGroups}
           keyExtractor={(g) => g.groupId}
           contentContainerStyle={styles.duplicatesListContent}
+          ListFooterComponent={<View style={{ height: 100 }} />}
           renderItem={({ item, index }: ListRenderItemInfo<DuplicateGroup>) => (
             <DuplicateGroupRow
               group={item}
@@ -244,11 +273,18 @@ const CategoryDetails = () => {
               onToggle={toggleSelection}
               category={variant}
               tileSize={DUPLICATE_TILE_SIZE}
+              onLongPress={setPreviewImageId}
             />
           )}
         />
 
         <Footer />
+
+        {/* ── Full‑screen image preview modal ───────────────────── */}
+        <ImagePreviewModal
+          imageId={previewImageId}
+          onClose={() => setPreviewImageId(null)}
+        />
       </SafeAreaView>
     );
   }
@@ -264,11 +300,11 @@ const CategoryDetails = () => {
             style={{ width: 28, height: 28 }}
           />
         </Pressable>
-        <Text style={styles.title}>{meta.title}</Text>
+        <Text style={styles.title}>{title}</Text>
         {renderHeaderRight()}
       </Animated.View>
       <Animated.Text style={[styles.subtitle, subtitleEntrance]}>
-        {meta.itemCount} items · {meta.totalSize}
+        {itemCount} items · {selectedCount} selected · {selectedSizeFormatted}
       </Animated.Text>
 
       <FlashList
@@ -276,6 +312,7 @@ const CategoryDetails = () => {
         keyExtractor={(i) => i.id}
         numColumns={COLUMNS}
         contentContainerStyle={{ paddingBottom: Spacing.four }}
+        ListFooterComponent={<View style={{ height: 60 }} />}
         renderItem={({ item, index }: ListRenderItemInfo<PhotoItem>) => {
           const row = Math.floor(index / COLUMNS);
           const isLastInRow = (index + 1) % COLUMNS === 0;
@@ -293,6 +330,7 @@ const CategoryDetails = () => {
                 row={row}
                 onToggle={toggleSelection}
                 category={variant}
+                onLongPress={setPreviewImageId}
               />
             </View>
           );
@@ -300,11 +338,52 @@ const CategoryDetails = () => {
       />
 
       <Footer />
+
+      {/* ── Full‑screen image preview modal ───────────────────── */}
+      <ImagePreviewModal
+        imageId={previewImageId}
+        onClose={() => setPreviewImageId(null)}
+      />
     </SafeAreaView>
   );
 };
 
 export default CategoryDetails;
+
+// ─────────────────────────────────────────────────────────────────────────
+// Image Preview Modal
+// ─────────────────────────────────────────────────────────────────────────
+const ImagePreviewModal = ({
+  imageId,
+  onClose,
+}: {
+  imageId: string | null;
+  onClose: () => void;
+}) => {
+  if (!imageId) return null;
+
+  return (
+    <Modal visible={!!imageId} transparent animationType="fade">
+      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.95)" }}>
+        <TouchableOpacity
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          activeOpacity={1}
+          onPress={onClose}
+        >
+          <Image
+            source={{ uri: `ph://${imageId}` }}
+            style={{ width: "100%", height: "85%" }}
+            contentFit="contain"
+            recyclingKey={imageId}
+          />
+          <Text style={{ color: "white", marginTop: 20, fontSize: 14 }}>
+            Tap to close
+          </Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    </Modal>
+  );
+};
 
 // ─────────────────────────────────────────────────────────────────────────
 // Subcomponents
@@ -330,6 +409,7 @@ const PhotoThumbnail = ({
   row,
   onToggle,
   category,
+  onLongPress,
 }: {
   item: PhotoItem;
   variant: CategoryVariant;
@@ -337,6 +417,7 @@ const PhotoThumbnail = ({
   row: number;
   onToggle: (category: CategoryVariant, id: string) => void;
   category: CategoryVariant;
+  onLongPress: (id: string) => void;
 }) => {
   const isBlurry = variant === "blurry";
   const isLive = variant === "live";
@@ -351,6 +432,8 @@ const PhotoThumbnail = ({
     <Animated.View style={shouldAnimate ? entrance : undefined}>
       <Pressable
         onPress={() => onToggle(category, item.id)}
+        onLongPress={() => onLongPress(item.id)}
+        delayLongPress={500}
         style={[styles.thumbnail, { width: size, height: size }]}
       >
         <Image
@@ -362,7 +445,7 @@ const PhotoThumbnail = ({
 
         {isBlurry && (
           <BlurView
-            intensity={35}
+            intensity={2}
             tint="dark"
             style={StyleSheet.absoluteFill}
             pointerEvents="none"
@@ -397,12 +480,14 @@ const DuplicateGroupRow = ({
   onToggle,
   category,
   tileSize,
+  onLongPress,
 }: {
   group: DuplicateGroup;
   index: number;
   onToggle: (category: CategoryVariant, id: string) => void;
   category: CategoryVariant;
   tileSize: number;
+  onLongPress: (id: string) => void;
 }) => {
   const shouldAnimate = index < 6;
   const entrance = useEntrance(
@@ -423,6 +508,8 @@ const DuplicateGroupRow = ({
           <Pressable
             key={item.id}
             onPress={() => onToggle(category, item.id)}
+            onLongPress={() => onLongPress(item.id)}
+            delayLongPress={500}
             style={[styles.thumbnail, { width: tileSize, height: tileSize }]}
           >
             <Image
@@ -447,9 +534,7 @@ const DuplicateGroupRow = ({
 };
 
 // ─────────────────────────────────────────────────────────────────────────
-// Styles (unchanged – copy from your file)
-// ─────────────────────────────────────────────────────────────────────────
-// ... (keep your existing styles)
+// Styles (unchanged) 
 const styles = StyleSheet.create({
   screen: {
     flex: 1,

@@ -45,74 +45,96 @@ const AllCategories = () => {
   const headerEntrance = useEntrance(0);
   const { result } = useAnalysis();
 
-  // If no result, redirect to get started
   if (!result) {
     router.replace("/");
     return null;
   }
 
-  // ── Compute category data ──────────────────────────────────────────
-  const categories = useMemo(() => {
-    const screenshotCandidates = result.screenshotCandidates || [];
-    const duplicateIds = result.duplicateGroups.flatMap(
-      (g) => g.duplicateAssetIds,
-    );
-    const blurryCount = result.blurry?.length || 0;
-    const liveCandidateCount = result.livePhotoCandidates?.length || 0;
-    const clutterCount = result.clutter?.length || 0;
+  const assetSizes = result.assetSizes || {};
 
+  // ── Compute deletable items per category ──────────────────────────
+  const categoryData = useMemo(() => {
+    // Helper to sum sizes of an ID array
+    const sumSizes = (ids: string[]) =>
+      ids.reduce((sum, id) => sum + (assetSizes[id] || 0), 0);
+
+    // 1. Screenshots: all screenshots are deletable
+    const screenshotIds = result.screenshots || [];
+    const screenshotSize = sumSizes(screenshotIds);
+    const screenshotCount = screenshotIds.length;
+
+    // 2. Duplicates: duplicateAssetIds from all groups
+    const duplicateIds = result.duplicateGroups.flatMap((g) => g.duplicateAssetIds);
+    const duplicateSize = sumSizes(duplicateIds);
+    const duplicateCount = duplicateIds.length;
+
+    // 3. Clutter: all clutter are deletable
+    const clutterIds = result.clutter || [];
+    const clutterSize = sumSizes(clutterIds);
+    const clutterCount = clutterIds.length;
+
+    // 4. Blurry: all blurry are deletable
+    const blurryIds = result.blurry || [];
+    const blurrySize = sumSizes(blurryIds);
+    const blurryCount = blurryIds.length;
+
+    // 5. Live Photos: livePhotoCandidates are deletable
+    const liveIds = result.livePhotoCandidates || [];
+    const liveSize = sumSizes(liveIds);
+    const liveCount = liveIds.length;
+
+    const totalFreeableBytes =
+      screenshotSize + duplicateSize + clutterSize + blurrySize + liveSize;
     const totalFreeableItems =
-      screenshotCandidates.length +
-      duplicateIds.length +
-      blurryCount +
-      liveCandidateCount +
-      clutterCount;
+      screenshotCount + duplicateCount + clutterCount + blurryCount + liveCount;
 
-    const totalFreeableBytes = result.totalSavingsBytes || 0;
-    const categorySavings = result.categorySavings || {};
-
-    const rows = [
+    // All categories – always show, even with 0 items
+    const allRows = [
       {
         key: "screenshots" as CategoryVariant,
         label: "Screenshots",
-        itemCount: screenshotCandidates.length,
-        sizeBytes: categorySavings.screenshots || 0,
+        itemCount: screenshotCount,
+        sizeBytes: screenshotSize,
         image: ScreenshotsIcon,
       },
       {
         key: "clutter" as CategoryVariant,
         label: "Clutter",
         itemCount: clutterCount,
-        sizeBytes: categorySavings.clutter || 0,
+        sizeBytes: clutterSize,
         image: ClutterIcon,
       },
       {
         key: "duplicates" as CategoryVariant,
         label: "Duplicates",
-        itemCount: duplicateIds.length,
-        sizeBytes: categorySavings.duplicates || 0,
+        itemCount: duplicateCount,
+        sizeBytes: duplicateSize,
         image: DuplicatesIcon,
       },
       {
         key: "blurry" as CategoryVariant,
         label: "Blurry Photos",
         itemCount: blurryCount,
-        sizeBytes: categorySavings.blurry || 0,
+        sizeBytes: blurrySize,
         image: BlurryPhotosIcon,
       },
       {
         key: "live" as CategoryVariant,
         label: "Live Photos",
-        itemCount: liveCandidateCount,
-        sizeBytes: categorySavings.livePhotos || 0,
+        itemCount: liveCount,
+        sizeBytes: liveSize,
         image: LivePhotosIcon,
       },
     ];
 
-    return { rows, totalFreeableItems, totalFreeableBytes };
-  }, [result]);
+    return {
+      rows: allRows, // all categories, even if 0 items
+      totalFreeableBytes,
+      totalFreeableItems,
+    };
+  }, [result, assetSizes]);
 
-  const { rows, totalFreeableItems, totalFreeableBytes } = categories;
+  const { rows, totalFreeableBytes, totalFreeableItems } = categoryData;
 
   const summaryCardEntrance = useEntrance(
     GRID_BASE_DELAY + rows.length * TILE_STAGGER_MS + 120,
@@ -177,7 +199,9 @@ const AllCategories = () => {
           <GradientButton
             title="Smart Delete"
             icon={<Sparkles size={16} color={Brand.textOnPrimary} />}
-            onPress={() => {}}
+            onPress={() => {
+              router.push("/delete-confirmation");
+            }}
           />
         </View>
       </Animated.View>

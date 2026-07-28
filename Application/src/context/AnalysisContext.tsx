@@ -22,6 +22,7 @@ export type AnalysisResult = {
     clutter: number;
     livePhotos: number;
   };
+  assetSizes: Record<string, number>;
 };
 
 export type CategoryItem = {
@@ -31,7 +32,12 @@ export type CategoryItem = {
   image: string; // `ph://${id}`
 };
 
-export type CategoryKey = "screenshots" | "duplicates" | "clutter" | "blurry" | "live";
+export type CategoryKey =
+  | "screenshots"
+  | "duplicates"
+  | "clutter"
+  | "blurry"
+  | "live";
 
 type CategorySelectionOverrides = {
   [category in CategoryKey]?: {
@@ -41,6 +47,7 @@ type CategorySelectionOverrides = {
 
 type AnalysisContextType = {
   result: AnalysisResult | null;
+  isLoadingCache: boolean;
   isLoading: boolean;
   progress: number;
   category: string;
@@ -51,12 +58,30 @@ type AnalysisContextType = {
   toggleSelection: (category: CategoryKey, itemId: string) => void;
   setAllSelected: (category: CategoryKey, selected: boolean) => void;
   resetSelections: (category?: CategoryKey) => void;
-  removeItems: (ids: string[]) => void; // ✅ New: remove IDs from result
+  removeItems: (ids: string[]) => void;
+  // ── New size helpers ──────────────────────────────────────────
+  getAssetSize: (assetId: string) => number;
+  getTotalSizeForIds: (ids: string[]) => number;
+  getSelectedSize: (category?: CategoryKey) => number;
 };
 
-const AnalysisContext = createContext<AnalysisContextType | undefined>(undefined);
+const AnalysisContext = createContext<AnalysisContextType | undefined>(
+  undefined,
+);
 
 const STORAGE_KEY = "photoAnalysisResult";
+
+// ── Format bytes (utility function, not part of context) ──────────
+export function formatBytes(bytes: number): string {
+  const units = ["B", "KB", "MB", "GB"];
+  let size = bytes;
+  let unitIndex = 0;
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024;
+    unitIndex++;
+  }
+  return `${size.toFixed(1)} ${units[unitIndex]}`;
+}
 
 // ───────────────────────────────────────────────────────────────
 // Provider
@@ -70,6 +95,7 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
   const [progress, setProgress] = useState(0);
   const [category, setCategory] = useState("");
   const [overrides, setOverrides] = useState<CategorySelectionOverrides>({});
+  const [isLoadingCache, setIsLoadingCache] = useState(true);
 
   // Load cached result on mount
   useEffect(() => {
@@ -81,6 +107,7 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
           setResult(parsed);
         } catch (_) {}
       }
+      setIsLoadingCache(false);
     };
     loadCached();
   }, []);
@@ -92,11 +119,16 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
     setResult(null);
     setOverrides({});
 
-    const subscription = ExpoPhotoAnalyzerModule.addListener("onProgress", (event: any) => {
-      console.log(`📡 Event: progress=${event.progress}, category=${event.category}`);
-      setProgress(event.progress);
-      setCategory(event.category);
-    });
+    const subscription = ExpoPhotoAnalyzerModule.addListener(
+      "onProgress",
+      (event: any) => {
+        console.log(
+          `📡 Event: progress=${event.progress}, category=${event.category}`,
+        );
+        setProgress(event.progress);
+        setCategory(event.category);
+      },
+    );
 
     try {
       console.log("📱 Calling native analyzePhotos...");
@@ -119,7 +151,10 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   // ── Helper: compute default selected state based on raw data ──
-  const getDefaultSelected = (category: CategoryKey, itemId: string): boolean => {
+  const getDefaultSelected = (
+    category: CategoryKey,
+    itemId: string,
+  ): boolean => {
     if (!result) return false;
     switch (category) {
       case "screenshots":
@@ -179,7 +214,9 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
       const defaultSelected = getDefaultSelected(category, id);
       const overridden = categoryOverrides[id];
       const selected = overridden !== undefined ? overridden : defaultSelected;
-      const isBest = category === "duplicates" && result.duplicateGroups.some((g) => g.bestAssetId === id);
+      const isBest =
+        category === "duplicates" &&
+        result.duplicateGroups.some((g) => g.bestAssetId === id);
       return {
         id,
         selected,
@@ -192,11 +229,15 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
   // ── Get selected IDs (optionally for a specific category) ──
   const getSelectedItems = (category?: CategoryKey): string[] => {
     if (!result) return [];
-    const categories: CategoryKey[] = category ? [category] : ["screenshots", "duplicates", "clutter", "blurry", "live"];
+    const categories: CategoryKey[] = category
+      ? [category]
+      : ["screenshots", "duplicates", "clutter", "blurry", "live"];
     const allIds: string[] = [];
     for (const cat of categories) {
       const items = getCategoryItems(cat);
-      allIds.push(...items.filter((item) => item.selected).map((item) => item.id));
+      allIds.push(
+        ...items.filter((item) => item.selected).map((item) => item.id),
+      );
     }
     return allIds;
   };
@@ -207,7 +248,8 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
       const categoryOverrides = prev[category] || {};
       const currentDefault = getDefaultSelected(category, itemId);
       const currentOverride = categoryOverrides[itemId];
-      const newValue = currentOverride !== undefined ? !currentOverride : !currentDefault;
+      const newValue =
+        currentOverride !== undefined ? !currentOverride : !currentDefault;
       if (newValue === currentDefault) {
         const { [itemId]: _, ...rest } = categoryOverrides;
         return {
@@ -239,7 +281,8 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
     }
     setOverrides((prev) => ({
       ...prev,
-      [category]: Object.keys(newOverrides).length > 0 ? newOverrides : undefined,
+      [category]:
+        Object.keys(newOverrides).length > 0 ? newOverrides : undefined,
     }));
   };
 
@@ -260,23 +303,20 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!result) return;
     const removeSet = new Set(ids);
 
-    // Helper to filter array
-    const filterArray = (arr: string[]) => arr.filter(id => !removeSet.has(id));
+    const filterArray = (arr: string[]) =>
+      arr.filter((id) => !removeSet.has(id));
 
-    // Remove from duplicate groups and filter empty groups
     const filteredGroups = result.duplicateGroups
-      .map(group => ({
+      .map((group) => ({
         ...group,
         duplicateAssetIds: filterArray(group.duplicateAssetIds),
       }))
-      .filter(group => {
-        // Keep group if bestAssetId is not removed OR there are still duplicateAssetIds
+      .filter((group) => {
         const bestRemoved = removeSet.has(group.bestAssetId);
         const hasDuplicates = group.duplicateAssetIds.length > 0;
         return !bestRemoved || hasDuplicates;
       });
 
-    // Build new result
     const newResult: AnalysisResult = {
       ...result,
       screenshots: filterArray(result.screenshots),
@@ -286,25 +326,29 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
       blurry: filterArray(result.blurry),
       livePhotos: filterArray(result.livePhotos),
       livePhotoCandidates: filterArray(result.livePhotoCandidates),
-      // Update savings: we'll subtract the size of removed items from totalSavingsBytes
-      totalSavingsBytes: Math.max(0, result.totalSavingsBytes - (ids.reduce((sum, id) => sum + 1, 0) * 1024 * 1024)), // Temporary approximation
-      // Recompute categorySavings? For now we'll keep them as is but the totals will be inaccurate.
-      // We'll set categorySavings to zeros to force recalc on next scan.
+      totalSavingsBytes: Math.max(
+        0,
+        result.totalSavingsBytes -
+          ids.reduce((sum, id) => sum + (result.assetSizes[id] || 0), 0),
+      ),
       categorySavings: {
         screenshots: 0,
         duplicates: 0,
         blurry: 0,
         clutter: 0,
         livePhotos: 0,
-      }
+      },
+      assetSizes: { ...result.assetSizes },
     };
+    // Remove deleted asset sizes
+    for (const id of ids) {
+      delete newResult.assetSizes[id];
+    }
 
     setResult(newResult);
-    // Save to AsyncStorage
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newResult));
 
-    // Also remove any overrides for the deleted IDs
-    setOverrides(prev => {
+    setOverrides((prev) => {
       const newOverrides = { ...prev };
       for (const cat of Object.keys(newOverrides) as CategoryKey[]) {
         const catOverrides = newOverrides[cat];
@@ -321,9 +365,26 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   };
 
+  // ── Size helpers ──────────────────────────────────────────────
+
+  const getAssetSize = (assetId: string): number => {
+    return result?.assetSizes?.[assetId] ?? 0;
+  };
+
+  const getTotalSizeForIds = (ids: string[]): number => {
+    if (!result) return 0;
+    return ids.reduce((sum, id) => sum + (result.assetSizes[id] || 0), 0);
+  };
+
+  const getSelectedSize = (category?: CategoryKey): number => {
+    const ids = getSelectedItems(category);
+    return getTotalSizeForIds(ids);
+  };
+
   return (
     <AnalysisContext.Provider
       value={{
+        isLoadingCache,
         result,
         isLoading,
         progress,
@@ -335,7 +396,10 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
         toggleSelection,
         setAllSelected,
         resetSelections,
-        removeItems, // ✅ exposed
+        removeItems,
+        getAssetSize,
+        getTotalSizeForIds,
+        getSelectedSize,
       }}
     >
       {children}

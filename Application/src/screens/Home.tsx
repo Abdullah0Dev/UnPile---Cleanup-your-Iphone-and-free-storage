@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { GradientButton } from "@/components/ui/gradient-button";
 import {
@@ -23,7 +23,7 @@ const ScreenshotsIcon = require("@/assets/icons/screenshots.png");
 const DuplicatesIcon = require("@/assets/icons/duplicates.png");
 const BlurryPhotosIcon = require("@/assets/icons/blurry.png");
 const LivePhotosIcon = require("@/assets/icons/live-photos.png");
-const ClutterIcon = require("@/assets/icons/trash.png"); // ← add this asset
+const ClutterIcon = require("@/assets/icons/trash.png");
 
 // ── Types ──────────────────────────────────────────────────────────────
 type CategoryRowData = {
@@ -36,7 +36,7 @@ type CategoryRowData = {
 
 const ROW_STAGGER_MS = 70;
 
-// ── Helper: format bytes ──────────────────────────────────────────
+// ── Helper: format bytes ──────────────────────────────────────────────
 function formatBytes(bytes: number): string {
   const units = ["B", "KB", "MB", "GB"];
   let size = bytes;
@@ -47,6 +47,8 @@ function formatBytes(bytes: number): string {
   }
   return `${size.toFixed(1)} ${units[unitIndex]}`;
 }
+
+// ── Category List Component ───────────────────────────────────────────
 export function CategoriesList({
   categoryRows,
   marginTop = false,
@@ -54,18 +56,25 @@ export function CategoriesList({
   categoryRows: CategoryRowData[];
   marginTop?: boolean;
 }) {
-  const [containerHeight, setContainerHeight] = useState(0);
-  const [contentHeight, setContentHeight] = useState(0);
+  const [containerHeight, setContainerHeight] = React.useState(0);
+  const [contentHeight, setContentHeight] = React.useState(0);
 
-  // Enable scrolling only if content overflows
   const isScrollable = contentHeight > containerHeight;
+  if (categoryRows.length === 0) {
+    return <EmptyState />;
+  }
+  console.log("categoryRows.length: ", categoryRows.length);
+
   return (
     <Animated.ScrollView
-      contentContainerStyle={[styles.categoryList, marginTop && { marginTop: Spacing.three}]}
-      style={marginTop ?{ width: "100%" }: {}}
-      scrollEnabled={isScrollable} // disable when not needed
-      bounces={false} // no bounce on iOS
-      showsVerticalScrollIndicator={false} // cleaner UI
+      contentContainerStyle={[
+        styles.categoryList,
+        marginTop && { marginTop: Spacing.three },
+      ]}
+      style={marginTop ? { width: "100%" } : {}}
+      scrollEnabled={isScrollable}
+      bounces={false}
+      showsVerticalScrollIndicator={false}
       onLayout={(e) => setContainerHeight(e.nativeEvent.layout.height)}
       onContentSizeChange={(w, h) => setContentHeight(h)}
     >
@@ -85,6 +94,27 @@ export function CategoriesList({
     </Animated.ScrollView>
   );
 }
+
+// ── Empty State ──────────────────────────────────────────────────────
+const EmptyState = () => {
+  const entrance = useEntrance(140);
+
+  return (
+    <Animated.View style={[styles.emptyContainer, entrance]}>
+      <Image
+        source={require("@/assets/icons/done.png")}
+        contentFit="contain"
+        style={styles.emptyImage}
+      />
+      <Text style={styles.emptySubtitle}>You have no nothing to delete.</Text>
+      <Text style={styles.emptyHint}>You're mostly done.</Text>
+      {/* <View style={styles.emptyButtonWrap}>
+        <GradientButton title="Re-scan Library" onPress={onRescan} />
+      </View> */}
+    </Animated.View>
+  );
+};
+
 // ── Home Screen ──────────────────────────────────────────────────────
 const Home = () => {
   const headerEntrance = useEntrance(0);
@@ -95,108 +125,113 @@ const Home = () => {
 
   const { result, clearResult } = useAnalysis();
 
-  // If no result, redirect to get started
   if (!result) {
     router.replace("/");
     return null;
   }
 
-  // ── Compute category stats ──────────────────────────────────────────
-  const categories = useMemo(() => {
-    const screenshotCandidates = result.screenshotCandidates || [];
+  const assetSizes = result.assetSizes || {};
+
+  // ── Compute deletable items per category ──────────────────────────
+  const categoryStats = useMemo(() => {
+    // Helper to sum sizes of an ID array
+    const sumSizes = (ids: string[]) =>
+      ids.reduce((sum, id) => sum + (assetSizes[id] || 0), 0);
+
+    // 1. Screenshots: all screenshots are deletable
+    const screenshotIds = result.screenshots || [];
+    const screenshotSize = sumSizes(screenshotIds);
+    const screenshotCount = screenshotIds.length;
+
+    // 2. Duplicates: duplicateAssetIds from all groups
     const duplicateIds = result.duplicateGroups.flatMap(
       (g) => g.duplicateAssetIds,
     );
-    const blurryCount = result.blurry?.length || 0;
-    const liveCandidateCount = result.livePhotoCandidates?.length || 0;
-    const clutterCount = result.clutter?.length || 0;
+    const duplicateSize = sumSizes(duplicateIds);
+    const duplicateCount = duplicateIds.length;
 
+    // 3. Clutter: all clutter are deletable
+    const clutterIds = result.clutter || [];
+    const clutterSize = sumSizes(clutterIds);
+    const clutterCount = clutterIds.length;
+
+    // 4. Blurry: all blurry are deletable
+    const blurryIds = result.blurry || [];
+    const blurrySize = sumSizes(blurryIds);
+    const blurryCount = blurryIds.length;
+
+    // 5. Live Photos: livePhotoCandidates are deletable
+    const liveIds = result.livePhotoCandidates || [];
+    const liveSize = sumSizes(liveIds);
+    const liveCount = liveIds.length;
+
+    const totalFreeableBytes =
+      screenshotSize + duplicateSize + clutterSize + blurrySize + liveSize;
     const totalFreeableItems =
-      screenshotCandidates.length +
-      duplicateIds.length +
-      blurryCount +
-      liveCandidateCount +
-      clutterCount;
+      screenshotCount + duplicateCount + clutterCount + blurryCount + liveCount;
 
-    const totalFreeableBytes = result.totalSavingsBytes || 0;
-    const categorySavings = result.categorySavings || {};
+    // Build rows for all categories that have items
+    const allRows: CategoryRowData[] = [
+      {
+        key: "screenshots",
+        label: "Screenshots",
+        itemCount: screenshotCount,
+        sizeBytes: screenshotSize,
+        image: ScreenshotsIcon,
+      },
+      {
+        key: "duplicates",
+        label: "Duplicates",
+        itemCount: duplicateCount,
+        sizeBytes: duplicateSize,
+        image: DuplicatesIcon,
+      },
+      {
+        key: "clutter",
+        label: "Clutter",
+        itemCount: clutterCount,
+        sizeBytes: clutterSize,
+        image: ClutterIcon,
+      },
+      {
+        key: "blurry",
+        label: "Blurry Photos",
+        itemCount: blurryCount,
+        sizeBytes: blurrySize,
+        image: BlurryPhotosIcon,
+      },
+      {
+        key: "live",
+        label: "Live Photos",
+        itemCount: liveCount,
+        sizeBytes: liveSize,
+        image: LivePhotosIcon,
+      },
+    ];
+
+    // ✅ Only show categories that have at least one deletable item
+    const rows = allRows.filter((row) => row.itemCount > 0);
 
     return {
-      screenshotCandidates: screenshotCandidates.length,
-      duplicateCount: duplicateIds.length,
-      blurryCount,
-      liveCandidateCount,
-      clutterCount,
-      totalFreeableItems,
+      rows,
       totalFreeableBytes,
-      categorySavings,
+      totalFreeableItems,
     };
-  }, [result]);
+  }, [result, assetSizes]);
 
-  const {
-    screenshotCandidates,
-    duplicateCount,
-    blurryCount,
-    liveCandidateCount,
-    clutterCount,
-    totalFreeableItems,
-    totalFreeableBytes,
-    categorySavings,
-  } = categories;
-
-  // Category rows (including Clutter)
-  const mainCategoryRows: CategoryRowData[] = [
-    {
-      key: "screenshots",
-      label: "Screenshots",
-      itemCount: screenshotCandidates,
-      sizeBytes: categorySavings.screenshots || 0,
-      image: ScreenshotsIcon,
-    },
-    {
-      key: "clutter",
-      label: "Clutter",
-      itemCount: clutterCount,
-      sizeBytes: categorySavings.clutter || 0,
-      image: ClutterIcon,
-    },
-    {
-      key: "duplicates",
-      label: "Duplicates",
-      itemCount: duplicateCount,
-      sizeBytes: categorySavings.duplicates || 0,
-      image: DuplicatesIcon,
-    },
-    {
-      key: "blurry",
-      label: "Blurry Photos",
-      itemCount: blurryCount,
-      sizeBytes: categorySavings.blurry || 0,
-      image: BlurryPhotosIcon,
-    },
-    {
-      key: "live",
-      label: "Live Photos",
-      itemCount: liveCandidateCount,
-      sizeBytes: categorySavings.livePhotos || 0,
-      image: LivePhotosIcon,
-    },
-  ];
-  const categoryRows = mainCategoryRows.filter(
-    (category) => category.itemCount > 0,
-  );
+  const { rows, totalFreeableBytes, totalFreeableItems } = categoryStats;
 
   const handleGoBack = async () => {
     await clearResult();
     router.dismissAll();
     router.replace("/");
   };
+
   const handleReviewItems = () => router.push("/delete-confirmation");
   const handleSeeAllCategories = () => router.push("/all-categories");
 
   return (
     <SafeAreaView style={styles.screen}>
-      {/* Header */}
       <Animated.View style={[styles.header, headerEntrance]}>
         <Pressable onPress={handleGoBack}>
           <Image
@@ -211,7 +246,6 @@ const Home = () => {
         Scan Complete ✨
       </Animated.Text>
 
-      {/* Stat Card */}
       <Animated.View style={[styles.statCard, statCardEntrance]}>
         <LinearGradient
           start={{ x: 0, y: 0 }}
@@ -233,7 +267,6 @@ const Home = () => {
         </Text>
       </Animated.View>
 
-      {/* Categories Header */}
       <Animated.View style={[styles.sectionHeader, sectionHeaderEntrance]}>
         <Text style={styles.sectionTitle}>Categories</Text>
         <Pressable onPress={handleSeeAllCategories}>
@@ -241,12 +274,13 @@ const Home = () => {
         </Pressable>
       </Animated.View>
 
-      {/* Category List */}
-      <CategoriesList categoryRows={categoryRows} />
+      <CategoriesList categoryRows={rows} />
 
-      {/* CTA */}
       <Animated.View style={[styles.ctaWrap, ctaEntrance]}>
-        <GradientButton title="Review Items" onPress={handleReviewItems} />
+        <GradientButton
+          title={totalFreeableItems === 0 ? "Re-Scan Photos" : "Review Items"}
+          onPress={totalFreeableItems === 0 ? handleGoBack : handleReviewItems}
+        />
       </Animated.View>
     </SafeAreaView>
   );
@@ -273,9 +307,6 @@ export const CategoryRow = ({
   const rowEntrance = useEntrance(delay, 10);
 
   const handlePress = () => {
-    //     console.log(`/category-details/${id}`);
-
-    // return;
     router.navigate(`/category-details/${id}`);
   };
 
@@ -295,7 +326,7 @@ export const CategoryRow = ({
   );
 };
 
-// ── Styles (unchanged) ─────────────────────────────────────────────
+// ── Styles ─────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
@@ -417,5 +448,39 @@ const styles = StyleSheet.create({
   ctaWrap: {
     marginTop: "auto",
     marginBottom: Spacing.five,
+  },
+  // ── Empty state styles ─────────────────────────────────────────
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: Spacing.four,
+    paddingBottom: Spacing.five,
+  },
+  emptyImage: {
+    width: 180,
+    height: 180,
+  },
+  emptyTitle: {
+    color: Brand.textPrimary,
+    fontSize: FontSizes.title,
+    fontWeight: FontWeights.semibold as any,
+    marginBottom: Spacing.two,
+  },
+  emptySubtitle: {
+    color: Brand.textSecondary,
+    fontSize: FontSizes.body,
+    textAlign: "center",
+    marginBottom: Spacing.one,
+  },
+  emptyHint: {
+    color: Brand.textSecondary,
+    fontSize: FontSizes.caption,
+    marginBottom: Spacing.four,
+    opacity: 0.7,
+  },
+  emptyButtonWrap: {
+    width: "100%",
+    paddingHorizontal: Spacing.three,
   },
 });

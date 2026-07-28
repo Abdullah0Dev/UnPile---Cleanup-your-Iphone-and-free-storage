@@ -25,6 +25,7 @@ public struct AnalysisResult {
     public let livePhotoCandidates: [String]
     public let totalSavingsBytes: Int64
     public let categorySavings: [String: Int64]
+    public let assetSizes: [String: Int64]  // ✅ New
 }
 
 // MARK: - PhotoAnalyzer
@@ -79,6 +80,20 @@ public class PhotoAnalyzer: ObservableObject {
         savings["livePhotos"] = liveSize
 
         return savings
+    }
+
+    private func computeAssetSizes(for ids: [String]) -> [String: Int64] {
+        var sizes: [String: Int64] = [:]
+        for id in ids {
+            let assets = PHAsset.fetchAssets(withLocalIdentifiers: [id], options: nil)
+            guard let asset = assets.firstObject,
+                  let resource = PHAssetResource.assetResources(for: asset).first,
+                  let size = resource.value(forKey: "fileSize") as? Int64 else {
+                continue
+            }
+            sizes[id] = size
+        }
+        return sizes
     }
 
     private func updateProgress(_ progress: Float, _ category: String) {
@@ -209,6 +224,18 @@ public class PhotoAnalyzer: ObservableObject {
                 livePhotoCandidates: candidateLivePhotoIds
             )
 
+            // Collect all asset IDs for assetSizes
+            let allIds = Set(
+                screenshotIds +
+                candidateScreenshotIds +
+                duplicateGroups.flatMap { [$0.bestAsset.localIdentifier] + $0.duplicateAssets.map { $0.localIdentifier } } +
+                clutter +
+                blurry +
+                livePhotoIds +
+                candidateLivePhotoIds
+            )
+            let assetSizes = self.computeAssetSizes(for: Array(allIds))
+
             self.updateProgress(1.0, "Done")
 
             let analysisResult = AnalysisResult(
@@ -220,7 +247,8 @@ public class PhotoAnalyzer: ObservableObject {
                 livePhotos: livePhotoIds,
                 livePhotoCandidates: candidateLivePhotoIds,
                 totalSavingsBytes: totalSavings,
-                categorySavings: categorySavings
+                categorySavings: categorySavings,
+                assetSizes: assetSizes  // ✅
             )
 
             DispatchQueue.main.async {
@@ -304,6 +332,18 @@ public class PhotoAnalyzer: ObservableObject {
                 livePhotoCandidates: candidateLivePhotoIds
             )
 
+            // Collect all asset IDs for assetSizes
+            let allIds = Set(
+                screenshotIds +
+                candidateScreenshotIds +
+                duplicateGroups.flatMap { [$0.bestAsset.localIdentifier] + $0.duplicateAssets.map { $0.localIdentifier } } +
+                clutter +
+                blurry +
+                livePhotoIds +
+                candidateLivePhotoIds
+            )
+            let assetSizes = self.computeAssetSizes(for: Array(allIds))
+
             self.updateProgress(1.0, "Done")
 
             let analysisResult = AnalysisResult(
@@ -315,7 +355,8 @@ public class PhotoAnalyzer: ObservableObject {
                 livePhotos: livePhotoIds,
                 livePhotoCandidates: candidateLivePhotoIds,
                 totalSavingsBytes: totalSavings,
-                categorySavings: categorySavings
+                categorySavings: categorySavings,
+                assetSizes: assetSizes  // ✅
             )
 
             DispatchQueue.main.async {

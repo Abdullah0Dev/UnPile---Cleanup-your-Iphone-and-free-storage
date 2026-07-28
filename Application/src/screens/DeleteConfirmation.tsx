@@ -49,7 +49,6 @@ function formatBytes(bytes: number): string {
   return `${size.toFixed(1)} ${units[unitIndex]}`;
 }
 
-  
 // ─────────────────────────────────────────────────────────────────────────
 // Main Delete Confirmation Screen
 // ─────────────────────────────────────────────────────────────────────────
@@ -69,7 +68,7 @@ const DeleteConfirmation = () => {
   const isSingleCategory = Boolean(params.variant);
   const variant = params.variant as CategoryVariant | undefined;
 
-  // ── Compute selected items, counts, and sizes ──────────────────
+  // ── Compute selected items, counts, and sizes using assetSizes ──
   const selectedData = useMemo(() => {
     if (!result) {
       return {
@@ -81,6 +80,7 @@ const DeleteConfirmation = () => {
       };
     }
 
+    const assetSizes = result.assetSizes || {};
     const allCategories: CategoryVariant[] = [
       "screenshots",
       "duplicates",
@@ -89,21 +89,22 @@ const DeleteConfirmation = () => {
       "live",
     ];
 
-    const categorySavings = result.categorySavings || {};
     const rows: CategoryRowData[] = [];
     let totalItems = 0;
     let totalSizeBytes = 0;
     let selectedIds: string[] = [];
 
+    // Helper to compute size of an ID
+    const getSize = (id: string) => assetSizes[id] || 0; 
+
     if (isSingleCategory && variant) {
-      // Single category: use selected items from that category
+      // Single category: get selected items and sum their individual sizes
       const items = getCategoryItems(variant);
       const selected = items.filter((item) => item.selected);
       selectedIds = selected.map((item) => item.id);
       totalItems = selected.length;
-      totalSizeBytes = categorySavings[variant] || 0;
+      totalSizeBytes = selectedIds.reduce((sum, id) => sum + getSize(id), 0);
 
-      // Build a single row for this category
       rows.push({
         key: variant,
         label: params.label || variant,
@@ -115,8 +116,8 @@ const DeleteConfirmation = () => {
       // All categories: sum selected from each
       for (const cat of allCategories) {
         const ids = getSelectedItems(cat);
-        const size = categorySavings[cat] || 0;
         if (ids.length > 0) {
+          const size = ids.reduce((sum, id) => sum + getSize(id), 0);
           rows.push({
             key: cat,
             label: getCategoryLabel(cat),

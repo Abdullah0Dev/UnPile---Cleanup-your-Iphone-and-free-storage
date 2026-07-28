@@ -77,7 +77,7 @@ public class ExpoPhotoAnalyzerModule: Module {
                 ])
             } else {
                 let errorMessage = error?.localizedDescription ?? "Unknown error"
-                promise.reject("DELETE_FAILED", errorMessage) // ✅ Only 2 arguments
+                promise.reject("DELETE_FAILED", errorMessage)
             }
         }
     }
@@ -99,7 +99,8 @@ public class ExpoPhotoAnalyzerModule: Module {
             "livePhotos": result.livePhotos,
             "livePhotoCandidates": result.livePhotoCandidates,
             "totalSavingsBytes": result.totalSavingsBytes,
-            "categorySavings": result.categorySavings
+            "categorySavings": result.categorySavings,
+            "assetSizes": result.assetSizes  // ✅
         ]
     }
 }
