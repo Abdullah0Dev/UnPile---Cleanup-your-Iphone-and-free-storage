@@ -7,26 +7,7 @@ import { Platform } from 'react-native';
 // Base light/dark tokens kept as-is (your existing app shell), extended with
 // the "Unpile" brand palette pulled directly from the provided screens.
 // -----------------------------------------------------------------------------
-
-export const Colors = {
-  light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
-  },
-  dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
-  },
-} as const;
-
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
-
+  
 // -----------------------------------------------------------------------------
 // BRAND / ACCENT — "Unpile" specific palette
 // This app is dark-first: near-black navy background with a purple/violet
@@ -85,35 +66,7 @@ export const Gradients = {
   iconTile: ['#8A5CF0', '#5A34B8'] as const,
   screenGlow: ['rgba(123,79,224,0.25)', 'rgba(11,10,20,0)'] as const,
 } as const;
-
-// -----------------------------------------------------------------------------
-// FONTS
-// -----------------------------------------------------------------------------
-
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
+ 
 
 // -----------------------------------------------------------------------------
 // TYPE SCALE — sizes observed across the screens
@@ -162,23 +115,4 @@ export const Radii = {
   xlarge: 28,   // cards / screen frame corners
   full: 999,    // circular checkboxes, avatar/icon containers, progress ring
 } as const;
-
-// -----------------------------------------------------------------------------
-// LAYOUT
-// -----------------------------------------------------------------------------
-
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
-
-// Grid layout constants (photo grid screens: Screenshots / Duplicates / Blurry / Live)
-export const GridConfig = {
-  columns: 4,
-  gap: Spacing.two,
-  thumbnailAspectRatio: 1, // square thumbnails
-} as const;
-
-// Button heights (primary CTA vs secondary/cancel)
-export const ButtonHeights = {
-  primary: 56,
-  secondary: 48,
-} as const;
+ 

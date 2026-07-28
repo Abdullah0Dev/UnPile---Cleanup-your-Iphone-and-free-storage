@@ -1,6 +1,4 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useColorScheme } from "react-native";
 import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 
@@ -45,12 +43,9 @@ function LayoutContent() {
 }
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <AnalysisProvider>
-        <LayoutContent />
-      </AnalysisProvider>
-    </ThemeProvider>
+    <AnalysisProvider>
+      <LayoutContent />
+    </AnalysisProvider>
   );
 }
