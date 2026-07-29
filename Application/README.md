@@ -33,7 +33,8 @@ func dateFromMilliseconds(_ milliseconds: Double) throws -> Date {
 
 7. check overall code and app for any improvements
 8. Build UI of Upgrade and then its functionality and think about the monitization
-9. remove un-need code, and make it more reusable and get red of ai'sh
+9. check why done screen doesn't show on delete confirmation
+10. 
 
  
 in screenshots it drops the header as no safe are and decide there is

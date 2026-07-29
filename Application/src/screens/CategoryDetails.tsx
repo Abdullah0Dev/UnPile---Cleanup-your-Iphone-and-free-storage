@@ -1,21 +1,3 @@
-import React, { useMemo, useState } from "react";
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  Dimensions,
-  Modal,
-  TouchableOpacity,
-} from "react-native";
-import { FlashList, ListRenderItemInfo } from "@shopify/flash-list";
-import { Image } from "expo-image";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { BlurView } from "expo-blur";
-import { Check } from "lucide-react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { router, useLocalSearchParams } from "expo-router";
-import Animated from "react-native-reanimated";
 import { GradientButton } from "@/components/ui/gradient-button";
 import {
   Brand,
@@ -24,12 +6,32 @@ import {
   Radii,
   Spacing,
 } from "@/constants/theme";
+import {
+  CategoryKey,
+  formatBytes,
+  useAnalysis,
+} from "@/context/AnalysisContext";
 import { useEntrance, useSheetEntrance } from "@/hooks/use-entrance";
-import { useAnalysis, CategoryKey } from "@/context/AnalysisContext";
+import { FlashList, ListRenderItemInfo } from "@shopify/flash-list";
+import { BlurView } from "expo-blur";
+import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
+import { router, useLocalSearchParams } from "expo-router";
+import { Check } from "lucide-react-native";
+import { useMemo, useState } from "react";
+import {
+  Dimensions,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import Animated from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-// ─────────────────────────────────────────────────────────────────────────
 // Types
-// ─────────────────────────────────────────────────────────────────────────
 export type CategoryVariant = CategoryKey;
 
 type PhotoItem = {
@@ -46,23 +48,7 @@ type DuplicateGroup = {
   items: PhotoItem[];
 };
 
-// ─────────────────────────────────────────────────────────────────────────
-// Helper: format bytes
-// ─────────────────────────────────────────────────────────────────────────
-function formatBytes(bytes: number): string {
-  const units = ["B", "KB", "MB", "GB"];
-  let size = bytes;
-  let unitIndex = 0;
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024;
-    unitIndex++;
-  }
-  return `${size.toFixed(1)} ${units[unitIndex]}`;
-}
-
-// ─────────────────────────────────────────────────────────────────────────
 // Screen
-// ─────────────────────────────────────────────────────────────────────────
 const CategoryDetails = () => {
   const { category: variant } = useLocalSearchParams<{
     category: CategoryVariant;
@@ -75,7 +61,7 @@ const CategoryDetails = () => {
     getSelectedSize,
   } = useAnalysis();
 
-  // ── Preview state ──────────────────────────────────────────────────
+  //  Preview state
   const [previewImageId, setPreviewImageId] = useState<string | null>(null);
 
   // Guard: no result or invalid variant → redirect
@@ -84,10 +70,8 @@ const CategoryDetails = () => {
     return null;
   }
 
-  // ── Get items from context ──────────────────────────────────────
   const rawItems = getCategoryItems(variant);
 
-  // ── For duplicates: group items ──────────────────────────────────
   const duplicateGroups = useMemo(() => {
     if (variant !== "duplicates") return [];
     const groups: DuplicateGroup[] = [];
@@ -118,7 +102,6 @@ const CategoryDetails = () => {
     return groups;
   }, [rawItems, variant]);
 
-  // ── Metadata using context helpers ─────────────────────────────
   const meta = useMemo(() => {
     const titleMap: Record<CategoryVariant, string> = {
       screenshots: "Screenshots",
@@ -170,7 +153,7 @@ const CategoryDetails = () => {
     });
   };
 
-  // ── Entrance animations ──────────────────────────────────────────
+  //  Entrance animations
   const headerEntrance = useEntrance(0);
   const subtitleEntrance = useEntrance(80);
   const footerEntrance = useSheetEntrance(420);
@@ -229,7 +212,7 @@ const CategoryDetails = () => {
     </Animated.View>
   );
 
-  // ── Dimensions ────────────────────────────────────────────────────
+  //  Dimensions
   const SCREEN_WIDTH = Dimensions.get("window").width;
   const GRID_PADDING = Spacing.four;
   const GRID_GAP = Spacing.two;
@@ -242,7 +225,7 @@ const CategoryDetails = () => {
     (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * (DUPLICATE_COLUMNS - 1)) /
     DUPLICATE_COLUMNS;
 
-  // ── Render: Duplicates ───────────────────────────────────────────
+  //  Render: Duplicates
   if (variant === "duplicates") {
     return (
       <SafeAreaView style={styles.screen}>
@@ -280,7 +263,7 @@ const CategoryDetails = () => {
 
         <Footer />
 
-        {/* ── Full‑screen image preview modal ───────────────────── */}
+        {/*  Full‑screen image preview modal  */}
         <ImagePreviewModal
           imageId={previewImageId}
           onClose={() => setPreviewImageId(null)}
@@ -289,7 +272,7 @@ const CategoryDetails = () => {
     );
   }
 
-  // ── Render: Other categories (grid) ─────────────────────────────
+  //  Render: Other categories (grid)
   return (
     <SafeAreaView style={styles.screen}>
       <Animated.View style={[styles.header, headerEntrance]}>
@@ -339,7 +322,7 @@ const CategoryDetails = () => {
 
       <Footer />
 
-      {/* ── Full‑screen image preview modal ───────────────────── */}
+      {/*  Full‑screen image preview modal  */}
       <ImagePreviewModal
         imageId={previewImageId}
         onClose={() => setPreviewImageId(null)}
@@ -350,9 +333,8 @@ const CategoryDetails = () => {
 
 export default CategoryDetails;
 
-// ─────────────────────────────────────────────────────────────────────────
+
 // Image Preview Modal
-// ─────────────────────────────────────────────────────────────────────────
 const ImagePreviewModal = ({
   imageId,
   onClose,
@@ -385,9 +367,6 @@ const ImagePreviewModal = ({
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────
-// Subcomponents
-// ─────────────────────────────────────────────────────────────────────────
 
 // Selection badge
 const SelectionBadge = ({ selected }: { selected: boolean }) => {
@@ -533,8 +512,8 @@ const DuplicateGroupRow = ({
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────
-// Styles (unchanged) 
+
+
 const styles = StyleSheet.create({
   screen: {
     flex: 1,

@@ -11,14 +11,14 @@ import { GradientText } from "@/components/ui/gradient-text";
 import { GradientButton } from "@/components/ui/gradient-button";
 import { useEntrance, useHeroEntrance } from "@/hooks/use-entrance";
 import { useAnalysis } from "@/context/AnalysisContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 const GetStarted = () => {
   const logoEntrance = useHeroEntrance(0);
   const wordmarkEntrance = useEntrance(160);
   const subtitleEntrance = useEntrance(240);
   const buttonEntrance = useEntrance(360);
 
-  const { startAnalysis, isLoading, clearResult } = useAnalysis();
+  const { isLoading } = useAnalysis();
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [isCheckingPermission, setIsCheckingPermission] = useState(false);
 
@@ -58,7 +58,6 @@ const GetStarted = () => {
       const granted = await requestPermission();
       if (!granted) return;
     }
-    // Just navigate – analysis starts on the scanning screen
     router.push("/scanning");
   };
   const isButtonDisabled = isLoading || isCheckingPermission;
@@ -102,7 +101,7 @@ const GetStarted = () => {
           title={isCheckingPermission ? "Checking..." : "Start Scanning"}
           disabled={isButtonDisabled}
         />
-      </Animated.View> 
+      </Animated.View>
     </SafeAreaView>
   );
 };

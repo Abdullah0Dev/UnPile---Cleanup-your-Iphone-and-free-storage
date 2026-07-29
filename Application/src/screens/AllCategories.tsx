@@ -1,10 +1,10 @@
-import React, { useMemo } from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
 import { Image, ImageSource } from "expo-image";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Sparkles } from "lucide-react-native";
+import { useMemo } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { GradientButton } from "@/components/ui/gradient-button";
 import {
@@ -14,29 +14,11 @@ import {
   Radii,
   Spacing,
 } from "@/constants/theme";
+import { formatBytes, useAnalysis } from "@/context/AnalysisContext";
 import { useEntrance } from "@/hooks/use-entrance";
 import { router } from "expo-router";
-import { useAnalysis } from "@/context/AnalysisContext";
 import { CategoryVariant } from "./CategoryDetails";
-
-// Category icons
-const ScreenshotsIcon = require("@/assets/icons/screenshots.png");
-const DuplicatesIcon = require("@/assets/icons/duplicates.png");
-const BlurryPhotosIcon = require("@/assets/icons/blurry.png");
-const LivePhotosIcon = require("@/assets/icons/live-photos.png");
-const ClutterIcon = require("@/assets/icons/trash.png");
-
-// Helper: format bytes
-function formatBytes(bytes: number): string {
-  const units = ["B", "KB", "MB", "GB"];
-  let size = bytes;
-  let unitIndex = 0;
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024;
-    unitIndex++;
-  }
-  return `${size.toFixed(1)} ${units[unitIndex]}`;
-}
+import { ScreenshotsIcon, BlurryPhotosIcon, ClutterIcon, DuplicatesIcon, LivePhotosIcon } from "@/constants";
 
 const TILE_STAGGER_MS = 80;
 const GRID_BASE_DELAY = 140;
@@ -52,33 +34,30 @@ const AllCategories = () => {
 
   const assetSizes = result.assetSizes || {};
 
-  // ── Compute deletable items per category ──────────────────────────
+  // Compute deletable items per category
   const categoryData = useMemo(() => {
-    // Helper to sum sizes of an ID array
+    //  sum sizes of an ID array
     const sumSizes = (ids: string[]) =>
       ids.reduce((sum, id) => sum + (assetSizes[id] || 0), 0);
 
-    // 1. Screenshots: all screenshots are deletable
     const screenshotIds = result.screenshots || [];
     const screenshotSize = sumSizes(screenshotIds);
     const screenshotCount = screenshotIds.length;
 
-    // 2. Duplicates: duplicateAssetIds from all groups
-    const duplicateIds = result.duplicateGroups.flatMap((g) => g.duplicateAssetIds);
+    const duplicateIds = result.duplicateGroups.flatMap(
+      (g) => g.duplicateAssetIds,
+    );
     const duplicateSize = sumSizes(duplicateIds);
     const duplicateCount = duplicateIds.length;
 
-    // 3. Clutter: all clutter are deletable
     const clutterIds = result.clutter || [];
     const clutterSize = sumSizes(clutterIds);
     const clutterCount = clutterIds.length;
 
-    // 4. Blurry: all blurry are deletable
     const blurryIds = result.blurry || [];
     const blurrySize = sumSizes(blurryIds);
     const blurryCount = blurryIds.length;
 
-    // 5. Live Photos: livePhotoCandidates are deletable
     const liveIds = result.livePhotoCandidates || [];
     const liveSize = sumSizes(liveIds);
     const liveCount = liveIds.length;
@@ -88,7 +67,7 @@ const AllCategories = () => {
     const totalFreeableItems =
       screenshotCount + duplicateCount + clutterCount + blurryCount + liveCount;
 
-    // All categories – always show, even with 0 items
+    // All categories
     const allRows = [
       {
         key: "screenshots" as CategoryVariant,
@@ -128,7 +107,7 @@ const AllCategories = () => {
     ];
 
     return {
-      rows: allRows, // all categories, even if 0 items
+      rows: allRows,
       totalFreeableBytes,
       totalFreeableItems,
     };
@@ -157,7 +136,6 @@ const AllCategories = () => {
           <View />
         </Animated.View>
 
-        {/* ── 2x2 category grid ──────────────────────────────────── */}
         <View style={styles.grid}>
           {rows.map(({ key, label, itemCount, sizeBytes, image }, index) => (
             <CategoryTile
@@ -173,7 +151,7 @@ const AllCategories = () => {
         </View>
       </View>
 
-      {/* ── Bottom summary card ──────────────────────────────────── */}
+      {/*  Bottom summary card  */}
       <Animated.View style={[styles.summaryCard, summaryCardEntrance]}>
         <LinearGradient
           start={{ x: 0, y: 0 }}
@@ -211,7 +189,7 @@ const AllCategories = () => {
 
 export default AllCategories;
 
-// ── Subcomponent ──────────────────────────────────────────────────
+//  Subcomponent
 const CategoryTile = ({
   id,
   label,
@@ -250,7 +228,7 @@ const CategoryTile = ({
   );
 };
 
-// ── Styles (unchanged) ─────────────────────────────────────────────
+
 const styles = StyleSheet.create({
   screen: {
     flex: 1,

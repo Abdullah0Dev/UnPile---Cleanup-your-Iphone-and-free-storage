@@ -15,28 +15,19 @@ function LayoutContent() {
 
   useEffect(() => {
     if (!isLoadingCache) {
-      // Cache loaded – decide where to go
+      // Cache loaded => decide where to goo
       if (result) {
         router.replace("/home-results");
       } else {
         router.replace("/");
       }
-      // Mark as ready after navigation
       setIsReady(true);
     }
   }, [isLoadingCache, result]);
 
-  const handleSplashComplete = () => {
-    // Splash animation finished, but we still wait for cache and navigation.
-    // This is just a signal; the real decision happens in useEffect above.
-    // We don't need to do anything here because the useEffect will handle it.
-  };
-
   return (
     <>
-      {/* Show splash until app is ready */}
-      {!isReady && <AnimatedSplashOverlay onComplete={handleSplashComplete} />}
-      {/* Show main app only after ready */}
+      {!isReady && <AnimatedSplashOverlay onComplete={() => {}} />}
       {isReady && <Slot />}
     </>
   );

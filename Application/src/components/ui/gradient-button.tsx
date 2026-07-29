@@ -29,19 +29,16 @@ export const GradientButton = ({
   onPress,
   ...rest
 }: GradientButtonProps) => {
-  // --- Animation values ---
   const scale = useSharedValue(1);
   const rippleScale = useSharedValue(0);
   const rippleOpacity = useSharedValue(0);
 
   const handlePress = () => {
-    // 1. Bounce scale: quick shrink → spring back
     scale.value = withSequence(
       withTiming(0.94, { duration: 80 }),
       withSpring(1, { damping: 8, stiffness: 180 })
     );
 
-    // 2. Ripple: expand outward and fade
     rippleScale.value = withSequence(
       withTiming(0, { duration: 0 }),
       withTiming(5, { duration: 550, easing: Easing.out(Easing.quad) }),
@@ -52,11 +49,9 @@ export const GradientButton = ({
       withTiming(0, { duration: 500 })
     );
 
-    // 3. Call the original press handler
     if (onPress) onPress();
   };
 
-  // --- Animated styles ---
   const animatedContainerStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
@@ -79,7 +74,6 @@ export const GradientButton = ({
           end={{ x: 1, y: 0.8 }}
           style={styles.gradient}
         >
-          {/* Ripple layer (behind text) */}
           <Animated.View style={[styles.ripple, rippleStyle]} />
           <Text style={styles.buttonText}>{title}</Text>
         </LinearGradient>
@@ -91,7 +85,7 @@ export const GradientButton = ({
 const styles = StyleSheet.create({
   buttonContainer: {
     borderRadius: 20,
-    overflow: "hidden", // clips the ripple
+    overflow: "hidden", 
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 14 },
     shadowOpacity: 0.4,
@@ -106,13 +100,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Brand.cardBorder + "80",
     borderRadius: 20,
-    overflow: "hidden", // ensures ripple stays inside
+    overflow: "hidden", 
   },
   buttonText: {
     color: Brand.textPrimary,
     fontSize: 17,
     fontWeight: "600",
-    zIndex: 2, // above ripple
+    zIndex: 2, // above ripple:)
   },
   ripple: {
     position: "absolute",

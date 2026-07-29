@@ -23,7 +23,7 @@ public class ExpoPhotoAnalyzerModule: Module {
         }
     }
 
-    // ── Private Helpers ──────────────────────────────────────────
+    //  Private Helpers 
 
     private func performAnalysis(promise: Promise) {
         let status = PHPhotoLibrary.authorizationStatus()
@@ -82,7 +82,7 @@ public class ExpoPhotoAnalyzerModule: Module {
         }
     }
 
-    // ── Result conversion ──────────────────────────────────────────
+    //  Result conversion 
 
     private func convertResult(_ result: AnalysisResult) -> [String: Any] {
         return [
@@ -100,7 +100,7 @@ public class ExpoPhotoAnalyzerModule: Module {
             "livePhotoCandidates": result.livePhotoCandidates,
             "totalSavingsBytes": result.totalSavingsBytes,
             "categorySavings": result.categorySavings,
-            "assetSizes": result.assetSizes  // ✅
+            "assetSizes": result.assetSizes  // 
         ]
     }
 }

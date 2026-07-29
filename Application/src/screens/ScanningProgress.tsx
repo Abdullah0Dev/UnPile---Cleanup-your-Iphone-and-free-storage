@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from "react";
+import {
+  Brand,
+  FontSizes,
+  FontWeights,
+  Radii,
+  Spacing,
+} from "@/constants/theme";
+import { useEntrance, useHeroEntrance } from "@/hooks/use-entrance";
+import { Image } from "expo-image";
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import Svg, {
-  Circle,
-  Defs,
-  LinearGradient as SvgLinearGradient,
-  Stop,
-} from "react-native-svg";
 import Animated, {
   Easing,
   runOnJS,
@@ -17,11 +21,13 @@ import Animated, {
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
-import { Brand, FontSizes, FontWeights, Radii, Spacing } from "@/constants/theme";
-import { Image } from "expo-image";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useEntrance, useHeroEntrance } from "@/hooks/use-entrance";
-import { router } from "expo-router";
+import Svg, {
+  Circle,
+  Defs,
+  Stop,
+  LinearGradient as SvgLinearGradient,
+} from "react-native-svg";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -41,9 +47,9 @@ type ScanningProgressProps = {
 const ScanningProgress = ({
   progress = 0,
   totalItems = 0,
-  categoryProgress = "Scanning Library"
+  categoryProgress = "Scanning Library",
 }: ScanningProgressProps) => {
-  // ── Screen entrance ──────────────────────────────────────────────────
+  //  Screen entrance
   const headerEntrance = useEntrance(0);
   const titleEntrance = useEntrance(60);
   const ringEntrance = useHeroEntrance(140);
@@ -51,7 +57,7 @@ const ScanningProgress = ({
   const scanningSubtitleEntrance = useEntrance(420);
   const privacyCardEntrance = useEntrance(500);
 
-  // ── Comet sweep (always running) ──────────────────────────────────
+  //  Comet sweep (always running)
   const sweepProgress = useSharedValue(0);
 
   useEffect(() => {
@@ -62,7 +68,7 @@ const ScanningProgress = ({
     );
   }, []);
 
-  // ── Animated progress (smoothly follows the `progress` prop) ─────
+  //  Animated progress (smoothly follows the `progress` prop)
   const animatedProgress = useSharedValue(0);
   const [displayPercent, setDisplayPercent] = useState(0);
 
@@ -106,7 +112,9 @@ const ScanningProgress = ({
     return {
       transform: [
         {
-          scale: isDone ? 1 : 1 + Math.sin(animatedProgress.value * 0.3) * 0.003,
+          scale: isDone
+            ? 1
+            : 1 + Math.sin(animatedProgress.value * 0.3) * 0.003,
         },
       ],
     };
@@ -118,7 +126,7 @@ const ScanningProgress = ({
 
   return (
     <SafeAreaView style={styles.screen}>
-      {/* ── Header ───────────────────────────────────────────────── */}
+      {/*  Header  */}
       <Animated.View style={[styles.header, headerEntrance]}>
         <Pressable onPress={handleGoBack}>
           <Image
@@ -130,10 +138,10 @@ const ScanningProgress = ({
       </Animated.View>
 
       <Animated.Text style={[styles.title, titleEntrance]}>
-      Scanning Library
+        Scanning Library
       </Animated.Text>
 
-      {/* ── Progress ring ────────────────────────────────────────── */}
+      {/*  Progress ring  */}
       <Animated.View style={[styles.ringWrap, ringEntrance]}>
         <View style={styles.glow} pointerEvents="none" />
 
@@ -214,9 +222,11 @@ const ScanningProgress = ({
         </Animated.View>
       </Animated.View>
 
-      {/* ── Status copy ──────────────────────────────────────────── */}
+      {/*  Status copy  */}
       <Animated.Text style={[styles.scanningLabel, scanningLabelEntrance]}>
-        {totalItems > 0 ? `Scanning ${totalItems.toLocaleString()} items...` : categoryProgress}
+        {totalItems > 0
+          ? `Scanning ${totalItems.toLocaleString()} items...`
+          : categoryProgress}
       </Animated.Text>
       <Animated.Text
         style={[styles.scanningSubtitle, scanningSubtitleEntrance]}
@@ -224,7 +234,7 @@ const ScanningProgress = ({
         This may take a few moments.
       </Animated.Text>
 
-      {/* ── On-device privacy card ───────────────────────────────── */}
+      {/*  On-device privacy card  */}
       <Animated.View style={[styles.privacyCard, privacyCardEntrance]}>
         <View style={styles.privacyIconWrap}>
           <Image

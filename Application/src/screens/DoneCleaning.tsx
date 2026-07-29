@@ -1,7 +1,6 @@
-import React, { useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
+import { useEffect } from "react";
+import { StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -12,6 +11,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { GradientButton } from "@/components/ui/gradient-button";
 import {
@@ -74,11 +74,11 @@ const DoneCleaning = ({
   onViewLibrary,
   onDone,
 }: DoneCleaningProps) => {
-  // ── Badge entrance: pop in with a spring overshoot ───────────────────
+  // pop in with a spring overshoot
   const badgeScale = useSharedValue(0.4);
   const badgeOpacity = useSharedValue(0);
 
-  // ── Ambient glow: fades in, then breathes gently forever ─────────────
+  //  Ambient glow: fades in, then breathes gently forever
   const glowOpacity = useSharedValue(0);
   const glowScale = useSharedValue(0.85);
 
@@ -125,7 +125,7 @@ const DoneCleaning = ({
     transform: [{ scale: glowScale.value }],
   }));
 
-  // ── Staggered entrance for the text block + buttons ──────────────────
+  //  Staggered entrance for the text block + buttons
   const titleEntrance = useEntrance(220);
   const statLabelEntrance = useEntrance(300);
   const statValueEntrance = useEntrance(360);
@@ -140,7 +140,7 @@ const DoneCleaning = ({
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.container}>
-        {/* ── Glowing done badge ──────────────────────────────────── */}
+        {/*  Glowing done badge  */}
         <View style={styles.badgeWrap}>
           <Animated.View
             style={[styles.glow, glowStyle]}

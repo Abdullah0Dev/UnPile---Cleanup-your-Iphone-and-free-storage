@@ -25,7 +25,7 @@ public struct AnalysisResult {
     public let livePhotoCandidates: [String]
     public let totalSavingsBytes: Int64
     public let categorySavings: [String: Int64]
-    public let assetSizes: [String: Int64]  // ✅ New
+    public let assetSizes: [String: Int64]  //  New
 }
 
 // MARK: - PhotoAnalyzer
@@ -248,7 +248,7 @@ public class PhotoAnalyzer: ObservableObject {
                 livePhotoCandidates: candidateLivePhotoIds,
                 totalSavingsBytes: totalSavings,
                 categorySavings: categorySavings,
-                assetSizes: assetSizes  // ✅
+                assetSizes: assetSizes  // 
             )
 
             DispatchQueue.main.async {
@@ -356,7 +356,7 @@ public class PhotoAnalyzer: ObservableObject {
                 livePhotoCandidates: candidateLivePhotoIds,
                 totalSavingsBytes: totalSavings,
                 categorySavings: categorySavings,
-                assetSizes: assetSizes  // ✅
+                assetSizes: assetSizes  // 
             )
 
             DispatchQueue.main.async {

@@ -1,10 +1,11 @@
-import React, { useMemo } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Image, ImageSource } from "expo-image";
-import Animated from "react-native-reanimated";
 import { router, useLocalSearchParams } from "expo-router";
+import { useMemo } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import Animated from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
+import { GradientButton } from "@/components/ui/gradient-button";
 import {
   Brand,
   FontSizes,
@@ -12,21 +13,14 @@ import {
   Radii,
   Spacing,
 } from "@/constants/theme";
-import { GradientButton } from "@/components/ui/gradient-button";
+import { formatBytes, useAnalysis } from "@/context/AnalysisContext";
 import { useEntrance, useHeroEntrance } from "@/hooks/use-entrance";
-import { CategoryVariant } from "./CategoryDetails";
-import { useAnalysis } from "@/context/AnalysisContext";
 import ExpoPhotoAnalyzerModule from "../../modules/expo-photo-analyzer/src/ExpoPhotoAnalyzerModule";
+import { CategoryVariant } from "./CategoryDetails";
 import { CategoriesList } from "./Home";
+import { ScreenshotsIcon, BlurryPhotosIcon, ClutterIcon, DuplicatesIcon, LivePhotosIcon } from "@/constants";
 
-// ── Icons (reuse from Home) ──────────────────────────────────────────
-const ScreenshotsIcon = require("@/assets/icons/screenshots.png");
-const DuplicatesIcon = require("@/assets/icons/duplicates.png");
-const BlurryPhotosIcon = require("@/assets/icons/blurry.png");
-const LivePhotosIcon = require("@/assets/icons/live-photos.png");
-const ClutterIcon = require("@/assets/icons/trash.png");
-
-// ── Types ──────────────────────────────────────────────────────────────
+//  Types
 type CategoryRowData = {
   key: CategoryVariant;
   label: string;
@@ -37,22 +31,7 @@ type CategoryRowData = {
 
 const ROW_STAGGER_MS = 70;
 
-// ── Helper: format bytes ──────────────────────────────────────────────
-function formatBytes(bytes: number): string {
-  const units = ["B", "KB", "MB", "GB"];
-  let size = bytes;
-  let unitIndex = 0;
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024;
-    unitIndex++;
-  }
-  return `${size.toFixed(1)} ${units[unitIndex]}`;
-}
-
-// ─────────────────────────────────────────────────────────────────────────
 // Main Delete Confirmation Screen
-// ─────────────────────────────────────────────────────────────────────────
-
 const DeleteConfirmation = () => {
   const params = useLocalSearchParams<{
     variant?: CategoryVariant;
@@ -64,11 +43,11 @@ const DeleteConfirmation = () => {
   const { result, getCategoryItems, getSelectedItems, removeItems } =
     useAnalysis();
 
-  // ── Determine if single category or everything ──────────────────
+  //  Determine if single category or everything
   const isSingleCategory = Boolean(params.variant);
   const variant = params.variant as CategoryVariant | undefined;
 
-  // ── Compute selected items, counts, and sizes using assetSizes ──
+  //  Compute selected items, counts, and sizes using assetSizes
   const selectedData = useMemo(() => {
     if (!result) {
       return {
@@ -95,7 +74,7 @@ const DeleteConfirmation = () => {
     let selectedIds: string[] = [];
 
     // Helper to compute size of an ID
-    const getSize = (id: string) => assetSizes[id] || 0; 
+    const getSize = (id: string) => assetSizes[id] || 0;
 
     if (isSingleCategory && variant) {
       // Single category: get selected items and sum their individual sizes
@@ -158,7 +137,7 @@ const DeleteConfirmation = () => {
     categoryRows,
   } = selectedData;
 
-  // ── Entrances ──────────────────────────────────────────────────────────
+  //  Entrances
   const iconEntrance = useHeroEntrance(0);
   const titleEntrance = useEntrance(160);
   const subtitleEntrance = useEntrance(220);
@@ -170,8 +149,10 @@ const DeleteConfirmation = () => {
       : listBaseDelay + categoryRows.length * ROW_STAGGER_MS + 140,
   );
 
-  // ── Handlers ──────────────────────────────────────────────────────────
+  //  Handlers
   const handleDelete = async () => {
+    router.push("/done")
+    return
     try {
       const result = await ExpoPhotoAnalyzerModule.deletePhotos(selectedIds);
       if (result.success) {
@@ -197,7 +178,7 @@ const DeleteConfirmation = () => {
     router.back();
   };
 
-  // ── Render ────────────────────────────────────────────────────────────
+  //  Render
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.container}>
@@ -220,13 +201,13 @@ const DeleteConfirmation = () => {
           <Text style={styles.logoSubtitle}>This action cannot be undone.</Text>
         </Animated.View>
 
-        {/* ── Category breakdown ────────────────────────────────────── */}
+        {/*  Category breakdown  */}
         {categoryRows.length > 0 && (
           <CategoriesList categoryRows={categoryRows} marginTop />
         )}
       </View>
 
-      {/* ── Buttons ─────────────────────────────────────────────────── */}
+      {/*  Buttons  */}
       <Animated.View style={[styles.buttonGroup, buttonsEntrance]}>
         <GradientButton
           title={isSingleCategory ? "Delete" : "Delete Everything"}
@@ -245,7 +226,7 @@ const DeleteConfirmation = () => {
 
 export default DeleteConfirmation;
 
-// ── Helper: get category label and icon ──────────────────────────────
+//  get category label and icon
 function getCategoryLabel(category: CategoryVariant): string {
   const map: Record<CategoryVariant, string> = {
     screenshots: "Screenshots",
@@ -268,7 +249,7 @@ function getCategoryIcon(category: CategoryVariant): ImageSource {
   return map[category];
 }
 
-// ── Styles (unchanged) ────────────────────────────────────────────────
+//  Styles
 const styles = StyleSheet.create({
   screen: {
     flex: 1,

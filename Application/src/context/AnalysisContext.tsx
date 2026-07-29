@@ -1,11 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import ExpoPhotoAnalyzerModule from "../../modules/expo-photo-analyzer/src/ExpoPhotoAnalyzerModule";
-
-// ───────────────────────────────────────────────────────────────
-// Types
-// ───────────────────────────────────────────────────────────────
-
 export type AnalysisResult = {
   screenshots: string[];
   screenshotCandidates: string[];
@@ -41,7 +36,7 @@ export type CategoryKey =
 
 type CategorySelectionOverrides = {
   [category in CategoryKey]?: {
-    [itemId: string]: boolean; // true = selected, false = deselected (override)
+    [itemId: string]: boolean;
   };
 };
 
@@ -59,7 +54,6 @@ type AnalysisContextType = {
   setAllSelected: (category: CategoryKey, selected: boolean) => void;
   resetSelections: (category?: CategoryKey) => void;
   removeItems: (ids: string[]) => void;
-  // ── New size helpers ──────────────────────────────────────────
   getAssetSize: (assetId: string) => number;
   getTotalSizeForIds: (ids: string[]) => number;
   getSelectedSize: (category?: CategoryKey) => number;
@@ -71,7 +65,7 @@ const AnalysisContext = createContext<AnalysisContextType | undefined>(
 
 const STORAGE_KEY = "photoAnalysisResult";
 
-// ── Format bytes (utility function, not part of context) ──────────
+//  Format bytes (utility function, not part of context)
 export function formatBytes(bytes: number): string {
   const units = ["B", "KB", "MB", "GB"];
   let size = bytes;
@@ -82,10 +76,6 @@ export function formatBytes(bytes: number): string {
   }
   return `${size.toFixed(1)} ${units[unitIndex]}`;
 }
-
-// ───────────────────────────────────────────────────────────────
-// Provider
-// ───────────────────────────────────────────────────────────────
 
 export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -133,7 +123,7 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       console.log("📱 Calling native analyzePhotos...");
       const data = await ExpoPhotoAnalyzerModule.analyzePhotos();
-      console.log("✅ Native analysis returned:", data);
+      console.log(" Native analysis returned:", data);
       setResult(data);
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch (error) {
@@ -150,7 +140,7 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
     await AsyncStorage.removeItem(STORAGE_KEY);
   };
 
-  // ── Helper: compute default selected state based on raw data ──
+  //  Helper: compute default selected state based on raw data
   const getDefaultSelected = (
     category: CategoryKey,
     itemId: string,
@@ -177,7 +167,7 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // ── Get category items with overrides ──────────────────────
+  //  Get category items with overrides
   const getCategoryItems = (category: CategoryKey): CategoryItem[] => {
     if (!result) return [];
 
@@ -226,7 +216,7 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   };
 
-  // ── Get selected IDs (optionally for a specific category) ──
+  //  Get selected IDs (optionally for a specific category)
   const getSelectedItems = (category?: CategoryKey): string[] => {
     if (!result) return [];
     const categories: CategoryKey[] = category
@@ -242,7 +232,7 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
     return allIds;
   };
 
-  // ── Toggle selection for a single item ──────────────────────
+  //  Toggle selection for a single item
   const toggleSelection = (category: CategoryKey, itemId: string) => {
     setOverrides((prev) => {
       const categoryOverrides = prev[category] || {};
@@ -268,7 +258,7 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   };
 
-  // ── Set all items in a category to the same selected state ──
+  //  Set all items in a category to the same selected state
   const setAllSelected = (category: CategoryKey, selected: boolean) => {
     if (!result) return;
     const items = getCategoryItems(category);
@@ -286,7 +276,7 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
     }));
   };
 
-  // ── Reset selections to default (for a category or all) ──
+  //  Reset selections to default (for a category or all)
   const resetSelections = (category?: CategoryKey) => {
     if (category) {
       setOverrides((prev) => {
@@ -298,7 +288,7 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // ── Remove items from the result (after deletion) ──────────
+  //  Remove items from the result (after deletion)
   const removeItems = (ids: string[]) => {
     if (!result) return;
     const removeSet = new Set(ids);
@@ -365,7 +355,7 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   };
 
-  // ── Size helpers ──────────────────────────────────────────────
+  //  Size helpers
 
   const getAssetSize = (assetId: string): number => {
     return result?.assetSizes?.[assetId] ?? 0;

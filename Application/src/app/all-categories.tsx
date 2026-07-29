@@ -1,11 +1,8 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
-import { AllCategories } from '@/screens'
+import React from "react";
+import { AllCategories } from "@/screens";
 
 const AllCategoriesPage = () => {
-  return (
-   <AllCategories />
-  )
-}
+  return <AllCategories />;
+};
 
-export default AllCategoriesPage
+export default AllCategoriesPage;

@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, StyleSheet } from "react-native";
-import { router, useFocusEffect } from "expo-router";
+import { router } from "expo-router";
 import { ScanningProgress } from "@/screens";
 import { useAnalysis } from "@/context/AnalysisContext";
 
@@ -9,28 +9,9 @@ const ScanningScreen = () => {
     useAnalysis();
   const [analysisStarted, setAnalysisStarted] = useState(false);
 
-  // Start analysis once when the screen mounts
-  //  useFocusEffect(() => {
-  //   useCallback(() => {
-  //     // 1. Set up the delayed execution
-  //     const timer = setTimeout(() => {
-  //       console.log("This runs after 2 seconds of screen focus");
-  //       if (!analysisStarted) {
-  //         startAnalysis();
-  //         setAnalysisStarted(true);
-  //       }
-  //     }, 500); // Delay in milliseconds
-
-  //     // 2. Clear the timer if the user leaves the screen before 2 seconds
-  //     return () => {
-  //       clearTimeout(timer);
-  //       console.log("Screen unfocused; timer cleared");
-  //     };
-  //   }, []); // Add dependencies here if your inner logic relies on state/pr
-  // });
   useEffect(() => {
     if (!analysisStarted) {
-      // Small delay to ensure navigation is complete before heavy work starts
+      // some delay to ensure the page loaded
       const timer = setTimeout(() => {
         startAnalysis();
         setAnalysisStarted(true);
@@ -38,20 +19,8 @@ const ScanningScreen = () => {
       return () => clearTimeout(timer);
     }
   }, []);
-  
-  // useEffect(() => {
-  //   if (!analysisStarted) {
-  //     startAnalysis();
-  //     setAnalysisStarted(true);
-  //   }
-  // }, [500]);
 
-  // Log progress (optional)
-  useEffect(() => {
-    console.log(`📊 Progress: ${(progress * 100).toFixed(1)}% – ${category}`);
-  }, [progress, category]);
-
-  // Navigate to results when analysis completes
+  // nav to results when analysis completes
   useEffect(() => {
     if (!isLoading && result) {
       router.replace("/home-results");

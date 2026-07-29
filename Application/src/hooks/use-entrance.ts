@@ -11,7 +11,7 @@ import {
 /**
  * Shared fade + rise entrance animation, used across every screen for a
  * consistent "cascading" feel. Stagger elements by passing increasing
- * `delay` values (in ms) — e.g. 0, 80, 160, 240...
+ * `delay` values (in ms)  e.g. 0, 80, 160, 240...
  */
 export function useEntrance(delay: number = 0, distance: number = 14) {
   const opacity = useSharedValue(0);
@@ -35,7 +35,7 @@ export function useEntrance(delay: number = 0, distance: number = 14) {
 }
 
 /**
- * Slide-up-as-a-sheet entrance — for bottom bars / footers that should feel
+ * Slide-up-as-a-sheet entrance  for bottom bars / footers that should feel
  * like a layer sliding into place from below, not a hero pop or a text rise.
  * Distance defaults large enough to clear typical footer heights.
  */
@@ -61,7 +61,7 @@ export function useSheetEntrance(delay: number = 0, distance: number = 60) {
 }
 
 /**
- * Pop-in entrance with a spring overshoot — reserved for the single
+ * Pop-in entrance with a spring overshoot  reserved for the single
  * "hero" element on a screen (logo, badge, icon), not for text rows.
  */
 export function useHeroEntrance(delay: number = 0) {

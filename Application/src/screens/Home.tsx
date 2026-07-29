@@ -1,5 +1,3 @@
-import React, { useMemo } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
 import { GradientButton } from "@/components/ui/gradient-button";
 import {
   Brand,
@@ -9,23 +7,19 @@ import {
   Spacing,
 } from "@/constants/theme";
 import { Image, ImageSource } from "expo-image";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import Animated from "react-native-reanimated";
 import { router } from "expo-router";
+import React, { useMemo } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import Animated from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 
+import { formatBytes, useAnalysis } from "@/context/AnalysisContext";
 import { useEntrance } from "@/hooks/use-entrance";
-import { useAnalysis } from "@/context/AnalysisContext";
 import { CategoryVariant } from "./CategoryDetails";
-
-// ── Icons ──────────────────────────────────────────────────────────────
-const ScreenshotsIcon = require("@/assets/icons/screenshots.png");
-const DuplicatesIcon = require("@/assets/icons/duplicates.png");
-const BlurryPhotosIcon = require("@/assets/icons/blurry.png");
-const LivePhotosIcon = require("@/assets/icons/live-photos.png");
-const ClutterIcon = require("@/assets/icons/trash.png");
-
-// ── Types ──────────────────────────────────────────────────────────────
+import { ScreenshotsIcon, BlurryPhotosIcon, ClutterIcon, DuplicatesIcon, LivePhotosIcon } from "@/constants";
+ 
+//  Types
 type CategoryRowData = {
   key: CategoryVariant;
   label: string;
@@ -36,19 +30,7 @@ type CategoryRowData = {
 
 const ROW_STAGGER_MS = 70;
 
-// ── Helper: format bytes ──────────────────────────────────────────────
-function formatBytes(bytes: number): string {
-  const units = ["B", "KB", "MB", "GB"];
-  let size = bytes;
-  let unitIndex = 0;
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024;
-    unitIndex++;
-  }
-  return `${size.toFixed(1)} ${units[unitIndex]}`;
-}
-
-// ── Category List Component ───────────────────────────────────────────
+//  Category List Component
 export function CategoriesList({
   categoryRows,
   marginTop = false,
@@ -95,7 +77,7 @@ export function CategoriesList({
   );
 }
 
-// ── Empty State ──────────────────────────────────────────────────────
+//  Empty State
 const EmptyState = () => {
   const entrance = useEntrance(140);
 
@@ -108,14 +90,11 @@ const EmptyState = () => {
       />
       <Text style={styles.emptySubtitle}>You have no nothing to delete.</Text>
       <Text style={styles.emptyHint}>You're mostly done.</Text>
-      {/* <View style={styles.emptyButtonWrap}>
-        <GradientButton title="Re-scan Library" onPress={onRescan} />
-      </View> */}
     </Animated.View>
   );
 };
 
-// ── Home Screen ──────────────────────────────────────────────────────
+//  Home Screen
 const Home = () => {
   const headerEntrance = useEntrance(0);
   const titleEntrance = useEntrance(60);
@@ -132,7 +111,7 @@ const Home = () => {
 
   const assetSizes = result.assetSizes || {};
 
-  // ── Compute deletable items per category ──────────────────────────
+  //  Compute deletable items per category
   const categoryStats = useMemo(() => {
     // Helper to sum sizes of an ID array
     const sumSizes = (ids: string[]) =>
@@ -288,7 +267,7 @@ const Home = () => {
 
 export default Home;
 
-// ── Category Row Component ─────────────────────────────────────────
+//  Category Row Component
 export const CategoryRow = ({
   id,
   label,
@@ -326,7 +305,7 @@ export const CategoryRow = ({
   );
 };
 
-// ── Styles ─────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
@@ -449,7 +428,6 @@ const styles = StyleSheet.create({
     marginTop: "auto",
     marginBottom: Spacing.five,
   },
-  // ── Empty state styles ─────────────────────────────────────────
   emptyContainer: {
     flex: 1,
     alignItems: "center",
