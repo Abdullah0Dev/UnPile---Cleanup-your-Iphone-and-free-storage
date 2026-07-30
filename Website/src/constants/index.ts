@@ -9,6 +9,6 @@ export const navItems = [
   },
   {
     item: "Privacy",
-    href: "#privacy",
+    href: "/legal",
   },
 ];

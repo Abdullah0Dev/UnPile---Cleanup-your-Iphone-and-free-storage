@@ -35,7 +35,7 @@ func dateFromMilliseconds(_ milliseconds: Double) throws -> Date {
 8. Build UI of Upgrade and then its functionality and think about the monitization
 9. check why done screen doesn't show on delete confirmation
 10. 
-
+think about applying same filter for live images as clutters
  
 in screenshots it drops the header as no safe are and decide there is
 
