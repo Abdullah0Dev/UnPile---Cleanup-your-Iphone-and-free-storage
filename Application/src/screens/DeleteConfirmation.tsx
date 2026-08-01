@@ -1,15 +1,17 @@
 import { Image, ImageSource } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import { useCredits } from "@/context/CreditsContext";
 import { GradientButton } from "@/components/ui/gradient-button";
+import { GradientText } from "@/components/ui/gradient-text";
 import {
   Brand,
   FontSizes,
   FontWeights,
+  Gradients,
   Radii,
   Spacing,
 } from "@/constants/theme";
@@ -18,7 +20,14 @@ import { useEntrance, useHeroEntrance } from "@/hooks/use-entrance";
 import ExpoPhotoAnalyzerModule from "../../modules/expo-photo-analyzer/src/ExpoPhotoAnalyzerModule";
 import { CategoryVariant } from "./CategoryDetails";
 import { CategoriesList } from "./Home";
-import { ScreenshotsIcon, BlurryPhotosIcon, ClutterIcon, DuplicatesIcon, LivePhotosIcon } from "@/constants";
+import {
+  ScreenshotsIcon,
+  BlurryPhotosIcon,
+  ClutterIcon,
+  DuplicatesIcon,
+  LivePhotosIcon,
+} from "@/constants";
+import Paywall from "@/components/ui/paywall";
 
 //  Types
 type CategoryRowData = {
@@ -46,6 +55,17 @@ const DeleteConfirmation = () => {
   //  Determine if single category or everything
   const isSingleCategory = Boolean(params.variant);
   const variant = params.variant as CategoryVariant | undefined;
+  const [showPaywall, setShowPaywall] = useState(false);
+  const {
+    credits: currentCredits,
+    consumeCredits,
+    isSubscribed,
+    isLoadingSubscription,
+  } = useCredits();
+  // 🚀 New: Parse the credits passed from the parent/state
+  // const currentCredits = params.currentCredits
+  //   ? parseInt(params.currentCredits, 10)
+  //   : 10;
 
   //  Compute selected items, counts, and sizes using assetSizes
   const selectedData = useMemo(() => {
@@ -129,13 +149,14 @@ const DeleteConfirmation = () => {
     params.label,
   ]);
 
-  const {
-    selectedIds,
-    totalItems,
-    totalSizeBytes,
-    totalSizeFormatted,
-    categoryRows,
-  } = selectedData;
+  const { selectedIds, totalItems, totalSizeBytes, categoryRows } =
+    selectedData;
+
+  // 🚀 Determine if the user has hit the hard limit
+  const isLimitReached =
+    isSubscribed && !isLoadingSubscription
+      ? false
+      : currentCredits === 0 || totalItems > currentCredits;
 
   //  Entrances
   const iconEntrance = useHeroEntrance(0);
@@ -151,14 +172,12 @@ const DeleteConfirmation = () => {
 
   //  Handlers
   const handleDelete = async () => {
-    router.push("/done")
-    return
     try {
       const result = await ExpoPhotoAnalyzerModule.deletePhotos(selectedIds);
       if (result.success) {
         // Update context & storage by removing these IDs
         removeItems(selectedIds);
-
+        await consumeCredits(totalItems);
         router.push({
           pathname: "/done",
           params: {
@@ -172,6 +191,13 @@ const DeleteConfirmation = () => {
     } catch (error) {
       console.error("Delete failed:", error);
     }
+  };
+
+  const handleUpgradePress = () => {
+    // Replace this with your actual paywall route or modal logic
+    setShowPaywall(true);
+    console.log("Opening paywall modal from Delete Confirmation screen...");
+    // router.navigate("/paywall");
   };
 
   const handleCancel = () => {
@@ -198,9 +224,39 @@ const DeleteConfirmation = () => {
         </Animated.View>
 
         <Animated.View style={[styles.subtitleContainer, subtitleEntrance]}>
-          <Text style={styles.logoSubtitle}>This action cannot be undone.</Text>
+          <Text style={[styles.logoSubtitle, {maxWidth: 260, textAlign: 'center'}]}>
+            Photos will be moved to Trash and can be restored for 30 days.
+          </Text>
         </Animated.View>
 
+        {/* 🚀 New Credit Label - Shows user their available credits */}
+        {!isSubscribed && (
+          <Animated.View
+            style={[
+              subtitleEntrance,
+              { marginTop: Spacing.one, alignItems: "center" },
+            ]}
+          >
+            <GradientText
+              colors={Gradients.primaryButton}
+              end={{ x: 0.2, y: 0.5 }}
+              style={{ fontSize: FontSizes.body, fontWeight: 500 }}
+            >
+              Credits Available: {currentCredits.toLocaleString()}
+            </GradientText>
+            {isLimitReached && (
+              <Text
+                style={{
+                  color: Brand.textSecondary,
+                  fontSize: FontSizes.caption,
+                  marginTop: 2,
+                }}
+              >
+                * You need more credits. Unlock unlimited with Premium.
+              </Text>
+            )}
+          </Animated.View>
+        )}
         {/*  Category breakdown  */}
         {categoryRows.length > 0 && (
           <CategoriesList categoryRows={categoryRows} marginTop />
@@ -209,9 +265,16 @@ const DeleteConfirmation = () => {
 
       {/*  Buttons  */}
       <Animated.View style={[styles.buttonGroup, buttonsEntrance]}>
+        {/* 🔥 Dynamic primary button based on credit state */}
         <GradientButton
-          title={isSingleCategory ? "Delete" : "Delete Everything"}
-          onPress={handleDelete}
+          title={
+            isLimitReached
+              ? "Unlock Unlimited"
+              : isSingleCategory
+                ? "Delete"
+                : "Delete Everything"
+          }
+          onPress={isLimitReached ? handleUpgradePress : handleDelete}
           disabled={totalItems === 0}
         />
         <GradientButton
@@ -220,6 +283,10 @@ const DeleteConfirmation = () => {
           onPress={handleCancel}
         />
       </Animated.View>
+      <Paywall
+        isPresented={showPaywall}
+        onDismiss={() => setShowPaywall(false)}
+      />
     </SafeAreaView>
   );
 };

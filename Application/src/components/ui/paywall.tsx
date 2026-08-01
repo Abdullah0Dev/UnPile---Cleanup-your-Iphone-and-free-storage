@@ -1,6 +1,12 @@
 // Paywall.tsx
 import { Brand, FontSizes } from "@/constants/theme";
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import {
   StyleSheet,
   View,
@@ -10,7 +16,6 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
-  Pressable,
   Switch,
 } from "react-native";
 import Animated, {
@@ -21,19 +26,27 @@ import Animated, {
   withSequence,
   withDelay,
   Easing,
-  interpolate,
-  Extrapolate,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Circle } from "react-native-svg";
 import { GradientButton } from "./gradient-button";
 import {
+  Gem,
   HardDrive,
   HeartPlus,
+  Lightbulb,
   LockOpen,
   ScanSearch,
+  Sparkle,
+  Sparkles,
+  Trash,
+  WandSparkles,
 } from "lucide-react-native";
 import { Link } from "expo-router";
+import CountdownCloseButton from "./countdown-close-button";
+import BottomSheet, { BottomSheetView } from "@expo/ui/community/bottom-sheet";
+import { useCredits } from "@/context/CreditsContext";
+
 // -----------------------------------------------------------------------------
 // 1. Types & Mock Data
 // -----------------------------------------------------------------------------
@@ -71,11 +84,12 @@ const INITIAL_PRODUCT_DETAILS: PurchaseProductDetails[] = [
 // 2. Custom Hook: Purchase Model (simulates StoreKit)
 // -----------------------------------------------------------------------------
 
-function usePurchaseModel() {
+function usePurchaseModel({ onDismiss }: { onDismiss: () => void }) {
   const [productIds] = useState<string[]>(["demo_y", "demo_w"]);
   const [productDetails, setProductDetails] = useState<
     PurchaseProductDetails[]
   >(INITIAL_PRODUCT_DETAILS);
+  const { setSubscriptionStatus } = useCredits();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [isFetchingProducts, setIsFetchingProducts] = useState(true);
@@ -93,8 +107,14 @@ function usePurchaseModel() {
       if (isPurchasing) return;
       setIsPurchasing(true);
       // Simulate async purchase
-      setTimeout(() => {
+      setTimeout(async () => {
         setIsPurchasing(false);
+        console.log("Subscribed:)");
+        // 1. Call the method that updates the Context and Storage
+        await setSubscriptionStatus(true);
+
+        // 2. Close the paywall
+        onDismiss();
         // Simulate successful subscription (for demo)
         setIsSubscribed(true);
       }, 2000);
@@ -172,22 +192,22 @@ function calculatePercentageSaved(
 // Feature row (icon + text)
 const PurchaseFeatureView: React.FC<{
   title: string;
-  icon: "hard-drive" | "scan-search" | "heart-plus" | "lock-open";
+  icon: "trash-can" | "sparkles" | "lightning-bolt" | "gem";
   color: string;
 }> = ({ title, icon, color }) => {
-  let CustomIcon = HardDrive;
+  let CustomIcon = Trash;
   switch (icon) {
-    case "hard-drive":
-      CustomIcon = HardDrive;
+    case "trash-can":
+      CustomIcon = Trash;
       break;
-    case "scan-search":
-      CustomIcon = ScanSearch;
+    case "sparkles":
+      CustomIcon = Sparkles;
       break;
-    case "heart-plus":
-      CustomIcon = HeartPlus;
+    case "lightning-bolt":
+      CustomIcon = Lightbulb;
       break;
-    case "lock-open":
-      CustomIcon = LockOpen;
+    case "gem":
+      CustomIcon = Gem;
       break;
 
     default:
@@ -201,51 +221,6 @@ const PurchaseFeatureView: React.FC<{
     </View>
   );
 };
-
-// Circular progress (used for cooldown close button)
-const ProgressCircle: React.FC<{ progress: Animated.SharedValue<number> }> = ({
-  progress,
-}) => {
-  const size = 24;
-  const strokeWidth = 3;
-  const radius = (size - strokeWidth) / 2;
-  const circumference = radius * 2 * Math.PI;
-
-  const animatedStyle = useAnimatedStyle(() => {
-    const offset = circumference * (1 - progress.value);
-    return {
-      transform: [{ rotate: "-90deg" }],
-      strokeDashoffset: offset,
-    };
-  });
-
-  return (
-    <Svg width={size} height={size} style={styles.progressSvg}>
-      <Circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        stroke="rgba(255,255,255,0.2)"
-        strokeWidth={strokeWidth}
-        fill="none"
-      />
-      <AnimatedCircle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        stroke={Brand.primary}
-        strokeWidth={strokeWidth}
-        fill="none"
-        strokeDasharray={circumference}
-        strokeLinecap="round"
-        style={animatedStyle}
-      />
-    </Svg>
-  );
-};
-
-// Animated Circle wrapper for Reanimated
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 // Product option button
 const ProductOption: React.FC<{
@@ -327,6 +302,10 @@ interface PaywallProps {
 }
 
 const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
+  // ── Bottom Sheet Ref ──
+  const sheetRef = useRef<BottomSheet>(null);
+  const { setSubscriptionStatus } = useCredits();
+
   // ── Purchase model ──
   const {
     productDetails,
@@ -335,19 +314,18 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
     isFetchingProducts,
     purchaseSubscription,
     restorePurchases,
-  } = usePurchaseModel();
+  } = usePurchaseModel({ onDismiss });
 
   // ── UI state ──
   const [selectedProductId, setSelectedProductId] = useState<string>("");
-  const [showCloseButton, setShowCloseButton] = useState<boolean>(false);
   const [showNoneRestoredAlert, setShowNoneRestoredAlert] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [isWeeklyPlan, setIsWeeklyPlan] = useState<boolean>(true); // true = weekly, false = yearly
+  const [isCountdownComplete, setIsCountdownComplete] = useState(false);
 
   // ── Shared values for animations ──
   const shakeDegrees = useSharedValue(0);
   const shakeZoom = useSharedValue(0.9);
-  const progress = useSharedValue(0);
 
   // ── Computed values ──
   const fullPrice = useMemo(
@@ -373,6 +351,15 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
 
   // ── Effects ──
 
+  // Control the bottom sheet visibility based on isPresented
+  useEffect(() => {
+    if (isPresented) {
+      sheetRef.current?.snapToIndex(0);
+    } else {
+      sheetRef.current?.close();
+    }
+  }, [isPresented]);
+
   // Select weekly by default when switch is ON
   useEffect(() => {
     if (productDetails.length > 0) {
@@ -385,22 +372,6 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
       }
     }
   }, [productDetails, isWeeklyPlan]);
-
-  // Start cooldown progress and show close button after 5s
-  useEffect(() => {
-    if (isPresented) {
-      progress.value = 0;
-      setShowCloseButton(false);
-      progress.value = withTiming(1, {
-        duration: 5000,
-        easing: Easing.inOut(Easing.ease),
-      });
-      const timer = setTimeout(() => {
-        setShowCloseButton(true);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [isPresented, progress]);
 
   // Start shake animation after 1 second (repeats)
   useEffect(() => {
@@ -465,14 +436,6 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
     ],
   }));
 
-  // Animated close button: scale and opacity when showCloseButton changes
-  const closeButtonAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(showCloseButton ? 1 : 0, { duration: 300 }),
-    transform: [
-      { scale: withTiming(showCloseButton ? 1 : 0.8, { duration: 300 }) },
-    ],
-  }));
-
   // ── Handlers ──
   const handleToggleSwitch = (value: boolean) => {
     setIsWeeklyPlan(value);
@@ -487,179 +450,174 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
   };
 
   // ── Render ──
-
-  if (!isPresented) return null;
+  // Note: We do NOT return null here, because BottomSheet needs to be rendered to manage state.
+  const handleCountdownComplete = useCallback(() => {
+    setIsCountdownComplete(true);
+    console.log("countdown finished!");
+  }, []);
+  const handleDismiss = useCallback(() => {
+    onDismiss();
+    console.log("countdown reset!");
+    setIsCountdownComplete(false);
+  }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Close button (top-right) */}
-      {/* <View style={styles.closeContainer}>
-        <TouchableOpacity onPress={onDismiss} style={styles.closeButton}>
-          <Text style={styles.closeIcon}>✕</Text>
-        </TouchableOpacity>
-      </View> */}
-      <View style={styles.closeContainer}>
-        <Animated.View style={closeButtonAnimatedStyle}>
-          {showCloseButton ? (
-            <TouchableOpacity onPress={onDismiss} style={styles.closeButton}>
-              <Text style={styles.closeIcon}>✕</Text>
-            </TouchableOpacity>
-          ) : (
-            <ProgressCircle progress={progress} />
-          )}
-        </Animated.View>
-      </View>
-
-      {/* Content */}
-      <View style={styles.content}>
-        {/* Hero Image */}
-        <View style={styles.heroWrapper}>
-          <Animated.Image
-            source={require("@/assets/images/logo.png")}
-            style={[styles.heroImage, heroAnimatedStyle]}
-            resizeMode="contain"
-          />
-        </View>
-
-        {/* Title & Features */}
-        <View style={{ alignItems: "center" }}>
-          <Text style={styles.title}>Premium Access</Text>
-          <View style={styles.featuresContainer}>
-            <PurchaseFeatureView
-              title="Free Up your storage"
-              icon="hard-drive"
-              color={Brand.primary}
-            />
-            <PurchaseFeatureView
-              title="Unlimit Photos Scans"
-              icon="scan-search"
-              color={Brand.primary}
-            />
-            <PurchaseFeatureView
-              title="Support me Improving The App"
-              icon="heart-plus"
-              color={Brand.primary}
-            />
-            <PurchaseFeatureView
-              title="Remove annoying paywalls"
-              icon="lock-open"
-              color={Brand.primary}
+    <BottomSheet
+      ref={sheetRef}
+      snapPoints={["98.5%"]}
+      index={-1}
+      onClose={handleDismiss}
+      enablePanDownToClose={isCountdownComplete}
+      backgroundStyle={{ backgroundColor: "#08071A" }}
+      handleIndicatorStyle={{ backgroundColor: Brand.textSecondary }}
+    >
+      <BottomSheetView style={styles.bottomSheetContent}>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.closeContainer}>
+            <CountdownCloseButton
+              duration={5000}
+              active={isPresented}
+              onComplete={handleCountdownComplete} // <-- New prop
+              onPress={handleDismiss}
             />
           </View>
-        </View>
 
-        <View style={styles.spacer} />
+          {/* Content */}
+          <View style={styles.content}>
+            {/* Hero Image */}
+            <View style={styles.heroWrapper}>
+              <Animated.Image
+                source={require("@/assets/images/logo.png")}
+                style={[styles.heroImage, heroAnimatedStyle]}
+                resizeMode="contain"
+              />
+            </View>
 
-        {/* Product Options */}
-        <View
-          style={[
-            styles.optionsContainer,
-            { opacity: isFetchingProducts ? 0 : 1 },
-          ]}
-        >
-          {productDetails.map((product) => (
-            <ProductOption
-              key={product.id}
-              product={product}
-              selected={selectedProductId === product.productId}
-              onSelect={() => handleProductSelect(product.productId)}
-              color={Brand.primary}
-              percentageSaved={percentageSaved}
-              fullPrice={fullPrice}
-            />
-          ))}
-        </View>
+            {/* Title & Features */}
+            <View style={{ alignItems: "center" }}>
+              <Text style={styles.title}>Premium Access</Text>
+              <View style={styles.featuresContainer}>
+                <PurchaseFeatureView
+                  title="Unlimited Deletion"
+                  icon="trash-can"
+                  color={Brand.primary}
+                />
+                <PurchaseFeatureView
+                  title="AI Smart Select"
+                  icon="sparkles"
+                  color={Brand.primary}
+                />
+                <PurchaseFeatureView
+                  title="One-Tap Clean Up"
+                  icon="lightning-bolt"
+                  color={Brand.primary}
+                />
+                <PurchaseFeatureView
+                  title="Seamless Experience"
+                  icon="gem"
+                  color={Brand.primary}
+                />
+              </View>
+            </View>
 
-        {/* Free Trial Toggle */}
-        <View style={styles.trialContainer}>
-          <Text style={styles.trialText}>
-            {/* {isWeeklyPlan ? "Free Trial Enabled" : "Lifetime Plan"} */}
-            Free Trial Enabled
-          </Text>
-          <Switch
-            trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-            thumbColor={"#FFFFFF"}
-            ios_backgroundColor="#E5E5EA"
-            onValueChange={handleToggleSwitch}
-            value={isWeeklyPlan}
-            style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
-          />
-        </View>
+            <View style={styles.spacer} />
 
-        <Text style={[styles.title, { fontSize: 16, fontWeight: "600" }]}>
-          {isWeeklyPlan && `NO PAYMENT REQUIRED TODAY`}
-        </Text>
-
-        {/* Purchase Button & Loading */}
-        {/* <View style={styles.purchaseContainer}>
-          {isPurchasing ? (
-            <ActivityIndicator size="large" color="#007AFF" />
-          ) : (
-            <TouchableOpacity
-              style={[styles.purchaseButton, { backgroundColor: "#007AFF" }]}
-              onPress={() => {
-                if (!isPurchasing && selectedProductId) {
-                  purchaseSubscription(selectedProductId);
-                }
-              }}
-              disabled={isPurchasing}
+            {/* Product Options */}
+            <View
+              style={[
+                styles.optionsContainer,
+                { opacity: isFetchingProducts ? 0 : 1 },
+              ]}
             >
-              <Text style={styles.purchaseButtonText}>
-                {callToActionText} <Text style={styles.chevron}>›</Text>
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View> */}
-        <View style={{ marginTop: 5 }}>
-          <GradientButton
-            title={callToActionText + "  ›"}
-            onPress={() => {
-              if (!isPurchasing && selectedProductId) {
-                purchaseSubscription(selectedProductId);
-              }
-            }}
-            disabled={isPurchasing}
-          />
-        </View>
+              {productDetails.map((product) => (
+                <ProductOption
+                  key={product.id}
+                  product={product}
+                  selected={selectedProductId === product.productId}
+                  onSelect={() => handleProductSelect(product.productId)}
+                  color={Brand.primary}
+                  percentageSaved={percentageSaved}
+                  fullPrice={fullPrice}
+                />
+              ))}
+            </View>
 
-        {/* Footer Links */}
-        <View style={styles.footer}>
-          <TouchableOpacity onPress={handleRestore} style={styles.footerLink}>
-            <Text style={styles.footerLinkText}>Restore</Text>
-            <View style={styles.underline} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setShowTermsModal(true)}
-            style={styles.footerLink}
-          >
-            <Link href="https://expo.dev">
-              <Text style={styles.footerLinkText}>
-                Terms of Use & Privacy Policy
-              </Text>
-            </Link>
-            <View style={styles.underline} />
-          </TouchableOpacity>
-        </View>
-      </View>
+            {/* Free Trial Toggle */}
+            <View style={styles.trialContainer}>
+              <Text style={styles.trialText}>Free Trial Enabled</Text>
+              <Switch
+                trackColor={{ false: "#E5E5EA", true: "#34C759" }}
+                thumbColor={"#FFFFFF"}
+                ios_backgroundColor="#E5E5EA"
+                onValueChange={handleToggleSwitch}
+                value={isWeeklyPlan}
+                style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
+              />
+            </View>
 
-      {/* Alert for no purchases restored */}
-      {showNoneRestoredAlert && (
-        <Modal transparent animationType="fade" visible={showNoneRestoredAlert}>
-          <View style={styles.alertOverlay}>
-            <View style={styles.alertBox}>
-              <Text style={styles.alertTitle}>Restore Purchases</Text>
-              <Text style={styles.alertMessage}>No purchases restored</Text>
+            <Text style={[styles.title, { fontSize: 16, fontWeight: "600" }]}>
+              {isWeeklyPlan && `NO PAYMENT REQUIRED TODAY`}
+            </Text>
+
+            {/* Purchase Button & Loading */}
+            <View style={{ marginTop: 5 }}>
+              <GradientButton
+                textStyle={{ fontSize: 19, fontWeight: 700 }}
+                title={callToActionText + "  ›"}
+                onPress={() => {
+                  if (!isPurchasing && selectedProductId) {
+                    purchaseSubscription(selectedProductId);
+                  }
+                }}
+                // Icon={WandSparkles}
+                disabled={isPurchasing}
+              />
+            </View>
+
+            {/* Footer Links */}
+            <View style={styles.footer}>
               <TouchableOpacity
-                style={styles.alertButton}
-                onPress={() => setShowNoneRestoredAlert(false)}
+                onPress={handleRestore}
+                style={styles.footerLink}
               >
-                <Text style={styles.alertButtonText}>OK</Text>
+                <Text style={styles.footerLinkText}>Restore</Text>
+                <View style={styles.underline} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.footerLink}>
+                <Link href="https://unpile.vercel.app/legal">
+                  <Text style={styles.footerLinkText}>
+                    Terms of Use & Privacy Policy
+                  </Text>
+                </Link>
+                <View style={styles.underline} />
               </TouchableOpacity>
             </View>
           </View>
-        </Modal>
-      )}
-    </SafeAreaView>
+
+          {/* Alert for no purchases restored */}
+          {showNoneRestoredAlert && (
+            <Modal
+              transparent
+              animationType="fade"
+              visible={showNoneRestoredAlert}
+            >
+              <View style={styles.alertOverlay}>
+                <View style={styles.alertBox}>
+                  <Text style={styles.alertTitle}>Restore Purchases</Text>
+                  <Text style={styles.alertMessage}>No purchases restored</Text>
+                  <TouchableOpacity
+                    style={styles.alertButton}
+                    onPress={() => setShowNoneRestoredAlert(false)}
+                  >
+                    <Text style={styles.alertButtonText}>OK</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Modal>
+          )}
+        </SafeAreaView>
+      </BottomSheetView>
+    </BottomSheet>
   );
 };
 
@@ -668,6 +626,9 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
 // -----------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
+  bottomSheetContent: {
+    flex: 1,
+  },
   container: {
     backgroundColor: "#08071A", // Your deep near-black app background
     flex: 1,
@@ -731,10 +692,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    // backgroundColor: "#15131F", // Matches card / screen container fill
     borderWidth: 1,
-    // borderColor: "#3A2E6E", // Faint violet outline
-    borderRadius: 12, // Adjusted radius to match the rest of your app UI
+    borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginTop: 4,

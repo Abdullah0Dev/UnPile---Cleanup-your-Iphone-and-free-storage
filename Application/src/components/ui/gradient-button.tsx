@@ -1,10 +1,12 @@
-import React from "react";
+import React, { ForwardRefExoticComponent, RefAttributes } from "react";
 import {
   Text,
   StyleSheet,
   Pressable,
   PressableProps,
   View,
+  StyleProp,
+  TextStyle,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
@@ -16,17 +18,22 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { Brand, Gradients } from "@/constants/theme";
+import { LucideProps } from "lucide-react-native";
 
 interface GradientButtonProps extends PressableProps {
   title: string;
   type?: "primary" | "secondary";
   onPress?: () => void;
+  Icon?: ForwardRefExoticComponent<LucideProps & RefAttributes<SVGSVGElement>>;
+  textStyle?: StyleProp<TextStyle>
 }
 
 export const GradientButton = ({
   title,
   type = "primary",
   onPress,
+  textStyle,
+  Icon,
   ...rest
 }: GradientButtonProps) => {
   const scale = useSharedValue(1);
@@ -36,17 +43,17 @@ export const GradientButton = ({
   const handlePress = () => {
     scale.value = withSequence(
       withTiming(0.94, { duration: 80 }),
-      withSpring(1, { damping: 8, stiffness: 180 })
+      withSpring(1, { damping: 8, stiffness: 180 }),
     );
 
     rippleScale.value = withSequence(
       withTiming(0, { duration: 0 }),
       withTiming(5, { duration: 550, easing: Easing.out(Easing.quad) }),
-      withTiming(5, { duration: 0 }) // hold for a frame (clean reset)
+      withTiming(5, { duration: 0 }), // hold for a frame (clean reset)
     );
     rippleOpacity.value = withSequence(
       withTiming(0.35, { duration: 120 }),
-      withTiming(0, { duration: 500 })
+      withTiming(0, { duration: 500 }),
     );
 
     if (onPress) onPress();
@@ -75,7 +82,14 @@ export const GradientButton = ({
           style={styles.gradient}
         >
           <Animated.View style={[styles.ripple, rippleStyle]} />
-          <Text style={styles.buttonText}>{title}</Text>
+          {Icon ? (
+            <View style={styles.textContainer}>
+              <Icon size={16} color={Brand.textOnPrimary} />
+              <Text style={[styles.buttonText, textStyle]}> {title} </Text>
+            </View>
+          ) : (
+            <Text style={[styles.buttonText, textStyle]}> {title} </Text>
+          )}
         </LinearGradient>
       </Animated.View>
     </Pressable>
@@ -85,7 +99,7 @@ export const GradientButton = ({
 const styles = StyleSheet.create({
   buttonContainer: {
     borderRadius: 20,
-    overflow: "hidden", 
+    overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 14 },
     shadowOpacity: 0.4,
@@ -100,13 +114,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Brand.cardBorder + "80",
     borderRadius: 20,
-    overflow: "hidden", 
+    overflow: "hidden",
   },
+
   buttonText: {
     color: Brand.textPrimary,
     fontSize: 17,
     fontWeight: "600",
     zIndex: 2, // above ripple:)
+  },
+  textContainer: {
+    alignItems: "center",
+    display: "flex",
+    flexDirection: 'row'
   },
   ripple: {
     position: "absolute",

@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, Text } from "react-native"; // Added Text import
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -18,15 +18,21 @@ import {
   Brand,
   FontSizes,
   FontWeights,
+  Gradients,
   Radii,
   Spacing,
 } from "@/constants/theme";
+import { GradientText } from "@/components/ui/gradient-text";
+import { useCredits } from "@/context/CreditsContext";
 
 type DoneCleaningProps = {
   freedUpBytes?: number;
   itemsDeleted?: number;
+  currentCredits?: number; // New Prop
+  remainingItems?: number; // New Prop
   onViewLibrary?: () => void;
   onDone?: () => void;
+  onUpgradePress?: () => void; // New Prop for opening paywall
 };
 
 // Small helper: fade + rise entrance, staggered by `delay`.
@@ -71,13 +77,15 @@ function formatBytes(bytes: number): { value: number; unit: string } {
 const DoneCleaning = ({
   freedUpBytes = 0,
   itemsDeleted = 0,
+  remainingItems = 0,
   onViewLibrary,
   onDone,
+  onUpgradePress,
 }: DoneCleaningProps) => {
   // pop in with a spring overshoot
   const badgeScale = useSharedValue(0.4);
   const badgeOpacity = useSharedValue(0);
-
+  const { credits: currentCredits, isSubscribed } = useCredits();
   //  Ambient glow: fades in, then breathes gently forever
   const glowOpacity = useSharedValue(0);
   const glowScale = useSharedValue(0.85);
@@ -137,6 +145,11 @@ const DoneCleaning = ({
   const displayValue = formattedValue.toFixed(1);
   const displayUnit = unit;
 
+  // 🔥 New Logic: Determine if we should prompt the user to upgrade
+  const shouldShowUpgrade = isSubscribed
+    ? false
+    : currentCredits === 0 && remainingItems > 0;
+
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.container}>
@@ -164,14 +177,78 @@ const DoneCleaning = ({
         <Animated.Text style={[styles.statValue, statValueEntrance]}>
           {displayValue} {displayUnit}
         </Animated.Text>
+
         <Animated.Text style={[styles.statSubtitle, statSubtitleEntrance]}>
-          {itemsDeleted.toLocaleString()} items deleted
+          {itemsDeleted.toLocaleString()} Items deleted
         </Animated.Text>
+        {!isSubscribed && (
+          <GradientText
+            onPress={onUpgradePress}
+            colors={Gradients.primaryButton}
+            end={{ x: 0.2, y: 0.5 }}
+            style={[
+              {
+                fontSize: FontSizes.body,
+                fontWeight: 500,
+              },
+            ]}
+          >
+            {currentCredits.toLocaleString()} Credits Left
+          </GradientText>
+        )}
+        {/* 🚀 New Clickable Upgrade Prompt - Enters with the subtitle timing */}
+        {shouldShowUpgrade && (
+          <Animated.View
+            style={[statSubtitleEntrance, { marginTop: Spacing.three }]}
+          >
+            {/* <Text
+              style={{
+                color: Brand.primary,
+                fontSize: FontSizes.body,
+                fontWeight: FontWeights.medium as any,
+                textDecorationLine: "underline",
+                textAlign: "center",
+              }}
+              onPress={onUpgradePress}
+            > */}
+            <GradientText
+              onPress={onUpgradePress}
+              colors={Gradients.primaryButton}
+              end={{ x: 0.5, y: 0.5 }}
+              style={[
+                {
+                  fontSize: FontSizes.body,
+                  fontWeight: 500,
+                  textDecorationLine: "underline",
+                },
+              ]}
+            >
+              You still have{" "}
+              <Text style={{ fontSize: 16, fontWeight: 700 }}>
+                {remainingItems.toLocaleString()}
+              </Text>{" "}
+              items remaining.
+              {"\n"}Tap to clear them all →
+            </GradientText>
+            {/* </Text> */}
+          </Animated.View>
+        )}
       </View>
 
       <Animated.View style={[styles.buttonGroup, buttonsEntrance]}>
-        <GradientButton title="View Library" onPress={onViewLibrary} />
-        <GradientButton title="Done" type="secondary" onPress={onDone} />
+        {/* Always safe, neutral button */}
+        <GradientButton
+          title="View Library"
+          type={!shouldShowUpgrade ? "primary" : "secondary"}
+          onPress={onViewLibrary}
+        />
+
+        {/* 🔥 Dynamic button based on credit state */}
+        <GradientButton
+          title={shouldShowUpgrade ? "Unlock Unlimited" : "Done"}
+          type={shouldShowUpgrade ? "primary" : "secondary"}
+          onPress={shouldShowUpgrade ? onUpgradePress : onDone}
+        />
       </Animated.View>
     </SafeAreaView>
   );

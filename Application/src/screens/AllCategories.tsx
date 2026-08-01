@@ -1,7 +1,7 @@
 import { Image, ImageSource } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Sparkles } from "lucide-react-native";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -18,14 +18,24 @@ import { formatBytes, useAnalysis } from "@/context/AnalysisContext";
 import { useEntrance } from "@/hooks/use-entrance";
 import { router } from "expo-router";
 import { CategoryVariant } from "./CategoryDetails";
-import { ScreenshotsIcon, BlurryPhotosIcon, ClutterIcon, DuplicatesIcon, LivePhotosIcon } from "@/constants";
+import {
+  ScreenshotsIcon,
+  BlurryPhotosIcon,
+  ClutterIcon,
+  DuplicatesIcon,
+  LivePhotosIcon,
+} from "@/constants";
+import Paywall from "@/components/ui/paywall";
+import { useCredits } from "@/context/CreditsContext";
 
 const TILE_STAGGER_MS = 80;
 const GRID_BASE_DELAY = 140;
 
 const AllCategories = () => {
   const headerEntrance = useEntrance(0);
-  const { result } = useAnalysis();
+  const { result, resetSelections } = useAnalysis();
+  const { isLoadingSubscription, isSubscribed } = useCredits();
+  const [showPaywall, setShowPaywall] = useState(false);
 
   if (!result) {
     router.replace("/");
@@ -120,6 +130,14 @@ const AllCategories = () => {
   );
 
   const handleGoBack = () => router.back();
+  const handleSmartDelete = async () => {
+    if (isSubscribed) {
+      await resetSelections()
+      router.push("/delete-confirmation");
+      return;
+    }
+    setShowPaywall(true);
+  };
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -176,13 +194,16 @@ const AllCategories = () => {
         <View style={styles.smartDeleteWrap}>
           <GradientButton
             title="Smart Delete"
-            icon={<Sparkles size={16} color={Brand.textOnPrimary} />}
-            onPress={() => {
-              router.push("/delete-confirmation");
-            }}
+            Icon={Sparkles}
+            onPress={handleSmartDelete}
+            disabled={isLoadingSubscription}
           />
         </View>
       </Animated.View>
+      <Paywall
+        isPresented={showPaywall}
+        onDismiss={() => setShowPaywall(false)}
+      />
     </SafeAreaView>
   );
 };
@@ -227,7 +248,6 @@ const CategoryTile = ({
     </Animated.View>
   );
 };
-
 
 const styles = StyleSheet.create({
   screen: {

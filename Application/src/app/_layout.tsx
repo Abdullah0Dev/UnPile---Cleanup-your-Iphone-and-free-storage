@@ -1,10 +1,9 @@
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useState } from "react";
-import { useRouter } from "expo-router";
-
+import { useEffect, useState, useRef } from "react";
+import { useRouter, Stack } from "expo-router";
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
-import { Slot } from "expo-router";
 import { AnalysisProvider, useAnalysis } from "@/context/AnalysisContext";
+import { CreditsProvider } from "@/context/CreditsContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -12,10 +11,12 @@ function LayoutContent() {
   const router = useRouter();
   const { result, isLoadingCache } = useAnalysis();
   const [isReady, setIsReady] = useState(false);
+  const hasInitialized = useRef(false); // 👈 Guard to run once
 
   useEffect(() => {
-    if (!isLoadingCache) {
-      // Cache loaded => decide where to goo
+    if (!isLoadingCache && !hasInitialized.current) {
+      hasInitialized.current = true;
+      // Decide initial route only once
       if (result) {
         router.replace("/home-results");
       } else {
@@ -23,12 +24,20 @@ function LayoutContent() {
       }
       setIsReady(true);
     }
-  }, [isLoadingCache, result]);
+  }, [isLoadingCache, result]); // Still depends on result, but guard prevents re-run
 
   return (
     <>
       {!isReady && <AnimatedSplashOverlay onComplete={() => {}} />}
-      {isReady && <Slot />}
+      {isReady && (
+        <Stack
+          screenOptions={{
+            gestureEnabled: true,
+            fullScreenGestureEnabled: true,
+            headerShown: false,
+          }}
+        />
+      )}
     </>
   );
 }
@@ -36,7 +45,9 @@ function LayoutContent() {
 export default function TabLayout() {
   return (
     <AnalysisProvider>
-      <LayoutContent />
+      <CreditsProvider>
+        <LayoutContent />
+      </CreditsProvider>
     </AnalysisProvider>
   );
 }

@@ -23,7 +23,7 @@ export type AnalysisResult = {
 export type CategoryItem = {
   id: string;
   selected: boolean;
-  isBest?: boolean;
+  isBest: boolean;
   image: string; // `ph://${id}`
 };
 
@@ -200,7 +200,7 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const categoryOverrides = overrides[category] || {};
 
-    return ids.map((id) => {
+    let items = ids.map((id) => {
       const defaultSelected = getDefaultSelected(category, id);
       const overridden = categoryOverrides[id];
       const selected = overridden !== undefined ? overridden : defaultSelected;
@@ -214,6 +214,12 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
         image: `ph://${id}`,
       };
     });
+
+    // Reorder screenshots to mix selected and unselected
+    if (category === "screenshots") {
+      items = interleaveItems(items);
+    }
+    return items;
   };
 
   //  Get selected IDs (optionally for a specific category)
@@ -354,7 +360,20 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
       return newOverrides;
     });
   };
-
+  // Helper: interleave selected and unselected items
+  function interleaveItems(items: CategoryItem[]): CategoryItem[] {
+    const selected = items.filter((item) => item.selected);
+    const unselected = items.filter((item) => !item.selected);
+    const result: CategoryItem[] = [];
+    let i = 0,
+      j = 0;
+    // Alternate: selected, unselected, selected, unselected, ...
+    while (i < selected.length || j < unselected.length) {
+      if (i < selected.length) result.push(selected[i++]);
+      if (j < unselected.length) result.push(unselected[j++]);
+    }
+    return result;
+  }
   //  Size helpers
 
   const getAssetSize = (assetId: string): number => {

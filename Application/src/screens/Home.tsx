@@ -3,22 +3,33 @@ import {
   Brand,
   FontSizes,
   FontWeights,
+  Gradients,
   Radii,
   Spacing,
 } from "@/constants/theme";
 import { Image, ImageSource } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-
+import OnboardingCredits from "@/components/ui/onboarding-credits";
+import Paywall from "@/components/ui/paywall";
 import { formatBytes, useAnalysis } from "@/context/AnalysisContext";
 import { useEntrance } from "@/hooks/use-entrance";
 import { CategoryVariant } from "./CategoryDetails";
-import { ScreenshotsIcon, BlurryPhotosIcon, ClutterIcon, DuplicatesIcon, LivePhotosIcon } from "@/constants";
- 
+import {
+  ScreenshotsIcon,
+  BlurryPhotosIcon,
+  ClutterIcon,
+  DuplicatesIcon,
+  LivePhotosIcon,
+} from "@/constants";
+import { GradientText } from "@/components/ui/gradient-text";
+import { useCredits } from "@/context/CreditsContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 //  Types
 type CategoryRowData = {
   key: CategoryVariant;
@@ -101,9 +112,10 @@ const Home = () => {
   const statCardEntrance = useEntrance(140);
   const sectionHeaderEntrance = useEntrance(220);
   const ctaEntrance = useEntrance(140 + 5 * ROW_STAGGER_MS + 160);
-
+  const [showCreditsOnboarding, setShowCreditsOnboarding] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
   const { result, clearResult } = useAnalysis();
-
+  const { credits: currentCredits, isSubscribed } = useCredits();
   if (!result) {
     router.replace("/");
     return null;
@@ -199,7 +211,38 @@ const Home = () => {
   }, [result, assetSizes]);
 
   const { rows, totalFreeableBytes, totalFreeableItems } = categoryStats;
+  useEffect(() => {
+    let timer: number | null = null;
 
+    const checkOnboarding = async () => {
+      // 1. Only trigger if the user has a valid scan result
+      if (result) {
+        const hasSeenIntro = await AsyncStorage.getItem("hasSeenCreditIntro");
+        
+        // 2. Check if they haven't seen it, and they still have the 500 credits
+        if (!hasSeenIntro && currentCredits === 500) {
+          
+          // Start a 1.5-second delay so the page loads smoothly first
+          timer = setTimeout(async () => {
+            // Show the bottom sheet
+            setShowCreditsOnboarding(true);
+            
+            // Mark as seen NOW, right when it shows up
+            await AsyncStorage.setItem("hasSeenCreditIntro", "true");
+          }, 1500); // 1500ms = 1.5 seconds
+          
+        }
+      }
+    };
+
+    checkOnboarding();
+
+    // 🧹 Cleanup function: Clears the timeout if the user navigates away 
+    // before the 1.5 seconds are up. Prevents memory leaks and React warnings.
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [result, currentCredits]);
   const handleGoBack = async () => {
     await clearResult();
     router.dismissAll();
@@ -208,6 +251,11 @@ const Home = () => {
 
   const handleReviewItems = () => router.push("/delete-confirmation");
   const handleSeeAllCategories = () => router.push("/all-categories");
+  const handleUpgrade = () => {
+    setShowCreditsOnboarding(false);
+    setShowPaywall(true); // Opens the real Paywall immediately
+  };
+
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -260,7 +308,29 @@ const Home = () => {
           title={totalFreeableItems === 0 ? "Re-Scan Photos" : "Review Items"}
           onPress={totalFreeableItems === 0 ? handleGoBack : handleReviewItems}
         />
+        {!isSubscribed && (
+          <GradientText
+            end={{ x: 0.5, y: 0.5 }}
+            colors={Gradients.primaryButton}
+            style={[
+              styles.statSubtitle,
+              { textAlign: "center", marginTop: 4, fontSize: 14 },
+            ]}
+          >
+            {currentCredits.toLocaleString()} Credits Remaining
+          </GradientText>
+        )}
       </Animated.View>
+      <OnboardingCredits
+        isPresented={showCreditsOnboarding}
+        onDismiss={() => setShowCreditsOnboarding(false)}
+        onUpgrade={handleUpgrade}
+      />
+
+      <Paywall
+        isPresented={showPaywall}
+        onDismiss={() => setShowPaywall(false)}
+      />
     </SafeAreaView>
   );
 };
@@ -304,7 +374,6 @@ export const CategoryRow = ({
     </Pressable>
   );
 };
-
 
 const styles = StyleSheet.create({
   screen: {
