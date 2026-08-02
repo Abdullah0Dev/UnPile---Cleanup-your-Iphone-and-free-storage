@@ -34,7 +34,6 @@ const LegalPage = () => {
 
   return (
     <section className="relative min-h-screen overflow-hidden bg-background py-32 lg:py-40">
-      <Navbar />
       {/* ---------- Background Glow Orbs ---------- */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <motion.div

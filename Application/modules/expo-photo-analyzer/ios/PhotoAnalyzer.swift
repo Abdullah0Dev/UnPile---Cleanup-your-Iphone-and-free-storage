@@ -25,7 +25,7 @@ public struct AnalysisResult {
     public let livePhotoCandidates: [String]
     public let totalSavingsBytes: Int64
     public let categorySavings: [String: Int64]
-    public let assetSizes: [String: Int64]  //  New
+    public let assetSizes: [String: Int64]
 }
 
 // MARK: - PhotoAnalyzer
@@ -41,7 +41,39 @@ public class PhotoAnalyzer: ObservableObject {
 
     public init() {}
 
-    // MARK: - Helpers (shared)
+    // MARK: - Deduplication Helper
+
+    private func deduplicateCandidates(
+        duplicateIds: [String],
+        screenshotCandidates: [String],
+        livePhotoCandidates: [String],
+        blurry: [String],
+        clutter: [String]
+    ) -> (screenshotCandidates: [String], livePhotoCandidates: [String], blurry: [String], clutter: [String]) {
+        var usedIds = Set<String>()
+
+        // 1. Duplicates take priority (they are already flagged for deletion)
+        usedIds.formUnion(duplicateIds)
+
+        // 2. Screenshot candidates
+        let filteredScreenshots = screenshotCandidates.filter { !usedIds.contains($0) }
+        usedIds.formUnion(filteredScreenshots)
+
+        // 3. Live Photo candidates
+        let filteredLive = livePhotoCandidates.filter { !usedIds.contains($0) }
+        usedIds.formUnion(filteredLive)
+
+        // 4. Blurry
+        let filteredBlurry = blurry.filter { !usedIds.contains($0) }
+        usedIds.formUnion(filteredBlurry)
+
+        // 5. Clutter
+        let filteredClutter = clutter.filter { !usedIds.contains($0) }
+
+        return (filteredScreenshots, filteredLive, filteredBlurry, filteredClutter)
+    }
+
+    // MARK: - Other Helpers
 
     private func computeCategorySavings(
         _ assets: [PHAsset],
@@ -205,26 +237,38 @@ public class PhotoAnalyzer: ObservableObject {
             }
             self.updateProgress(0.98, "Clutter done")
 
-            // 6. Savings
+            // 6. Collect duplicate IDs for deduplication
+            let duplicateIds = duplicateGroups.flatMap { $0.duplicateAssets.map { $0.localIdentifier } }
+
+            // 7. Deduplicate
+            let deduped = self.deduplicateCandidates(
+                duplicateIds: duplicateIds,
+                screenshotCandidates: candidateScreenshotIds,
+                livePhotoCandidates: candidateLivePhotoIds,
+                blurry: blurry,
+                clutter: clutter
+            )
+
+            // 8. Compute savings using deduplicated lists
             let totalSavings = self.calculateTotalSavings(
                 allAssets,
-                screenshotCandidates: candidateScreenshotIds,
+                screenshotCandidates: deduped.screenshotCandidates,
                 duplicateGroups: duplicateGroups,
-                blurry: blurry,
-                clutter: clutter,
-                livePhotoCandidates: candidateLivePhotoIds
+                blurry: deduped.blurry,
+                clutter: deduped.clutter,
+                livePhotoCandidates: deduped.livePhotoCandidates
             )
 
             let categorySavings = self.computeCategorySavings(
                 allAssets,
-                screenshotCandidates: candidateScreenshotIds,
+                screenshotCandidates: deduped.screenshotCandidates,
                 duplicateGroups: duplicateGroups,
-                blurry: blurry,
-                clutter: clutter,
-                livePhotoCandidates: candidateLivePhotoIds
+                blurry: deduped.blurry,
+                clutter: deduped.clutter,
+                livePhotoCandidates: deduped.livePhotoCandidates
             )
 
-            // Collect all asset IDs for assetSizes
+            // 9. Asset sizes (include all referenced assets)
             let allIds = Set(
                 screenshotIds +
                 candidateScreenshotIds +
@@ -240,15 +284,15 @@ public class PhotoAnalyzer: ObservableObject {
 
             let analysisResult = AnalysisResult(
                 screenshots: screenshotIds,
-                screenshotCandidates: candidateScreenshotIds,
+                screenshotCandidates: deduped.screenshotCandidates,
                 duplicateGroups: duplicateGroups,
-                clutter: clutter,
-                blurry: blurry,
+                clutter: deduped.clutter,
+                blurry: deduped.blurry,
                 livePhotos: livePhotoIds,
-                livePhotoCandidates: candidateLivePhotoIds,
+                livePhotoCandidates: deduped.livePhotoCandidates,
                 totalSavingsBytes: totalSavings,
                 categorySavings: categorySavings,
-                assetSizes: assetSizes  // 
+                assetSizes: assetSizes
             )
 
             DispatchQueue.main.async {
@@ -313,26 +357,38 @@ public class PhotoAnalyzer: ObservableObject {
             }
             self.updateProgress(0.98, "Clutter done")
 
-            // 6. Savings
+            // 6. Collect duplicate IDs for deduplication
+            let duplicateIds = duplicateGroups.flatMap { $0.duplicateAssets.map { $0.localIdentifier } }
+
+            // 7. Deduplicate
+            let deduped = self.deduplicateCandidates(
+                duplicateIds: duplicateIds,
+                screenshotCandidates: candidateScreenshotIds,
+                livePhotoCandidates: candidateLivePhotoIds,
+                blurry: blurry,
+                clutter: clutter
+            )
+
+            // 8. Compute savings using deduplicated lists
             let totalSavings = self.calculateTotalSavings(
                 allAssets,
-                screenshotCandidates: candidateScreenshotIds,
+                screenshotCandidates: deduped.screenshotCandidates,
                 duplicateGroups: duplicateGroups,
-                blurry: blurry,
-                clutter: clutter,
-                livePhotoCandidates: candidateLivePhotoIds
+                blurry: deduped.blurry,
+                clutter: deduped.clutter,
+                livePhotoCandidates: deduped.livePhotoCandidates
             )
 
             let categorySavings = self.computeCategorySavings(
                 allAssets,
-                screenshotCandidates: candidateScreenshotIds,
+                screenshotCandidates: deduped.screenshotCandidates,
                 duplicateGroups: duplicateGroups,
-                blurry: blurry,
-                clutter: clutter,
-                livePhotoCandidates: candidateLivePhotoIds
+                blurry: deduped.blurry,
+                clutter: deduped.clutter,
+                livePhotoCandidates: deduped.livePhotoCandidates
             )
 
-            // Collect all asset IDs for assetSizes
+            // 9. Asset sizes (include all referenced assets)
             let allIds = Set(
                 screenshotIds +
                 candidateScreenshotIds +
@@ -348,15 +404,15 @@ public class PhotoAnalyzer: ObservableObject {
 
             let analysisResult = AnalysisResult(
                 screenshots: screenshotIds,
-                screenshotCandidates: candidateScreenshotIds,
+                screenshotCandidates: deduped.screenshotCandidates,
                 duplicateGroups: duplicateGroups,
-                clutter: clutter,
-                blurry: blurry,
+                clutter: deduped.clutter,
+                blurry: deduped.blurry,
                 livePhotos: livePhotoIds,
-                livePhotoCandidates: candidateLivePhotoIds,
+                livePhotoCandidates: deduped.livePhotoCandidates,
                 totalSavingsBytes: totalSavings,
                 categorySavings: categorySavings,
-                assetSizes: assetSizes  // 
+                assetSizes: assetSizes
             )
 
             DispatchQueue.main.async {

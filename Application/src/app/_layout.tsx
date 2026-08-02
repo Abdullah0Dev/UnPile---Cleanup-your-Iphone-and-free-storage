@@ -1,26 +1,32 @@
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState, useRef } from "react";
-import { useRouter, Stack } from "expo-router";
+import { useRouter, Stack, usePathname } from "expo-router";
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
 import { AnalysisProvider, useAnalysis } from "@/context/AnalysisContext";
 import { CreditsProvider } from "@/context/CreditsContext";
+import { Brand } from "@/constants/theme";
 
 SplashScreen.preventAutoHideAsync();
 
 function LayoutContent() {
   const router = useRouter();
   const { result, isLoadingCache } = useAnalysis();
+  const currentRoute = usePathname();
+
   const [isReady, setIsReady] = useState(false);
   const hasInitialized = useRef(false); // 👈 Guard to run once
 
   useEffect(() => {
     if (!isLoadingCache && !hasInitialized.current) {
       hasInitialized.current = true;
+      const initialRoute = result ? "/home-results" : "/";
       // Decide initial route only once
       if (result) {
         router.replace("/home-results");
       } else {
-        router.replace("/");
+        if (currentRoute !== "/") {
+          router.replace("/");
+        }
       }
       setIsReady(true);
     }

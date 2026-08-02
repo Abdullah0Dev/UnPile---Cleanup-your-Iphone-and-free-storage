@@ -65,15 +65,15 @@ const INITIAL_PRODUCT_DETAILS: PurchaseProductDetails[] = [
   {
     id: "1",
     price: "$19.99",
-    productId: "demo_y",
-    duration: "year",
+    productId: "clean_life",
+    duration: "life",
     durationPlanName: "Lifetime Plan",
     hasTrial: false,
   },
   {
     id: "2",
     price: "$2.99",
-    productId: "demo_w",
+    productId: "clean_w",
     duration: "week",
     durationPlanName: "3-Day Trial",
     hasTrial: true,
@@ -169,20 +169,7 @@ function calculateFullPrice(
   if (!weekly) return null;
   const weeklyPrice = currencyStringToNumber(weekly.price);
   if (weeklyPrice === null) return null;
-  return weeklyPrice * 52;
-}
-
-// Calculate percentage saved (yearly vs weekly*52)
-function calculatePercentageSaved(
-  productDetails: PurchaseProductDetails[],
-): number {
-  const yearly = productDetails.find((p) => p.duration === "year");
-  const fullPrice = calculateFullPrice(productDetails);
-  if (!yearly || fullPrice === null) return 90; // fallback
-  const yearlyPrice = currencyStringToNumber(yearly.price);
-  if (yearlyPrice === null) return 90;
-  const saved = 100 - (yearlyPrice / fullPrice) * 100;
-  return Math.round(saved);
+  return weeklyPrice * 52; //. 14 months
 }
 
 // -----------------------------------------------------------------------------
@@ -228,9 +215,8 @@ const ProductOption: React.FC<{
   selected: boolean;
   onSelect: () => void;
   color: string;
-  percentageSaved: number;
   fullPrice: number | null;
-}> = ({ product, selected, onSelect, color, percentageSaved, fullPrice }) => {
+}> = ({ product, selected, onSelect, color, fullPrice }) => {
   const { durationPlanName, hasTrial, price, duration } = product;
 
   return (
@@ -304,7 +290,6 @@ interface PaywallProps {
 const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
   // ── Bottom Sheet Ref ──
   const sheetRef = useRef<BottomSheet>(null);
-  const { setSubscriptionStatus } = useCredits();
 
   // ── Purchase model ──
   const {
@@ -319,7 +304,6 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
   // ── UI state ──
   const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [showNoneRestoredAlert, setShowNoneRestoredAlert] = useState(false);
-  const [showTermsModal, setShowTermsModal] = useState(false);
   const [isWeeklyPlan, setIsWeeklyPlan] = useState<boolean>(true); // true = weekly, false = yearly
   const [isCountdownComplete, setIsCountdownComplete] = useState(false);
 
@@ -330,10 +314,6 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
   // ── Computed values ──
   const fullPrice = useMemo(
     () => calculateFullPrice(productDetails),
-    [productDetails],
-  );
-  const percentageSaved = useMemo(
-    () => calculatePercentageSaved(productDetails),
     [productDetails],
   );
 
@@ -367,8 +347,8 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
       if (isWeeklyPlan && weekly) {
         setSelectedProductId(weekly.productId);
       } else {
-        const yearly = productDetails.find((p) => p.duration === "year");
-        if (yearly) setSelectedProductId(yearly.productId);
+        const lifeTime = productDetails.find((p) => p.duration === "life");
+        if (lifeTime) setSelectedProductId(lifeTime.productId);
       }
     }
   }, [productDetails, isWeeklyPlan]);
@@ -536,7 +516,6 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
                   selected={selectedProductId === product.productId}
                   onSelect={() => handleProductSelect(product.productId)}
                   color={Brand.primary}
-                  percentageSaved={percentageSaved}
                   fullPrice={fullPrice}
                 />
               ))}

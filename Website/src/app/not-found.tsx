@@ -85,10 +85,7 @@ const NotFoundPage = () => {
           }}
         />
       </div>
-
-      {/* ---------- Nav (same as Hero) ---------- */}
-
-      <Navbar />
+ 
 
       {/* ---------- Main content ---------- */}
       <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center px-6 pb-8 pt-28 text-center sm:pt-32">

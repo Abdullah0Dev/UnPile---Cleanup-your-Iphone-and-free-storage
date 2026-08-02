@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/images/icon.png",
-      "backgroundColor": "#0D0446",
+      "backgroundColor": "#08071A",
       "bundleIdentifier": "com.abdullahdev.unpile"
     },
     "web": {
@@ -21,7 +21,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#070223",
+          "backgroundColor": "#08071A",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 300
         }

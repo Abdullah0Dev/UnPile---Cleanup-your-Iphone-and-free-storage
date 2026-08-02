@@ -30,22 +30,33 @@ class ContentClassifier {
     /// Classifies the image and returns the top label (e.g., "laptop", "desk", "person")
     func classify(_ image: UIImage, completion: @escaping (String?) -> Void) {
         guard let cgImage = image.cgImage else {
+            print("❌ classify: No CGImage")
             completion(nil)
             return
         }
 
         let request = VNCoreMLRequest(model: model) { request, error in
-            guard error == nil,
-                  let observations = request.results as? [VNClassificationObservation],
-                  let top = observations.first else {
+            if let error = error {
+                print("❌ classify error: \(error)")
                 completion(nil)
                 return
             }
-            completion(top.identifier)
+            guard let observations = request.results as? [VNClassificationObservation] else {
+                print("❌ No observations")
+                completion(nil)
+                return
+            }
+            if let top = observations.first {
+                print("📸 Content label: \(top.identifier) (confidence: \(top.confidence))")
+                completion(top.identifier)
+            } else {
+                print("❌ No top observation")
+                completion(nil)
+            }
         }
 
-        // Resize to model input size
         guard let resized = resizeImage(cgImage, to: inputSize) else {
+            print("❌ Failed to resize image")
             completion(nil)
             return
         }
@@ -53,11 +64,12 @@ class ContentClassifier {
         let handler = VNImageRequestHandler(cgImage: resized, options: [:])
         do {
             try handler.perform([request])
+            print("✅ classify request performed")
         } catch {
+            print("❌ classify perform error: \(error)")
             completion(nil)
         }
     }
-
     private func resizeImage(_ cgImage: CGImage, to size: CGSize) -> CGImage? {
         let width = Int(size.width)
         let height = Int(size.height)

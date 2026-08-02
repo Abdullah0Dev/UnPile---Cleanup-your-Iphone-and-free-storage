@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Montserrat, Roboto } from "next/font/google";
 import "./globals.css";
+import Navbar from "@/components/ui/navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -200,7 +201,10 @@ export default function RootLayout({
           data-website-id="84d2195c-3fcf-4f3a-8b29-e3d806289151"
         ></script>
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <Navbar />
+        {children}
+      </body>
     </html>
   );
 }

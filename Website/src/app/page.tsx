@@ -14,7 +14,6 @@ import React from "react";
 const HomePage = () => {
   return (
     <main className="overflow-x-clip">
-      <Navbar />
       <Hero />
       <TheProblem />
       <HowItWorks />

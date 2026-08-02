@@ -1,10 +1,14 @@
+"use client"
 import { navItems } from "@/constants";
-import { Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import React from "react";
 
 const Navbar = () => {
+  const pathName = usePathname();
+  const notHomePage = pathName !== "/";
+
   return (
     <nav className=" z-20 max-sm:mx-auto mx-5 max-w-6xl flex items-center place-self-center justify-between rounded-2xl bg-black/40 fixed w-full  top-5 px-6 py-4 backdrop-blur-3xl border border-white/5 shadow-2xl">
       <Link href={"/#"} className="flex items-center  gap-0.5">
@@ -25,15 +29,17 @@ const Navbar = () => {
       </Link>
 
       <div className="hidden items-center gap-8 md:flex">
-        {navItems.map((link) => (
+        {navItems.map((link) => {
+          const optimizedLink = notHomePage ? link.href.replace("#", "/#") : link.href
+          return(
           <a
             key={link.item}
-            href={`${link.href}`}
+            href={optimizedLink}
             className="text-sm text-foreground-muted transition-colors hover:text-foreground font-medium"
           >
             {link.item}
           </a>
-        ))}
+        )})}
       </div>
 
       <Link

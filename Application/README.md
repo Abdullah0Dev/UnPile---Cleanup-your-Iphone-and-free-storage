@@ -32,8 +32,8 @@ func dateFromMilliseconds(_ milliseconds: Double) throws -> Date {
 ```
 
 7. check overall code and app for any improvements
-8. Build UI of Upgrade and then its functionality and think about the monitization
-think about applying same filter for live images as clutters
+8. Build UI of Upgrade and then its functionality and think about the monetization
+re-build the scan logic for clutters/live photos after rohan feedback about the results
 <!-- later feature:) check if we do check FOR inside the app's hidden internal storage to DELETE it -->
 
 Paywall Strategy: https://chat.deepseek.com/a/chat/s/417bc8b7-b4b4-4c5b-84ae-7a954751e771

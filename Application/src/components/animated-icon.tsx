@@ -91,7 +91,7 @@ export function AnimatedIcon() {
     <View style={styles.iconContainer}>
       <Animated.View entering={keyframe.duration(DURATION)} style={styles.background} />
       <Animated.View style={styles.imageContainer} entering={logoKeyframe.duration(DURATION)}>
-        <Image style={styles.image} source={require("@/assets/images/icon.png")} />
+        <Image style={styles.image} source={require("@/assets/images/logo3.png")} />
       </Animated.View>
     </View>
   );
@@ -115,14 +115,14 @@ const styles = StyleSheet.create({
   },
   background: {
     borderRadius: 40,
-    experimental_backgroundImage: `linear-gradient(180deg, #060423, #0D0446)`,
+    experimental_backgroundImage: `linear-gradient(180deg, #08071A, #0D0446)`,
     width: 128,
     height: 128,
     position: "absolute",
   },
   splashOverlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: "#060423",
+    backgroundColor: "#08071A",
     alignItems: "center",
     justifyContent: "center",
     zIndex: 1000,

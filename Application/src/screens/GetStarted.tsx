@@ -67,7 +67,7 @@ const GetStarted = () => {
       <View style={styles.container}>
         <Animated.View style={logoEntrance}>
           <Image
-            source={require("@/assets/images/logo2.png")}
+            source={require("@/assets/images/logo3.png")}
             contentFit="contain"
             style={styles.logoImage}
           />
@@ -111,7 +111,7 @@ export default GetStarted;
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: `#060423`,
+    backgroundColor: Brand.appBackground,
     paddingHorizontal: 18,
     paddingBottom: 25,
   },

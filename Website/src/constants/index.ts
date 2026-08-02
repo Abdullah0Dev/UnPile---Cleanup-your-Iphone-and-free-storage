@@ -11,4 +11,8 @@ export const navItems = [
     item: "Privacy",
     href: "/legal",
   },
+  {
+    item: "Blogs",
+    href: "/blog",
+  },
 ];

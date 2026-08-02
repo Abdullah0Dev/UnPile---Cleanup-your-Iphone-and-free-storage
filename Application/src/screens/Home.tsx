@@ -29,6 +29,7 @@ import {
 import { GradientText } from "@/components/ui/gradient-text";
 import { useCredits } from "@/context/CreditsContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AnimatedSplashOverlay } from "@/components/animated-icon";
 
 //  Types
 type CategoryRowData = {
@@ -116,11 +117,49 @@ const Home = () => {
   const [showPaywall, setShowPaywall] = useState(false);
   const { result, clearResult } = useAnalysis();
   const { credits: currentCredits, isSubscribed } = useCredits();
-  if (!result) {
-    router.replace("/");
-    return null;
-  }
 
+  // useEffect(() => {
+  //   if (!result) {
+  //     const timer = setTimeout(() => {
+  //       router.replace("/");
+  //     }, 0);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [result]);
+  useEffect(() => {
+    let timer: number | null = null;
+
+    const checkOnboarding = async () => {
+      // 1. Only trigger if the user has a valid scan result
+      if (result) {
+        const hasSeenIntro = await AsyncStorage.getItem("hasSeenCreditIntro");
+
+        // 2. Check if they haven't seen it, and they still have the 500 credits
+        if (!hasSeenIntro && currentCredits === 500) {
+          // Start a 1.5-second delay so the page loads smoothly first
+          timer = setTimeout(async () => {
+            // Show the bottom sheet
+            setShowCreditsOnboarding(true);
+
+            // Mark as seen NOW, right when it shows up
+            await AsyncStorage.setItem("hasSeenCreditIntro", "true");
+          }, 1500); // 1500ms = 1.5 seconds
+        }
+      }
+    };
+
+    checkOnboarding();
+
+    // 🧹 Cleanup function: Clears the timeout if the user navigates away
+    // before the 1.5 seconds are up. Prevents memory leaks and React warnings.
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [result, currentCredits]);
+  // Early return after all hooks
+  if (!result) {
+    return <AnimatedSplashOverlay />;
+  }
   const assetSizes = result.assetSizes || {};
 
   //  Compute deletable items per category
@@ -211,42 +250,11 @@ const Home = () => {
   }, [result, assetSizes]);
 
   const { rows, totalFreeableBytes, totalFreeableItems } = categoryStats;
-  useEffect(() => {
-    let timer: number | null = null;
 
-    const checkOnboarding = async () => {
-      // 1. Only trigger if the user has a valid scan result
-      if (result) {
-        const hasSeenIntro = await AsyncStorage.getItem("hasSeenCreditIntro");
-        
-        // 2. Check if they haven't seen it, and they still have the 500 credits
-        if (!hasSeenIntro && currentCredits === 500) {
-          
-          // Start a 1.5-second delay so the page loads smoothly first
-          timer = setTimeout(async () => {
-            // Show the bottom sheet
-            setShowCreditsOnboarding(true);
-            
-            // Mark as seen NOW, right when it shows up
-            await AsyncStorage.setItem("hasSeenCreditIntro", "true");
-          }, 1500); // 1500ms = 1.5 seconds
-          
-        }
-      }
-    };
-
-    checkOnboarding();
-
-    // 🧹 Cleanup function: Clears the timeout if the user navigates away 
-    // before the 1.5 seconds are up. Prevents memory leaks and React warnings.
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [result, currentCredits]);
   const handleGoBack = async () => {
     await clearResult();
     router.dismissAll();
-    router.replace("/");
+    // router.replace("/");
   };
 
   const handleReviewItems = () => router.push("/delete-confirmation");
@@ -255,7 +263,6 @@ const Home = () => {
     setShowCreditsOnboarding(false);
     setShowPaywall(true); // Opens the real Paywall immediately
   };
-
 
   return (
     <SafeAreaView style={styles.screen}>
