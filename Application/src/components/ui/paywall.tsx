@@ -11,9 +11,7 @@ import {
   StyleSheet,
   View,
   Text,
-  Image,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
   Modal,
   Switch,
@@ -32,15 +30,9 @@ import Svg, { Circle } from "react-native-svg";
 import { GradientButton } from "./gradient-button";
 import {
   Gem,
-  HardDrive,
-  HeartPlus,
   Lightbulb,
-  LockOpen,
-  ScanSearch,
-  Sparkle,
   Sparkles,
   Trash,
-  WandSparkles,
 } from "lucide-react-native";
 import { Link } from "expo-router";
 import CountdownCloseButton from "./countdown-close-button";
@@ -607,17 +599,18 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
 const styles = StyleSheet.create({
   bottomSheetContent: {
     flex: 1,
+
   },
   container: {
     backgroundColor: "#08071A", // Your deep near-black app background
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 20, //TODO: check here if big width devices do padding else remove it
   },
   closeContainer: {
     flexDirection: "row",
     justifyContent: "flex-end",
     marginBottom: 10,
-    height: 30, // fixed height to avoid layout shift
+    height: 30,
     alignItems: "center",
   },
   closeButton: {

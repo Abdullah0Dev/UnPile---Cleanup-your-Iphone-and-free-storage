@@ -10,7 +10,10 @@
     "ios": {
       "icon": "./assets/images/icon.png",
       "backgroundColor": "#08071A",
-      "bundleIdentifier": "com.abdullahdev.unpile"
+      "bundleIdentifier": "com.unpile",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "web": {
       "output": "static",
@@ -33,7 +36,13 @@
       "reactCompiler": true
     },
     "android": {
-      "package": "com.abdullahdev.unpile"
+      "package": "com.unpile"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5d670618-2fd4-48d0-9601-268444d39016"
+      }
     }
   }
 }
