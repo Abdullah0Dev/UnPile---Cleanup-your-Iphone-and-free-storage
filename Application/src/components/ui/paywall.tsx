@@ -26,18 +26,16 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Svg, { Circle } from "react-native-svg";
 import { GradientButton } from "./gradient-button";
-import {
-  Gem,
-  Lightbulb,
-  Sparkles,
-  Trash,
-} from "lucide-react-native";
+import { Gem, Lightbulb, Sparkles, Trash } from "lucide-react-native";
 import { Link } from "expo-router";
 import CountdownCloseButton from "./countdown-close-button";
 import BottomSheet, { BottomSheetView } from "@expo/ui/community/bottom-sheet";
 import { useCredits } from "@/context/CreditsContext";
+import Purchases, {
+  PurchasesOffering,
+  PurchasesPackage,
+} from "react-native-purchases";
 
 // -----------------------------------------------------------------------------
 // 1. Types & Mock Data
@@ -71,59 +69,99 @@ const INITIAL_PRODUCT_DETAILS: PurchaseProductDetails[] = [
     hasTrial: true,
   },
 ];
-
+export const ENTITLEMENT_ID = "premium_clean";
 // -----------------------------------------------------------------------------
 // 2. Custom Hook: Purchase Model (simulates StoreKit)
 // -----------------------------------------------------------------------------
+// Map a RC package to the shape your UI already expects
+function packageToProductDetails(pkg: PurchasesPackage) {
+  const product = pkg.product;
+  const isWeekly = pkg.packageType === "WEEKLY";
+  const isLifetime = pkg.packageType === "LIFETIME";
 
-function usePurchaseModel({ onDismiss }: { onDismiss: () => void }) {
-  const [productIds] = useState<string[]>(["demo_y", "demo_w"]);
+  return {
+    id: pkg.identifier,
+    price: product.priceString,
+    productId: product.identifier,
+    duration: isWeekly
+      ? "week"
+      : isLifetime
+        ? "life"
+        : pkg.packageType.toLowerCase(),
+    durationPlanName: isLifetime ? "Lifetime Plan" : "3-Day Trial",
+    hasTrial: !!product.introPrice, // true if there's an intro/trial offer configured in RC
+    rcPackage: pkg, // keep the raw package around — you need it to purchase
+  };
+}
+export function usePurchaseModel({ onDismiss }: { onDismiss: () => void }) {
+  const [offering, setOffering] = useState<PurchasesOffering | null>(null);
   const [productDetails, setProductDetails] = useState<
-    PurchaseProductDetails[]
-  >(INITIAL_PRODUCT_DETAILS);
-  const { setSubscriptionStatus } = useCredits();
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [isPurchasing, setIsPurchasing] = useState(false);
+    ReturnType<typeof packageToProductDetails>[]
+  >([]);
   const [isFetchingProducts, setIsFetchingProducts] = useState(true);
+  const [isPurchasing, setIsPurchasing] = useState(false);
+  const { isSubscribed, setSubscriptionStatus } = useCredits();
 
-  // Simulate fetching products (like Swift's isFetchingProducts)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsFetchingProducts(false);
-    }, 1200); // simulate network delay
-    return () => clearTimeout(timer);
+    (async () => {
+      try {
+        const offerings = await Purchases.getOfferings();
+        const current = offerings.current;
+        if (current) {
+          setOffering(current);
+          setProductDetails(
+            current.availablePackages.map(packageToProductDetails),
+          );
+        }
+      } catch (e) {
+        console.error("Failed to fetch offerings", e);
+      } finally {
+        setIsFetchingProducts(false);
+      }
+    })();
   }, []);
 
   const purchaseSubscription = useCallback(
-    (productId: string) => {
+    async (productId: string) => {
       if (isPurchasing) return;
-      setIsPurchasing(true);
-      // Simulate async purchase
-      setTimeout(async () => {
-        setIsPurchasing(false);
-        console.log("Subscribed:)");
-        // 1. Call the method that updates the Context and Storage
-        await setSubscriptionStatus(true);
+      const details = productDetails.find((p) => p.productId === productId);
+      if (!details) return;
 
-        // 2. Close the paywall
-        onDismiss();
-        // Simulate successful subscription (for demo)
-        setIsSubscribed(true);
-      }, 2000);
+      setIsPurchasing(true);
+      try {
+        const { customerInfo } = await Purchases.purchasePackage(
+          details.rcPackage,
+        );
+        const isEntitled =
+          typeof customerInfo.entitlements.active[ENTITLEMENT_ID] !== "undefined";
+        await setSubscriptionStatus(isEntitled);
+        if (isEntitled) onDismiss();
+      } catch (e: any) {
+        if (!e.userCancelled) {
+          console.error("Purchase failed", e);
+          // surface an alert to the user here
+        }
+      } finally {
+        setIsPurchasing(false);
+      }
     },
-    [isPurchasing],
+    [isPurchasing, productDetails, setSubscriptionStatus, onDismiss],
   );
 
-  const restorePurchases = useCallback(() => {
-    Alert.alert("Restore", "Restoring purchases...");
-    // Simulate restore
-    setTimeout(() => {
-      // For demo, we do nothing; we'll trigger alert in the view if not subscribed
-    }, 1000);
-  }, []);
+  const restorePurchases = useCallback(async () => {
+    try {
+      const customerInfo = await Purchases.restorePurchases();
+      const isEntitled =
+        typeof customerInfo.entitlements.active[ENTITLEMENT_ID] !== "undefined";
+      await setSubscriptionStatus(isEntitled);
+      return isEntitled;
+    } catch (e) {
+      console.error("Restore failed", e);
+      return false;
+    }
+  }, [setSubscriptionStatus]);
 
   return {
-    productIds,
     productDetails,
     isSubscribed,
     isPurchasing,
@@ -391,13 +429,9 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
     }
   }, [isPresented, shakeDegrees, shakeZoom]);
 
-  const handleRestore = () => {
-    restorePurchases();
-    setTimeout(() => {
-      if (!isSubscribed) {
-        setShowNoneRestoredAlert(true);
-      }
-    }, 7000);
+  const handleRestore = async () => {
+    const restored = await restorePurchases();
+    if (!restored) setShowNoneRestoredAlert(true);
   };
 
   // ── Animated styles ──
@@ -599,7 +633,6 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
 const styles = StyleSheet.create({
   bottomSheetContent: {
     flex: 1,
-
   },
   container: {
     backgroundColor: "#08071A", // Your deep near-black app background
