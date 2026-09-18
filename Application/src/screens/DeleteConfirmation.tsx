@@ -178,7 +178,8 @@ const DeleteConfirmation = () => {
         // Update context & storage by removing these IDs
         removeItems(selectedIds);
         await consumeCredits(totalItems);
-        router.push({
+        router.dismissAll();
+        router.replace({
           pathname: "/done",
           params: {
             freedUpBytes: String(totalSizeBytes),
@@ -224,7 +225,12 @@ const DeleteConfirmation = () => {
         </Animated.View>
 
         <Animated.View style={[styles.subtitleContainer, subtitleEntrance]}>
-          <Text style={[styles.logoSubtitle, {maxWidth: 260, textAlign: 'center'}]}>
+          <Text
+            style={[
+              styles.logoSubtitle,
+              { maxWidth: 260, textAlign: "center" },
+            ]}
+          >
             Photos will be moved to Trash and can be restored for 30 days.
           </Text>
         </Animated.View>

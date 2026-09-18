@@ -254,7 +254,7 @@ const Home = () => {
   const handleGoBack = async () => {
     await clearResult();
     router.dismissAll();
-    // router.replace("/");
+    router.replace("/");
   };
 
   const handleReviewItems = () => router.push("/delete-confirmation");

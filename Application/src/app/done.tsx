@@ -41,8 +41,14 @@ const DonePage = () => {
     return count;
   }, [result]);
 
-  const handleViewLibrary = () => router.navigate("/home-results");
-  const handleDone = () => router.navigate("/home-results");
+  const handleViewLibrary = () => {
+    // router.dismissAll();
+    router.replace("/home-results");
+  };
+  const handleDone = () => {
+    // router.dismissAll();
+    router.replace("/home-results");
+  };
   const handleUpgradePress = () => setShowPaywall(true);
 
   return (
