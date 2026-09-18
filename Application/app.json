@@ -11,6 +11,8 @@
       "icon": "./assets/images/icon.png",
       "backgroundColor": "#08071A",
       "bundleIdentifier": "com.unpile",
+      "supportsTablet": false,
+      "requireFullScreen": true,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
