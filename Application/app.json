@@ -31,7 +31,13 @@
           "imageWidth": 300
         }
       ],
-      "expo-image"
+      "expo-image",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "UnPile needs access to your photo library to scan for duplicates, blurry images, and clutter so you can review and delete them. Only the photos you choose to clean are affected."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
