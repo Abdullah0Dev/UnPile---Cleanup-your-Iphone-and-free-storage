@@ -4,9 +4,9 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import Purchases, { CustomerInfo } from "react-native-purchases";
 
 // Constants for configuration
-const WELCOME_BONUS_CREDITS = 500;
-const DAILY_REFILL_CREDITS = 50;
-const MAX_CREDITS_CAP = 500; // Prevents infinite hoarding for free users
+export const WELCOME_BONUS_CREDITS = 50;
+export const DAILY_REFILL_CREDITS = 5;
+const MAX_CREDITS_CAP = 50; // Prevents infinite hoarding for free users
 const UNLIMITED_CREDITS = 999999; // A huge number to represent "Unlimited" for subscribers
 
 const STORAGE_KEYS = {

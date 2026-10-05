@@ -1,0 +1,196 @@
+{
+  "get_started_screen": {
+    "title": {
+      "part_1": "Un",
+      "part_2": "Pile"
+    },
+    "subtitle": {
+      "part_1": "Clean your camera roll.",
+      "part_2": "Free up space in seconds."
+    },
+    "button": {
+      "title": {
+        "start": "Start Scanning",
+        "checking": "Checking..."
+      }
+    }
+  },
+  "scanning_screen": {
+    "title": "Scanning Library",
+    "secure_bar": {
+      "title": "100% On-Device",
+      "subtitle": " Your photos never leave your iPhone."
+    },
+    "subtitle": {
+      "part_1": "Clean your camera roll.",
+      "part_2": "Free up space in seconds."
+    },
+    "note": "This may take a few moments.",
+    "progress": {
+      "finding_screenshots": "Finding screenshots...",
+      "screenshots_done": "Screenshots done",
+      "scanning_duplicates": "Scanning for duplicates...",
+      "duplicates_progress": "Duplicates {percent}%",
+      "duplicates_done": "Duplicates done",
+      "checking_quality": "Checking photo quality...",
+      "quality_progress": "Quality check {percent}%",
+      "quality_done": "Quality check done",
+      "finding_live_photos": "Finding Live Photos...",
+      "live_photos_done": "Live Photos done",
+      "finding_clutter": "Finding clutter...",
+      "clutter_progress": "Clutter {percent}%",
+      "clutter_done": "Clutter done",
+      "done": "Done"
+    }
+  },
+  "credits_popup": {
+    "title": "Ready to clean your gallery?",
+    "subtitle": {
+      "part_1": " We've given you",
+      "part_2": "free credits",
+      "part_3": "to try out our fast cleaning tool. Plus, you'll get",
+      "part_4": "credits",
+      "part_5": "every day just for checking in!"
+    },
+    "buttons": {
+      "primary": "Unlock Unlimited Access (FREE)",
+      "secondary": "Continue with 50 free credits"
+    }
+  },
+    "premium_access_screen": {
+    "title": "Premium Access",
+    "features": {
+      "unlimited_deletion": "Unlimited Deletion",
+      "ai_smart_select": "AI Smart Select",
+      "one_tap_clean_up": "One-Tap Clean Up",
+      "seamless_experience": "Seamless Experience"
+    },
+    "plans": {
+      "lifetime_plan": {
+        "title": "Lifetime Plan",
+        "original_price": "$155.48",
+        "discounted_price": "$19.99",
+        "badge": "BEST VALUE"
+      },
+      "trial_plan": {
+        "title": "3-Day Trial",
+        "subtitle": "then $2.99 per week",
+        "tag": "Short Term"
+      }
+    },
+    "toggle": {
+      "free_trial_enabled": "Free Trial Enabled"
+    },
+    "label": {
+      "no_payment_text": "NO PAYMENT REQUIRED TODAY"
+    },
+    "buttons": {
+      "unlock_now": "Unlock Now",
+      "try_free": "Try 3 Days Free"
+    },
+    "footer": {
+      "restore": "Restore",
+      "terms_privacy": "Terms of Use & Privacy Policy"
+    }
+  },
+  "success_screen": {
+    "title": "All Done! 🎉",
+    "subtitle": "You freed up",
+    "size_freed": "{size}",
+    "details": {
+      "items_deleted": "{count} Items deleted",
+      "credits_left": "{count} Credits Left"
+    },
+    "buttons": {
+      "view_library": "View Library",
+      "done": "Done"
+    }
+  },
+  "delete_confirmation_dialog": {
+    "title_singular": "Delete {count} item?",
+    "title_plural": "Delete {count} items?",
+    "subtitle": "Photos will be moved to Trash and can be restored for 30 days.",
+    "credits_available": "Credits Available: {count}",
+    "buttons": {
+      "delete_everything": "Delete Everything",
+      "delete": "Delete",
+      "cancel": "Cancel"
+    }
+  },
+  "review_screen": {
+    "header": {
+      "screenshots": "Screenshots",
+      "duplicates": "Duplicates",
+      "select_all": "Select All",
+      "deselect_all": "Deselect All"
+    },
+    "status_bar": "{total} items · {selected} selected · {size}",
+    "labels": {
+      "best_photo": "Best Photo"
+    },
+    "bottom_sheet": {
+      "tap_to_close": "Tap to close"
+    },
+    "bottom_bar": {
+      "selected_count": "{count} Selected",
+      "size": "{size}",
+      "delete_button": "Delete"
+    }
+  },
+  "categories_overview_screen": {
+    "header_title": "All Categories",
+    "categories": {
+      "screenshots": {
+        "title": "Screenshots",
+        "item_count": "{count} items",
+        "size": "{size}"
+      },
+      "clutter": {
+        "title": "Clutter",
+        "item_count": "{count} items",
+        "size": "{size}"
+      },
+      "duplicates": {
+        "title": "Duplicates",
+        "item_count": "{count} items",
+        "size": "{size}"
+      },
+      "blurry_photos": {
+        "title": "Blurry Photos",
+        "item_count": "{count} items",
+        "size": "{size}"
+      },
+      "live_photos": {
+        "title": "Live Photos",
+        "item_count": "{count} items",
+        "size": "{size}"
+      }
+    },
+    "summary": {
+      "size_can_free": "{size} can be freed up",
+      "item_count": "{count} items"
+    },
+    "buttons": {
+      "smart_delete": "Smart Delete"
+    }
+  },
+  "scan_complete_screen": {
+    "title": "Scan Complete ✨",
+    "summary": {
+      "subtitle": "You can free up",
+      "size_can_free": "{size}",
+      "item_count": "{count} items"
+    },
+    "categories_section": {
+      "title": "Categories",
+      "see_all": "See All"
+    },
+    "buttons": {
+      "review_items": "Review Items"
+    },
+    "footer": {
+      "credits_remaining": "{count} Credits Remaining"
+    }
+  }
+}
+

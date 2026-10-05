@@ -1,99 +1,23 @@
 1. make the image doesn't matter to include the age.. age is optional to catch the clutter
+2. make the app scanning super fast => fix the scanning
+3. support language: Arabic/Spanish/Germany/Japanese/Turkish | handle scanning progress lang
+4. Work on App Store Optimization (ASO) localization => text/desc/title/ss
+5. the video and marketing while apple review the app
+
+FOR NOW: English/Arabic || /Spanish/Germany/Japanese/Turkish
 
 
-Here is your complete, data-backed ASO strategy for UnPile, including the competitor analysis, keyword opportunities, metadata variants, and the fully optimized App Store description you requested.
 
-### 1. Competitor Analysis
-We pulled the App Store data for the top apps in the photo-cleaning space. Here is how your top competitors are positioning themselves:
+.. show ios storage full notifiction then some stuff like ok I need to clear this out... hmmmm but which images should I choose I have tons of photos this  this this this this(with image showing then shaking animation) then comes to UnPile logo shows.... just use this app for that.. What! ya mate it can scan your images and give you the bad photos and bad quality photos and old photos that you've not opened from a while? ok cool.. but scan my photos hah  but my privacy mate.. UnPile is 100% LOCAL and it can work even offline.. ohh that sound good that what I need.. so how it works? ahh it's SUPER SIMPLE.. jus to open the press on this cool button "start scanning" then make sure to give permission to access the photos and it goes and scan that for you clutters/duplicates/blurry photos or even screenshots then LOOK "fx of dream thing to high light the number" you'll able to save up to 3GB Awesome.. it cought the all the bad screen shots/duplicates(and only keeping the best version)/clutters/ and blurry photos if you wanna see all category just press here"on seel all and highlight it""with highlight each item when spelled" then you go to each one of these select what you want and delete and DONE!! but mate I wanna delete all of them!! sure just press on review items and press delete to move them to the trash and WOHOOO... 
+ahh thanks so much... oh the price is just one time fee of 20$ or just try it for 3 days FREE 
 
-| Competitor | Title (Keywords Targeted) | Subtitle |
-| :--- | :--- | :--- |
-| Swipewipe | Swipewipe: Photo Cleaner | Delete Duplicates & Free Space |
-| Cleanup | Cleanup: Phone Storage Cleaner | Photo Clean, Delete Duplicates |
-| Slidebox | Slidebox: Photo Cleaner App | Photo Swipe, Delete, Organizer |
-| Cleaner Kit | Cleaner Kit - Clean Up Storage | Free Up Space, Delete Photos |
-| Photo Cleaner| Photo Cleaner ® | Swipe to Delete Camera Roll |
+Ok LET'S GOOO and download the app now!! 
 
-Strategic Gap: Every competitor focuses heavily on the mechanical action (swipe, delete, organize). *None* of the top 5 mention privacy, on-device processing, or lack of cloud uploads in their metadata. This is your wedge.
+in the video mention if you wanna view screenshot or an image just long tab it and it should open full screen
 
----
+make sur we show animation and screnshots and so on of ours on all spelled stuff with dream fx and cool sound effects and advanced animation that feels making the video epic and easy to understand
 
-### 2. Keyword Research & Opportunity Scoring
-I ran your seed keywords through AppTweak to pull real App Store search volumes (1-100 scale) and difficulty scores.
+so kinda it's gonna be answering user most needed question and features with some user comments and reply...
 
-The Highest Opportunity Keywords:
-*   `clean up iphone` (Vol: 64, Diff: 16) — *Massive volume, surprisingly low difficulty.*
-*   `storage cleaner` (Vol: 53, Diff: 24)
-*   `photo cleaner` (Vol: 51, Diff: 20)
-*   `photo delete swipe` (Vol: 51, Diff: 17) — *High intent, low competition.*
-*   `duplicate photos` (Vol: 45+, Diff: 16)
-
-*Note: Terms like "duplicate remover" and "screenshot cleaner" have low search volume on their own, so we will relegate them to the hidden keyword field rather than wasting valuable Title/Subtitle characters on them.*
-
----
-
-### 3. Metadata Optimization (Title, Subtitle, Keyword Field)
-Here are 3 optimized variants. Important Rule: Do not repeat words across the Title, Subtitle, and Keyword field. Apple indexes them all together.
-
-#### Variant A: The "High Volume" Play (Recommended)
-This targets the absolute highest volume keywords while clearly explaining what the app does.
-*   Title: `UnPile - Clean Up iPhone` *(24/30 chars)*
-*   Subtitle: `Private photo storage cleaner` *(29/30 chars)*
-*   Keyword Field (94/100 chars):
-    `delete,swipe,duplicate,remover,screenshot,blurry,gallery,manager,organize,space,fast,video,app`
-
-#### Variant B: The "Action & Privacy" Play
-Focuses on the exact mechanical action users are looking for, paired with your core USP.
-*   Title: `UnPile: Photo Delete Swipe` *(26/30 chars)*
-*   Subtitle: `Clean up storage, fully private` *(29/30 chars)*
-*   Keyword Field (99/100 chars):
-    `iphone,cleaner,duplicate,remover,screenshot,blurry,gallery,organizer,manager,space,fast,video,app`
-
-#### Variant C: The "Direct Competitor" Play
-Goes head-to-head with apps like Swipewipe and Cleanup.
-*   Title: `UnPile: Photo Storage Cleaner` *(29/30 chars)*
-*   Subtitle: `Delete duplicate photos fast` *(28/30 chars)*
-*   Keyword Field (99/100 chars):
-    `clean,up,iphone,swipe,remover,screenshot,blurry,gallery,organizer,manager,space,private,video,app`
-
----
-
-### 4. App Store Description
-*ASO Note: While Apple does not index the iOS description for App Store search (Google Play does), Google web search DOES index it. I have naturally woven your top keywords (`clean up iphone`, `storage cleaner`, `photo cleaner`, `photo delete swipe`) into the copy for web SEO and high user conversion. The first 3 lines are optimized for the "above the fold" preview.*
-
-[Copy starts here]
-
-Your camera roll is overflowing, and you are out of storage. UnPile is the fastest OFFLINE, most private way to clean up your iPhone. Delete hundreds of duplicates and blurry photos in seconds—with zero cloud processing.
-
-Unlike other apps, UnPile is 100% on-device. No accounts, no internet required, and no uploading your private memories to a server. Just a lightning-fast photo cleaner that helps you reclaim gigabytes of storage instantly.
-
-WHY YOU'LL LOVE UNPILE:
-
-🔒 100% On-Device Privacy
-Your photos never leave your phone. No internet connection required, no sign-ups, and absolutely zero data collection.
-
-▶  Lightning Fast Cleaning
-Scan your entire gallery in seconds. UnPile automatically finds the clutter that is wasting your space.
-
-▶  Find Duplicate Photos
-Instantly group and delete repeating shots, burst photos, and exact duplicates.
-
-▶  Screenshot Cleaner
-Clear out those old, useless receipts, memes, and screenshots with a single tap.
-
-▶  Blurry & Live Photo Finder
-Locate blurry images and heavy Live Photos to free up storage fast.
-
-▶  Photo Delete Swipe
-Effortlessly go through your camera roll to keep your best memories and delete the rest. It's the ultimate storage cleaner for your digital life.
-
-HOW IT WORKS:
-1. Scan: UnPile instantly analyzes your gallery on-device.
-2. Review: See your duplicates, screenshots, and blurry photos neatly organized.
-3. Clean: Free up gigabytes of storage with a single tap!
-
-Stop paying for extra cloud storage. Download UnPile today, clean up your iPhone, and keep your memories strictly private.
-
-__IF you have any feature REQUEST please go to our website and request it__
-
-
+share the code for get started screen/scanning/home tab/details of each category and see all and review items/and confirm delete/DONE screen 
+<!-- react-i18next i18next -->

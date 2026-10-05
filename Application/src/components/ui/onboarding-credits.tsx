@@ -16,6 +16,10 @@ import BottomSheet, { BottomSheetView } from "@expo/ui/community/bottom-sheet";
 import { GradientButton } from "./gradient-button";
 import CountdownCloseButton from "./countdown-close-button";
 import { Brand, FontSizes, FontWeights } from "@/constants/theme";
+import {
+  DAILY_REFILL_CREDITS,
+  WELCOME_BONUS_CREDITS,
+} from "@/context/CreditsContext";
 
 type OnboardingCreditsProps = {
   isPresented: boolean;
@@ -149,10 +153,14 @@ const OnboardingCredits = ({
               <Text style={styles.title}>Ready to clean your gallery?</Text>
               <Text style={styles.bodyText}>
                 We've given you{" "}
-                <Text style={styles.highlight}>500 free credits</Text> to clear
-                clutter and screenshots today. Plus, you'll receive{" "}
-                <Text style={styles.highlight}>50 fresh credits</Text> every day
-                to keep your phone clean!
+                <Text style={styles.highlight}>
+                  {WELCOME_BONUS_CREDITS} free credits
+                </Text>{" "}
+                to try out our fast cleaning tool. Plus, you'll get{" "}
+                <Text style={styles.highlight}>
+                  {DAILY_REFILL_CREDITS} credits
+                </Text>{" "}
+                every day just for checking in!
               </Text>
             </View>
 
@@ -160,16 +168,23 @@ const OnboardingCredits = ({
 
             {/* Buttons */}
             <View style={styles.buttonGroup}>
+              {/* The main eye-catching action points to the trial */}
               <GradientButton
-                textStyle={{ fontSize: 19, fontWeight: 700 }}
-                title="Start Cleaning"
-                onPress={handleDismiss}
+                textStyle={{ fontSize: 19, fontWeight: "700" }}
+                title="Unlock Unlimited Access (FREE)"
+                onPress={onUpgrade}
               />
-              <TouchableOpacity onPress={onUpgrade} style={styles.ghostButton}>
-                <Text style={styles.ghostText}>I want Unlimited Access</Text>
+
+              {/* The free fallback action */}
+              <TouchableOpacity
+                onPress={handleDismiss}
+                style={styles.ghostButton}
+              >
+                <Text style={styles.ghostText}>
+                  Continue with 50 free credits
+                </Text>
               </TouchableOpacity>
             </View>
- 
           </View>
         </SafeAreaView>
       </BottomSheetView>

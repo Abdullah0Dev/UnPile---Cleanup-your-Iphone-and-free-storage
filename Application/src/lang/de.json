@@ -1,0 +1,195 @@
+{
+  "get_started_screen": {
+    "title": {
+      "part_1": "Auf",
+      "part_2": "räumen"
+    },
+    "subtitle": {
+      "part_1": "Räume deine Galerie auf.",
+      "part_2": "Speicherplatz in Sekunden freigeben."
+    },
+    "button": {
+      "title": {
+        "start": "Scan starten",
+        "checking": "Überprüfen..."
+      }
+    }
+  },
+  "scanning_screen": {
+    "title": "Galerie wird gescannt",
+    "secure_bar": {
+      "title": "100% auf dem Gerät",
+      "subtitle": "Deine Fotos verlassen dein iPhone nie."
+    },
+    "subtitle": {
+      "part_1": "Räume deine Galerie auf.",
+      "part_2": "Speicherplatz in Sekunden freigeben."
+    },
+    "note": "Dies kann einen Moment dauern.",
+    "progress": {
+      "finding_screenshots": "Suche nach Screenshots...",
+      "screenshots_done": "Screenshots fertig",
+      "scanning_duplicates": "Suche nach Duplikaten...",
+      "duplicates_progress": "Duplikate {percent}%",
+      "duplicates_done": "Duplikate fertig",
+      "checking_quality": "Überprüfe Fotoqualität...",
+      "quality_progress": "Qualitätsprüfung {percent}%",
+      "quality_done": "Qualitätsprüfung fertig",
+      "finding_live_photos": "Suche nach Live-Fotos...",
+      "live_photos_done": "Live-Fotos fertig",
+      "finding_clutter": "Suche nach Unordnung...",
+      "clutter_progress": "Unordnung {percent}%",
+      "clutter_done": "Unordnung fertig",
+      "done": "Fertig"
+    }
+  },
+  "credits_popup": {
+    "title": "Bereit, deine Galerie aufzuräumen?",
+    "subtitle": {
+      "part_1": "Wir haben dir",
+      "part_2": "kostenlose Credits",
+      "part_3": "gegeben, um unser schnelles Reinigungstool auszuprobieren. Außerdem erhältst du",
+      "part_4": "Credits",
+      "part_5": "jeden Tag, nur fürs Vorbeischauen!"
+    },
+    "buttons": {
+      "primary": "Unbegrenzten Zugriff freischalten (KOSTENLOS)",
+      "secondary": "Mit 50 kostenlosen Credits fortfahren"
+    }
+  },
+  "premium_access_screen": {
+    "title": "Premium-Zugang",
+    "features": {
+      "unlimited_deletion": "Unbegrenztes Löschen",
+      "ai_smart_select": "KI-gestützte Smart-Auswahl",
+      "one_tap_clean_up": "Aufräumen mit einem Tipp",
+      "seamless_experience": "Nahtlose Erfahrung"
+    },
+    "plans": {
+      "lifetime_plan": {
+        "title": "Lebenslanger Plan",
+        "original_price": "$155.48",
+        "discounted_price": "$19.99",
+        "badge": "BESTES ANGEBOT"
+      },
+      "trial_plan": {
+        "title": "3-Tage-Testversion",
+        "subtitle": "danach $2.99 pro Woche",
+        "tag": "Kurzfristig"
+      }
+    },
+    "toggle": {
+      "free_trial_enabled": "Kostenlose Testversion aktiviert"
+    },
+    "label": {
+      "no_payment_text": "HEUTE KEINE ZAHLUNG ERFORDERLICH"
+    },
+    "buttons": {
+      "unlock_now": "Jetzt freischalten",
+      "try_free": "3 Tage kostenlos testen"
+    },
+    "footer": {
+      "restore": "Wiederherstellen",
+      "terms_privacy": "Nutzungsbedingungen & Datenschutzrichtlinie"
+    }
+  },
+  "success_screen": {
+    "title": "Alles erledigt! 🎉",
+    "subtitle": "Du hast gespart",
+    "size_freed": "{size}",
+    "details": {
+      "items_deleted": "{count} Elemente gelöscht",
+      "credits_left": "Noch {count} Credits"
+    },
+    "buttons": {
+      "view_library": "Galerie ansehen",
+      "done": "Fertig"
+    }
+  },
+  "delete_confirmation_dialog": {
+    "title_singular": "{count} Element löschen?",
+    "title_plural": "{count} Elemente löschen?",
+    "subtitle": "Fotos werden in den Papierkorb verschoben und können 30 Tage lang wiederhergestellt werden.",
+    "credits_available": "Verfügbare Credits: {count}",
+    "buttons": {
+      "delete_everything": "Alles löschen",
+      "delete": "Löschen",
+      "cancel": "Abbrechen"
+    }
+  },
+  "review_screen": {
+    "header": {
+      "screenshots": "Screenshots",
+      "duplicates": "Duplikate",
+      "select_all": "Alle auswählen",
+      "deselect_all": "Auswahl aufheben"
+    },
+    "status_bar": "{total} Elemente · {selected} ausgewählt · {size}",
+    "labels": {
+      "best_photo": "Bestes Foto"
+    },
+    "bottom_sheet": {
+      "tap_to_close": "Zum Schließen tippen"
+    },
+    "bottom_bar": {
+      "selected_count": "{count} ausgewählt",
+      "size": "{size}",
+      "delete_button": "Löschen"
+    }
+  },
+  "categories_overview_screen": {
+    "header_title": "Alle Kategorien",
+    "categories": {
+      "screenshots": {
+        "title": "Screenshots",
+        "item_count": "{count} Elemente",
+        "size": "{size}"
+      },
+      "clutter": {
+        "title": "Unordnung",
+        "item_count": "{count} Elemente",
+        "size": "{size}"
+      },
+      "duplicates": {
+        "title": "Duplikate",
+        "item_count": "{count} Elemente",
+        "size": "{size}"
+      },
+      "blurry_photos": {
+        "title": "Verschwommene Fotos",
+        "item_count": "{count} Elemente",
+        "size": "{size}"
+      },
+      "live_photos": {
+        "title": "Live-Fotos",
+        "item_count": "{count} Elemente",
+        "size": "{size}"
+      }
+    },
+    "summary": {
+      "size_can_free": "{size} können freigegeben werden",
+      "item_count": "{count} Elemente"
+    },
+    "buttons": {
+      "smart_delete": "Intelligentes Löschen"
+    }
+  },
+  "scan_complete_screen": {
+    "title": "Scan abgeschlossen ✨",
+    "summary": {
+      "subtitle": "Du kannst freigeben",
+      "size_can_free": "{size}",
+      "item_count": "{count} Elemente"
+    },
+    "categories_section": {
+      "title": "Kategorien",
+      "see_all": "Alle ansehen"
+    },
+    "buttons": {
+      "review_items": "Elemente überprüfen"
+    },
+    "footer": {
+      "credits_remaining": "Noch {count} Credits"
+    }
+  }
+}

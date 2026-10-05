@@ -1,0 +1,195 @@
+{
+  "get_started_screen": {
+    "title": {
+      "part_1": "تخلص",
+      "part_2": "من الفوضى"
+    },
+    "subtitle": {
+      "part_1": "نظف مكتبة الصور.",
+      "part_2": "وفر مساحة في ثوانٍ."
+    },
+    "button": {
+      "title": {
+        "start": "ابدأ الفحص",
+        "checking": "جاري الفحص..."
+      }
+    }
+  },
+  "scanning_screen": {
+    "title": "جاري فحص المكتبة",
+    "secure_bar": {
+      "title": "100% على جهازك",
+      "subtitle": "صورك لا تغادر هاتفك أبداً."
+    },
+    "subtitle": {
+      "part_1": "نظف مكتبة الصور.",
+      "part_2": "وفر مساحة في ثوانٍ."
+    },
+    "note": "قد يستغرق هذا بعض الوقت.",
+    "progress": {
+      "finding_screenshots": "البحث عن لقطات الشاشة...",
+      "screenshots_done": "تم العثور على لقطات الشاشة",
+      "scanning_duplicates": "البحث عن الصور المكررة...",
+      "duplicates_progress": "المكررة {percent}%",
+      "duplicates_done": "تم فحص المكررة",
+      "checking_quality": "جاري فحص جودة الصور...",
+      "quality_progress": "فحص الجودة {percent}%",
+      "quality_done": "تم فحص الجودة",
+      "finding_live_photos": "البحث عن الصور الحية...",
+      "live_photos_done": "تم العثور على الصور الحية",
+      "finding_clutter": "البحث عن الفوضى...",
+      "clutter_progress": "الفوضى {percent}%",
+      "clutter_done": "تم فحص الفوضى",
+      "done": "تم"
+    }
+  },
+  "credits_popup": {
+    "title": "هل أنت مستعد لتنظيف معرض الصور؟",
+    "subtitle": {
+      "part_1": "لقد منحناك",
+      "part_2": "نقاط مجانية",
+      "part_3": "لتجربة أداة التنظيف السريعة. بالإضافة إلى ذلك، ستحصل على",
+      "part_4": "نقاط",
+      "part_5": "كل يوم لمجرد تسجيل الدخول!"
+    },
+    "buttons": {
+      "primary": "فتح الوصول غير المحدود (مجاناً)",
+      "secondary": "المتابعة بـ 50 نقطة مجانية"
+    }
+  },
+  "premium_access_screen": {
+    "title": "الوصول المميز",
+    "features": {
+      "unlimited_deletion": "حذف غير محدود",
+      "ai_smart_select": "تحديد ذكي بالذكاء الاصطناعي",
+      "one_tap_clean_up": "تنظيف بلمسة واحدة",
+      "seamless_experience": "تجربة سلسة"
+    },
+    "plans": {
+      "lifetime_plan": {
+        "title": "خطة مدى الحياة",
+        "original_price": "$155.48",
+        "discounted_price": "$19.99",
+        "badge": "أفضل قيمة"
+      },
+      "trial_plan": {
+        "title": "تجربة 3 أيام",
+        "subtitle": "ثم $2.99 أسبوعياً",
+        "tag": "قصير المدى"
+      }
+    },
+    "toggle": {
+      "free_trial_enabled": "تم تفعيل التجربة المجانية"
+    },
+    "label": {
+      "no_payment_text": "لا يتطلب الدفع اليوم"
+    },
+    "buttons": {
+      "unlock_now": "فتح الآن",
+      "try_free": "جرب 3 أيام مجاناً"
+    },
+    "footer": {
+      "restore": "استعادة",
+      "terms_privacy": "شروط الاستخدام وسياسة الخصوصية"
+    }
+  },
+  "success_screen": {
+    "title": "كل شيء جاهز! 🎉",
+    "subtitle": "لقد وفرت",
+    "size_freed": "{size}",
+    "details": {
+      "items_deleted": "تم حذف {count} عنصر",
+      "credits_left": "متبقي {count} نقطة"
+    },
+    "buttons": {
+      "view_library": "عرض المكتبة",
+      "done": "تم"
+    }
+  },
+  "delete_confirmation_dialog": {
+    "title_singular": "حذف {count} عنصر؟",
+    "title_plural": "حذف {count} عناصر؟",
+    "subtitle": "سيتم نقل الصور إلى سلة المهملات ويمكن استعادتها لمدة 30 يوماً.",
+    "credits_available": "النقاط المتاحة: {count}",
+    "buttons": {
+      "delete_everything": "حذف الكل",
+      "delete": "حذف",
+      "cancel": "إلغاء"
+    }
+  },
+  "review_screen": {
+    "header": {
+      "screenshots": "لقطات الشاشة",
+      "duplicates": "المكررة",
+      "select_all": "تحديد الكل",
+      "deselect_all": "إلغاء تحديد الكل"
+    },
+    "status_bar": "{total} عنصر · {selected} محدد · {size}",
+    "labels": {
+      "best_photo": "أفضل صورة"
+    },
+    "bottom_sheet": {
+      "tap_to_close": "اضغط للإغلاق"
+    },
+    "bottom_bar": {
+      "selected_count": "تم تحديد {count}",
+      "size": "{size}",
+      "delete_button": "حذف"
+    }
+  },
+  "categories_overview_screen": {
+    "header_title": "كل الفئات",
+    "categories": {
+      "screenshots": {
+        "title": "لقطات الشاشة",
+        "item_count": "{count} عناصر",
+        "size": "{size}"
+      },
+      "clutter": {
+        "title": "الفوضى",
+        "item_count": "{count} عناصر",
+        "size": "{size}"
+      },
+      "duplicates": {
+        "title": "المكررة",
+        "item_count": "{count} عناصر",
+        "size": "{size}"
+      },
+      "blurry_photos": {
+        "title": "الصور الضبابية",
+        "item_count": "{count} عناصر",
+        "size": "{size}"
+      },
+      "live_photos": {
+        "title": "الصور الحية",
+        "item_count": "{count} عناصر",
+        "size": "{size}"
+      }
+    },
+    "summary": {
+      "size_can_free": "يمكن توفير {size}",
+      "item_count": "{count} عناصر"
+    },
+    "buttons": {
+      "smart_delete": "حذف ذكي"
+    }
+  },
+  "scan_complete_screen": {
+    "title": "اكتمل الفحص ✨",
+    "summary": {
+      "subtitle": "يمكنك توفير",
+      "size_can_free": "{size}",
+      "item_count": "{count} عناصر"
+    },
+    "categories_section": {
+      "title": "الفئات",
+      "see_all": "عرض الكل"
+    },
+    "buttons": {
+      "review_items": "مراجعة العناصر"
+    },
+    "footer": {
+      "credits_remaining": "متبقي {count} نقطة"
+    }
+  }
+}

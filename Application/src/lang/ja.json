@@ -1,0 +1,195 @@
+{
+  "get_started_screen": {
+    "title": {
+      "part_1": "お掃除",
+      "part_2": "スッキリ"
+    },
+    "subtitle": {
+      "part_1": "カメラロールを整理。",
+      "part_2": "数秒で空き容量を確保。"
+    },
+    "button": {
+      "title": {
+        "start": "スキャン開始",
+        "checking": "確認中..."
+      }
+    }
+  },
+  "scanning_screen": {
+    "title": "ライブラリをスキャン中",
+    "secure_bar": {
+      "title": "100% 端末内処理",
+      "subtitle": "写真がiPhoneから外部に送信されることはありません。"
+    },
+    "subtitle": {
+      "part_1": "カメラロールを整理。",
+      "part_2": "数秒で空き容量を確保。"
+    },
+    "note": "少々お待ちください。",
+    "progress": {
+      "finding_screenshots": "スクリーンショットを検索中...",
+      "screenshots_done": "スクリーンショット完了",
+      "scanning_duplicates": "重複写真をスキャン中...",
+      "duplicates_progress": "重複 {percent}%",
+      "duplicates_done": "重複完了",
+      "checking_quality": "写真の品質を確認中...",
+      "quality_progress": "品質チェック {percent}%",
+      "quality_done": "品質チェック完了",
+      "finding_live_photos": "ライブフォトを検索中...",
+      "live_photos_done": "ライブフォト完了",
+      "finding_clutter": "不要な写真を検索中...",
+      "clutter_progress": "不要な写真 {percent}%",
+      "clutter_done": "不要な写真完了",
+      "done": "完了"
+    }
+  },
+  "credits_popup": {
+    "title": "ギャラリーを整理する準備はできましたか？",
+    "subtitle": {
+      "part_1": "高速整理ツールをお試しいただくために、",
+      "part_2": "無料クレジット",
+      "part_3": "をプレゼント！さらに、毎日チェックインするだけで",
+      "part_4": "クレジット",
+      "part_5": "を獲得できます！"
+    },
+    "buttons": {
+      "primary": "無制限アクセスを解放（無料）",
+      "secondary": "50無料クレジットで続行"
+    }
+  },
+  "premium_access_screen": {
+    "title": "プレミアムアクセス",
+    "features": {
+      "unlimited_deletion": "無制限削除",
+      "ai_smart_select": "AIスマート選択",
+      "one_tap_clean_up": "ワンタップ整理",
+      "seamless_experience": "シームレスな体験"
+    },
+    "plans": {
+      "lifetime_plan": {
+        "title": "買い切りプラン",
+        "original_price": "$155.48",
+        "discounted_price": "$19.99",
+        "badge": "ベストバリュー"
+      },
+      "trial_plan": {
+        "title": "3日間トライアル",
+        "subtitle": "その後 週額$2.99",
+        "tag": "短期間"
+      }
+    },
+    "toggle": {
+      "free_trial_enabled": "無料トライアル有効"
+    },
+    "label": {
+      "no_payment_text": "本日のお支払いはありません"
+    },
+    "buttons": {
+      "unlock_now": "今すぐ解放",
+      "try_free": "3日間無料で試す"
+    },
+    "footer": {
+      "restore": "復元",
+      "terms_privacy": "利用規約とプライバシーポリシー"
+    }
+  },
+  "success_screen": {
+    "title": "完了！ 🎉",
+    "subtitle": "解放した容量",
+    "size_freed": "{size}",
+    "details": {
+      "items_deleted": "{count}件の項目を削除",
+      "credits_left": "残り{count}クレジット"
+    },
+    "buttons": {
+      "view_library": "ライブラリを表示",
+      "done": "完了"
+    }
+  },
+  "delete_confirmation_dialog": {
+    "title_singular": "{count}件の項目を削除しますか？",
+    "title_plural": "{count}件の項目を削除しますか？",
+    "subtitle": "写真はゴミ箱に移動され、30日間復元可能です。",
+    "credits_available": "利用可能クレジット: {count}",
+    "buttons": {
+      "delete_everything": "すべて削除",
+      "delete": "削除",
+      "cancel": "キャンセル"
+    }
+  },
+  "review_screen": {
+    "header": {
+      "screenshots": "スクリーンショット",
+      "duplicates": "重複写真",
+      "select_all": "すべて選択",
+      "deselect_all": "選択解除"
+    },
+    "status_bar": "{total}件 · {selected}件選択中 · {size}",
+    "labels": {
+      "best_photo": "ベストショット"
+    },
+    "bottom_sheet": {
+      "tap_to_close": "タップして閉じる"
+    },
+    "bottom_bar": {
+      "selected_count": "{count}件選択中",
+      "size": "{size}",
+      "delete_button": "削除"
+    }
+  },
+  "categories_overview_screen": {
+    "header_title": "すべてのカテゴリ",
+    "categories": {
+      "screenshots": {
+        "title": "スクリーンショット",
+        "item_count": "{count}件",
+        "size": "{size}"
+      },
+      "clutter": {
+        "title": "不要な写真",
+        "item_count": "{count}件",
+        "size": "{size}"
+      },
+      "duplicates": {
+        "title": "重複写真",
+        "item_count": "{count}件",
+        "size": "{size}"
+      },
+      "blurry_photos": {
+        "title": "ブレた写真",
+        "item_count": "{count}件",
+        "size": "{size}"
+      },
+      "live_photos": {
+        "title": "ライブフォト",
+        "item_count": "{count}件",
+        "size": "{size}"
+      }
+    },
+    "summary": {
+      "size_can_free": "{size}の容量を解放可能",
+      "item_count": "{count}件"
+    },
+    "buttons": {
+      "smart_delete": "スマート削除"
+    }
+  },
+  "scan_complete_screen": {
+    "title": "スキャン完了 ✨",
+    "summary": {
+      "subtitle": "解放可能な容量",
+      "size_can_free": "{size}",
+      "item_count": "{count}件"
+    },
+    "categories_section": {
+      "title": "カテゴリ",
+      "see_all": "すべて表示"
+    },
+    "buttons": {
+      "review_items": "項目を確認"
+    },
+    "footer": {
+      "credits_remaining": "残り{count}クレジット"
+    }
+  }
+}

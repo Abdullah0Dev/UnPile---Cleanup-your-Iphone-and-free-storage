@@ -1,0 +1,195 @@
+{
+  "get_started_screen": {
+    "title": {
+      "part_1": "Temizle",
+      "part_2": "Düzenle"
+    },
+    "subtitle": {
+      "part_1": "Galerinizi temizleyin.",
+      "part_2": "Saniyeler içinde yer açın."
+    },
+    "button": {
+      "title": {
+        "start": "Taramayı Başlat",
+        "checking": "Kontrol ediliyor..."
+      }
+    }
+  },
+  "scanning_screen": {
+    "title": "Galeri Taranıyor",
+    "secure_bar": {
+      "title": "%100 Cihazda",
+      "subtitle": "Fotoğraflarınız iPhone'unuzdan asla ayrılmaz."
+    },
+    "subtitle": {
+      "part_1": "Galerinizi temizleyin.",
+      "part_2": "Saniyeler içinde yer açın."
+    },
+    "note": "Bu işlem biraz zaman alabilir.",
+    "progress": {
+      "finding_screenshots": "Ekran görüntüleri bulunuyor...",
+      "screenshots_done": "Ekran görüntüleri tamam",
+      "scanning_duplicates": "Kopyalar taranıyor...",
+      "duplicates_progress": "Kopyalar %{percent}",
+      "duplicates_done": "Kopyalar tamam",
+      "checking_quality": "Fotoğraf kalitesi kontrol ediliyor...",
+      "quality_progress": "Kalite kontrolü %{percent}",
+      "quality_done": "Kalite kontrolü tamam",
+      "finding_live_photos": "Canlı Fotoğraflar bulunuyor...",
+      "live_photos_done": "Canlı Fotoğraflar tamam",
+      "finding_clutter": "Dağınıklık bulunuyor...",
+      "clutter_progress": "Dağınıklık %{percent}",
+      "clutter_done": "Dağınıklık tamam",
+      "done": "Tamam"
+    }
+  },
+  "credits_popup": {
+    "title": "Galerinizi temizlemeye hazır mısınız?",
+    "subtitle": {
+      "part_1": "Hızlı temizleme aracımızı denemeniz için size",
+      "part_2": "ücretsiz kredi",
+      "part_3": "verdik. Ayrıca, her gün giriş yaparak",
+      "part_4": "kredi",
+      "part_5": "kazanacaksınız!"
+    },
+    "buttons": {
+      "primary": "Sınırsız Erişimi Aç (ÜCRETSİZ)",
+      "secondary": "50 ücretsiz krediyle devam et"
+    }
+  },
+  "premium_access_screen": {
+    "title": "Premium Erişim",
+    "features": {
+      "unlimited_deletion": "Sınırsız Silme",
+      "ai_smart_select": "Yapay Zeka Akıllı Seçim",
+      "one_tap_clean_up": "Tek Dokunuşla Temizleme",
+      "seamless_experience": "Kusursuz Deneyim"
+    },
+    "plans": {
+      "lifetime_plan": {
+        "title": "Ömür Boyu Plan",
+        "original_price": "$155.48",
+        "discounted_price": "$19.99",
+        "badge": "EN İYİ DEĞER"
+      },
+      "trial_plan": {
+        "title": "3 Günlük Deneme",
+        "subtitle": "sonra haftada $2.99",
+        "tag": "Kısa Vadeli"
+      }
+    },
+    "toggle": {
+      "free_trial_enabled": "Ücretsiz Deneme Açık"
+    },
+    "label": {
+      "no_payment_text": "BUGÜN ÖDEME GEREKMİYOR"
+    },
+    "buttons": {
+      "unlock_now": "Şimdi Kilidini Aç",
+      "try_free": "3 Gün Ücretsiz Dene"
+    },
+    "footer": {
+      "restore": "Geri Yükle",
+      "terms_privacy": "Kullanım Koşulları ve Gizlilik Politikası"
+    }
+  },
+  "success_screen": {
+    "title": "Hepsi Tamam! 🎉",
+    "subtitle": "Şu kadar yer açtınız:",
+    "size_freed": "{size}",
+    "details": {
+      "items_deleted": "{count} Öğe silindi",
+      "credits_left": "{count} Kredi Kaldı"
+    },
+    "buttons": {
+      "view_library": "Galeriyi Görüntüle",
+      "done": "Tamam"
+    }
+  },
+  "delete_confirmation_dialog": {
+    "title_singular": "{count} öğe silinsin mi?",
+    "title_plural": "{count} öğe silinsin mi?",
+    "subtitle": "Fotoğraflar Çöp Kutusu'na taşınacak ve 30 gün boyunca geri yüklenebilecek.",
+    "credits_available": "Mevcut Kredi: {count}",
+    "buttons": {
+      "delete_everything": "Her Şeyi Sil",
+      "delete": "Sil",
+      "cancel": "İptal"
+    }
+  },
+  "review_screen": {
+    "header": {
+      "screenshots": "Ekran Görüntüleri",
+      "duplicates": "Kopyalar",
+      "select_all": "Tümünü Seç",
+      "deselect_all": "Tümünü Kaldır"
+    },
+    "status_bar": "{total} öğe · {selected} seçili · {size}",
+    "labels": {
+      "best_photo": "En İyi Fotoğraf"
+    },
+    "bottom_sheet": {
+      "tap_to_close": "Kapatmak için dokunun"
+    },
+    "bottom_bar": {
+      "selected_count": "{count} Seçili",
+      "size": "{size}",
+      "delete_button": "Sil"
+    }
+  },
+  "categories_overview_screen": {
+    "header_title": "Tüm Kategoriler",
+    "categories": {
+      "screenshots": {
+        "title": "Ekran Görüntüleri",
+        "item_count": "{count} öğe",
+        "size": "{size}"
+      },
+      "clutter": {
+        "title": "Dağınıklık",
+        "item_count": "{count} öğe",
+        "size": "{size}"
+      },
+      "duplicates": {
+        "title": "Kopyalar",
+        "item_count": "{count} öğe",
+        "size": "{size}"
+      },
+      "blurry_photos": {
+        "title": "Bulanık Fotoğraflar",
+        "item_count": "{count} öğe",
+        "size": "{size}"
+      },
+      "live_photos": {
+        "title": "Canlı Fotoğraflar",
+        "item_count": "{count} öğe",
+        "size": "{size}"
+      }
+    },
+    "summary": {
+      "size_can_free": "{size} boşaltılabilir",
+      "item_count": "{count} öğe"
+    },
+    "buttons": {
+      "smart_delete": "Akıllı Silme"
+    }
+  },
+  "scan_complete_screen": {
+    "title": "Tarama Tamamlandı ✨",
+    "summary": {
+      "subtitle": "Şu kadar yer açabilirsiniz:",
+      "size_can_free": "{size}",
+      "item_count": "{count} öğe"
+    },
+    "categories_section": {
+      "title": "Kategoriler",
+      "see_all": "Tümünü Gör"
+    },
+    "buttons": {
+      "review_items": "Öğeleri İncele"
+    },
+    "footer": {
+      "credits_remaining": "{count} Kredi Kaldı"
+    }
+  }
+}
