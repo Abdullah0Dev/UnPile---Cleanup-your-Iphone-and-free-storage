@@ -1,29 +1,44 @@
 import Foundation
 
-/// Decision logic only. Pixels are analysed once in ImageAnalysis; NIMA runs lazily
-/// and ONLY for ambiguous photos, so ~90% of the library never touches the model.
 final class BlurDetector {
     var useMLAssessment = true
     var mlQualityThreshold: Float = 4.0
 
-    /// Tile-sharpness (85th percentile Laplacian variance, 512px). TUNE on your own photos:
-    /// below `strictSharpness` = blurry; between strict and soft = ask NIMA; above soft = sharp.
+    // Whole-image metric: preserves the old detector's strong recall.
+    var lapBlurThreshold: Float = 200
+    var lapSharpThreshold: Float = 400
+
+    // Tile metric: catches cases where the subject is sharp but the background is soft.
     var strictSharpness: Float = 30
     var softSharpness: Float = 150
 
-    /// Photos this flat (sky, wall, dark) naturally have low Laplacian variance.
+    // Prevent flat scenes from being automatically called blurry.
     var minContrastStd: Float = 12
 
-    func isBlurry(stats: ImageStats, quality: () -> Float?) -> Bool {
-        if stats.sharpness >= softSharpness { return false }
-
+    func isBlurry(
+        stats: ImageStats,
+        quality: () -> Float?
+    ) -> Bool {
         let lowContrast = stats.contrastStd < minContrastStd
-        if stats.sharpness < strictSharpness && !lowContrast { return true }
 
-        // Ambiguous zone (or flat image): let the model decide.
-        guard useMLAssessment, let q = quality() else {
-            return stats.sharpness < strictSharpness && !lowContrast
+        // Clearly blurry: both metrics agree.
+        if !lowContrast,
+           stats.lapVariance < lapBlurThreshold,
+           stats.sharpness < softSharpness {
+            return true
         }
+
+        // Clearly sharp: both metrics agree. No NIMA needed.
+        if stats.lapVariance >= lapSharpThreshold,
+           stats.sharpness >= softSharpness {
+            return false
+        }
+
+        // Only the ambiguous band reaches NIMA.
+        guard useMLAssessment, let q = quality() else {
+            return !lowContrast && stats.lapVariance < lapBlurThreshold
+        }
+
         return q < mlQualityThreshold
     }
 }
