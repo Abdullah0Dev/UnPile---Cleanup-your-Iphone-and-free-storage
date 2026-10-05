@@ -1,4 +1,3 @@
-// Paywall.tsx
 import { Brand, FontSizes } from "@/constants/theme";
 import React, {
   useState,
@@ -12,7 +11,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Alert,
   Modal,
   Switch,
 } from "react-native";
@@ -23,7 +21,6 @@ import Animated, {
   withRepeat,
   withSequence,
   withDelay,
-  Easing,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { GradientButton } from "./gradient-button";
@@ -36,44 +33,30 @@ import Purchases, {
   PurchasesOffering,
   PurchasesPackage,
 } from "react-native-purchases";
+import { useTranslation } from "react-i18next";
 
 // -----------------------------------------------------------------------------
-// 1. Types & Mock Data
+// 1. Types
 // -----------------------------------------------------------------------------
+
+type PlanKey = "lifetime_plan" | "trial_plan";
 
 interface PurchaseProductDetails {
   id: string;
   price: string;
   productId: string;
   duration: string;
-  durationPlanName: string;
+  planKey: PlanKey;
   hasTrial: boolean;
+  rcPackage: PurchasesPackage;
 }
 
-// Initial product details (matching Swift)
-const INITIAL_PRODUCT_DETAILS: PurchaseProductDetails[] = [
-  {
-    id: "1",
-    price: "$19.99",
-    productId: "clean_life",
-    duration: "life",
-    durationPlanName: "Lifetime Plan",
-    hasTrial: false,
-  },
-  {
-    id: "2",
-    price: "$2.99",
-    productId: "clean_w",
-    duration: "week",
-    durationPlanName: "3-Day Trial",
-    hasTrial: true,
-  },
-];
 export const ENTITLEMENT_ID = "premium_clean";
+
 // -----------------------------------------------------------------------------
-// 2. Custom Hook: Purchase Model (simulates StoreKit)
+// 2. Purchase Model
 // -----------------------------------------------------------------------------
-// Map a RC package to the shape your UI already expects
+
 function packageToProductDetails(pkg: PurchasesPackage) {
   const product = pkg.product;
   const isWeekly = pkg.packageType === "WEEKLY";
@@ -88,29 +71,48 @@ function packageToProductDetails(pkg: PurchasesPackage) {
       : isLifetime
         ? "life"
         : pkg.packageType.toLowerCase(),
-    durationPlanName: isLifetime ? "Lifetime Plan" : "3-Day Trial",
-    hasTrial: !!product.introPrice, // true if there's an intro/trial offer configured in RC
-    rcPackage: pkg, // keep the raw package around — you need it to purchase
+    planKey: (isLifetime
+      ? "lifetime_plan"
+      : "trial_plan") as PlanKey,
+    hasTrial: !!product.introPrice,
+    rcPackage: pkg,
   };
 }
-export function usePurchaseModel({ onDismiss }: { onDismiss: () => void }) {
-  const [offering, setOffering] = useState<PurchasesOffering | null>(null);
-  const [productDetails, setProductDetails] = useState<
-    ReturnType<typeof packageToProductDetails>[]
-  >([]);
-  const [isFetchingProducts, setIsFetchingProducts] = useState(true);
+
+export function usePurchaseModel({
+  onDismiss,
+}: {
+  onDismiss: () => void;
+}) {
+  const [offering, setOffering] =
+    useState<PurchasesOffering | null>(null);
+
+  const [productDetails, setProductDetails] =
+    useState<ReturnType<typeof packageToProductDetails>[]>([]);
+
+  const [isFetchingProducts, setIsFetchingProducts] =
+    useState(true);
+
   const [isPurchasing, setIsPurchasing] = useState(false);
-  const { isSubscribed, setSubscriptionStatus } = useCredits();
+
+  const {
+    isSubscribed,
+    setSubscriptionStatus,
+  } = useCredits();
 
   useEffect(() => {
     (async () => {
       try {
         const offerings = await Purchases.getOfferings();
         const current = offerings.current;
+
         if (current) {
           setOffering(current);
+
           setProductDetails(
-            current.availablePackages.map(packageToProductDetails),
+            current.availablePackages.map(
+              packageToProductDetails,
+            ),
           );
         }
       } catch (e) {
@@ -124,36 +126,59 @@ export function usePurchaseModel({ onDismiss }: { onDismiss: () => void }) {
   const purchaseSubscription = useCallback(
     async (productId: string) => {
       if (isPurchasing) return;
-      const details = productDetails.find((p) => p.productId === productId);
+
+      const details = productDetails.find(
+        (p) => p.productId === productId,
+      );
+
       if (!details) return;
 
       setIsPurchasing(true);
+
       try {
-        const { customerInfo } = await Purchases.purchasePackage(
-          details.rcPackage,
-        );
+        const { customerInfo } =
+          await Purchases.purchasePackage(
+            details.rcPackage,
+          );
+
         const isEntitled =
-          typeof customerInfo.entitlements.active[ENTITLEMENT_ID] !== "undefined";
+          typeof customerInfo.entitlements.active[
+            ENTITLEMENT_ID
+          ] !== "undefined";
+
         await setSubscriptionStatus(isEntitled);
-        if (isEntitled) onDismiss();
+
+        if (isEntitled) {
+          onDismiss();
+        }
       } catch (e: any) {
         if (!e.userCancelled) {
           console.error("Purchase failed", e);
-          // surface an alert to the user here
         }
       } finally {
         setIsPurchasing(false);
       }
     },
-    [isPurchasing, productDetails, setSubscriptionStatus, onDismiss],
+    [
+      isPurchasing,
+      productDetails,
+      setSubscriptionStatus,
+      onDismiss,
+    ],
   );
 
   const restorePurchases = useCallback(async () => {
     try {
-      const customerInfo = await Purchases.restorePurchases();
+      const customerInfo =
+        await Purchases.restorePurchases();
+
       const isEntitled =
-        typeof customerInfo.entitlements.active[ENTITLEMENT_ID] !== "undefined";
+        typeof customerInfo.entitlements.active[
+          ENTITLEMENT_ID
+        ] !== "undefined";
+
       await setSubscriptionStatus(isEntitled);
+
       return isEntitled;
     } catch (e) {
       console.error("Restore failed", e);
@@ -172,47 +197,60 @@ export function usePurchaseModel({ onDismiss }: { onDismiss: () => void }) {
 }
 
 // -----------------------------------------------------------------------------
-// 3. Helper Functions
+// 3. Helpers
 // -----------------------------------------------------------------------------
 
-// Convert currency string like "$25.99" to number
-function currencyStringToNumber(currencyString: string): number | null {
+function currencyStringToNumber(
+  currencyString: string,
+): number | null {
   const cleaned = currencyString.replace(/[^0-9.]/g, "");
   const num = parseFloat(cleaned);
+
   return isNaN(num) ? null : num;
 }
 
-// Format number to local currency (e.g., "$25.99")
 function toLocalCurrencyString(value: number): string {
   const formatter = new Intl.NumberFormat(undefined, {
     style: "currency",
-    currency: "USD", // or user's locale; fallback to USD
+    currency: "USD",
   });
+
   return formatter.format(value);
 }
 
-// Calculate full yearly price from weekly price
 function calculateFullPrice(
   productDetails: PurchaseProductDetails[],
 ): number | null {
-  const weekly = productDetails.find((p) => p.duration === "week");
+  const weekly = productDetails.find(
+    (p) => p.duration === "week",
+  );
+
   if (!weekly) return null;
-  const weeklyPrice = currencyStringToNumber(weekly.price);
+
+  const weeklyPrice = currencyStringToNumber(
+    weekly.price,
+  );
+
   if (weeklyPrice === null) return null;
-  return weeklyPrice * 52; //. 14 months
+
+  return weeklyPrice * 52;
 }
 
 // -----------------------------------------------------------------------------
-// 4. Sub-Components
+// 4. Feature Row
 // -----------------------------------------------------------------------------
 
-// Feature row (icon + text)
 const PurchaseFeatureView: React.FC<{
   title: string;
-  icon: "trash-can" | "sparkles" | "lightning-bolt" | "gem";
+  icon:
+    | "trash-can"
+    | "sparkles"
+    | "lightning-bolt"
+    | "gem";
   color: string;
 }> = ({ title, icon, color }) => {
   let CustomIcon = Trash;
+
   switch (icon) {
     case "trash-can":
       CustomIcon = Trash;
@@ -226,61 +264,111 @@ const PurchaseFeatureView: React.FC<{
     case "gem":
       CustomIcon = Gem;
       break;
-
-    default:
-      break;
   }
+
   return (
     <View style={styles.featureRow}>
-      {/* <Text style={[styles.featureIcon, { color }]}>{icon}</Text> */}
-      <CustomIcon style={[styles.featureIcon]} color={color} />
-      <Text style={styles.featureText}>{title}</Text>
+      <CustomIcon
+        style={styles.featureIcon}
+        color={color}
+      />
+
+      <Text style={styles.featureText}>
+        {title}
+      </Text>
     </View>
   );
 };
 
-// Product option button
+// -----------------------------------------------------------------------------
+// 5. Product Option
+// -----------------------------------------------------------------------------
+
 const ProductOption: React.FC<{
   product: PurchaseProductDetails;
   selected: boolean;
   onSelect: () => void;
   color: string;
   fullPrice: number | null;
-}> = ({ product, selected, onSelect, color, fullPrice }) => {
-  const { durationPlanName, hasTrial, price, duration } = product;
+}> = ({
+  product,
+  selected,
+  onSelect,
+  color,
+  fullPrice,
+}) => {
+  const { t } = useTranslation();
+
+  const {
+    planKey,
+    hasTrial,
+    price,
+  } = product;
+
+  const planTitle = t(
+    `premium_access_screen.plans.${planKey}.title`,
+  );
 
   return (
     <TouchableOpacity
       style={[
         styles.productOption,
         selected && styles.productOptionSelected,
-        { borderColor: selected ? color : "rgba(0,0,0,0.15)" },
+        {
+          borderColor: selected
+            ? color
+            : "rgba(0,0,0,0.15)",
+        },
       ]}
       onPress={onSelect}
       activeOpacity={0.7}
     >
       <View style={styles.productOptionContent}>
         <View style={styles.productOptionText}>
-          <Text style={styles.productPlanName}>{durationPlanName}</Text>
+          <Text style={styles.productPlanName}>
+            {planTitle}
+          </Text>
+
           {hasTrial ? (
             <Text style={styles.productPriceDetail}>
-              then {price} per {duration}
+              {t(
+                "premium_access_screen.plans.trial_plan.subtitle",
+                {
+                  price,
+                },
+              )}
             </Text>
           ) : (
             <View style={styles.productPriceRow}>
-              {fullPrice !== null && fullPrice > 0 && (
-                <Text style={styles.productStrikethrough}>
-                  {toLocalCurrencyString(fullPrice)}{" "}
-                </Text>
-              )}
-              <Text style={styles.productPriceDetail}>{price}</Text>
+              {fullPrice !== null &&
+                fullPrice > 0 && (
+                  <Text
+                    style={
+                      styles.productStrikethrough
+                    }
+                  >
+                    {toLocalCurrencyString(
+                      fullPrice,
+                    )}{" "}
+                  </Text>
+                )}
+
+              <Text
+                style={styles.productPriceDetail}
+              >
+                {price}
+              </Text>
             </View>
           )}
         </View>
 
         {!hasTrial ? (
           <View style={styles.saveBadge}>
-            <Text style={styles.saveBadgeText}>BEST VALUE</Text>
+            <Text style={styles.saveBadgeText}>
+              {t(
+                "premium_access_screen.plans.lifetime_plan.badge",
+              )}
+            </Text>
           </View>
         ) : (
           <Text
@@ -290,15 +378,33 @@ const ProductOption: React.FC<{
               color: "white",
             }}
           >
-            Short Term
+            {t(
+              "premium_access_screen.plans.trial_plan.tag",
+            )}
           </Text>
         )}
 
         <View style={styles.radioContainer}>
-          <View style={[styles.radioOuter, selected && { borderColor: color }]}>
+          <View
+            style={[
+              styles.radioOuter,
+              selected && {
+                borderColor: color,
+              },
+            ]}
+          >
             {selected && (
-              <View style={[styles.radioInner, { backgroundColor: color }]}>
-                <Text style={styles.checkmark}>✓</Text>
+              <View
+                style={[
+                  styles.radioInner,
+                  {
+                    backgroundColor: color,
+                  },
+                ]}
+              >
+                <Text style={styles.checkmark}>
+                  ✓
+                </Text>
               </View>
             )}
           </View>
@@ -309,7 +415,7 @@ const ProductOption: React.FC<{
 };
 
 // -----------------------------------------------------------------------------
-// 5. Main Paywall Component
+// 6. Main Paywall
 // -----------------------------------------------------------------------------
 
 interface PaywallProps {
@@ -317,11 +423,14 @@ interface PaywallProps {
   onDismiss: () => void;
 }
 
-const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
-  // ── Bottom Sheet Ref ──
+const Paywall: React.FC<PaywallProps> = ({
+  isPresented,
+  onDismiss,
+}) => {
+  const { t } = useTranslation();
+
   const sheetRef = useRef<BottomSheet>(null);
 
-  // ── Purchase model ──
   const {
     productDetails,
     isSubscribed,
@@ -331,37 +440,48 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
     restorePurchases,
   } = usePurchaseModel({ onDismiss });
 
-  // ── UI state ──
-  const [selectedProductId, setSelectedProductId] = useState<string>("");
-  const [showNoneRestoredAlert, setShowNoneRestoredAlert] = useState(false);
-  const [isWeeklyPlan, setIsWeeklyPlan] = useState<boolean>(true); // true = weekly, false = yearly
-  const [isCountdownComplete, setIsCountdownComplete] = useState(false);
+  const [selectedProductId, setSelectedProductId] =
+    useState<string>("");
 
-  // ── Shared values for animations ──
+  const [showNoneRestoredAlert, setShowNoneRestoredAlert] =
+    useState(false);
+
+  const [isWeeklyPlan, setIsWeeklyPlan] =
+    useState<boolean>(true);
+
+  const [isCountdownComplete, setIsCountdownComplete] =
+    useState(false);
+
   const shakeDegrees = useSharedValue(0);
   const shakeZoom = useSharedValue(0.9);
 
-  // ── Computed values ──
   const fullPrice = useMemo(
     () => calculateFullPrice(productDetails),
     [productDetails],
   );
 
   const selectedProduct = useMemo(
-    () => productDetails.find((p) => p.productId === selectedProductId),
+    () =>
+      productDetails.find(
+        (p) =>
+          p.productId === selectedProductId,
+      ),
     [productDetails, selectedProductId],
   );
 
   const callToActionText = useMemo(() => {
     if (selectedProduct?.hasTrial) {
-      return "Try 3 Days Free";
+      return t(
+        "premium_access_screen.buttons.try_free",
+      );
     }
-    return "Unlock Now";
-  }, [selectedProduct]);
 
-  // ── Effects ──
+    return t(
+      "premium_access_screen.buttons.unlock_now",
+    );
+  }, [selectedProduct, t]);
 
-  // Control the bottom sheet visibility based on isPresented
+  // Control Bottom Sheet
   useEffect(() => {
     if (isPresented) {
       sheetRef.current?.snapToIndex(0);
@@ -370,30 +490,58 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
     }
   }, [isPresented]);
 
-  // Select weekly by default when switch is ON
+  // Select weekly by default
   useEffect(() => {
     if (productDetails.length > 0) {
-      const weekly = productDetails.find((p) => p.duration === "week");
+      const weekly = productDetails.find(
+        (p) => p.duration === "week",
+      );
+
       if (isWeeklyPlan && weekly) {
-        setSelectedProductId(weekly.productId);
+        setSelectedProductId(
+          weekly.productId,
+        );
       } else {
-        const lifeTime = productDetails.find((p) => p.duration === "life");
-        if (lifeTime) setSelectedProductId(lifeTime.productId);
+        const lifetime = productDetails.find(
+          (p) => p.duration === "life",
+        );
+
+        if (lifetime) {
+          setSelectedProductId(
+            lifetime.productId,
+          );
+        }
       }
     }
   }, [productDetails, isWeeklyPlan]);
 
-  // Start shake animation after 1 second (repeats)
+  // Shake animation
   useEffect(() => {
     if (isPresented) {
       const startShake = () => {
         shakeZoom.value = withRepeat(
           withSequence(
-            withTiming(1.06, { duration: 200 }),
-            withDelay(100, withTiming(1.06, { duration: 0 })),
-            withTiming(0.94, { duration: 300 }),
-            withTiming(1, { duration: 0 }),
-            withDelay(1400, withTiming(1, { duration: 0 })),
+            withTiming(1.06, {
+              duration: 200,
+            }),
+            withDelay(
+              100,
+              withTiming(1.06, {
+                duration: 0,
+              }),
+            ),
+            withTiming(0.94, {
+              duration: 300,
+            }),
+            withTiming(1, {
+              duration: 0,
+            }),
+            withDelay(
+              1400,
+              withTiming(1, {
+                duration: 0,
+              }),
+            ),
           ),
           -1,
           false,
@@ -401,25 +549,49 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
 
         shakeDegrees.value = withRepeat(
           withSequence(
-            withTiming(6, { duration: 50 }),
-            withTiming(-6, { duration: 100 }),
-            withTiming(6, { duration: 50 }),
-            withTiming(-6, { duration: 100 }),
-            withTiming(6, { duration: 50 }),
-            withTiming(-6, { duration: 100 }),
-            withTiming(6, { duration: 50 }),
-            withTiming(-6, { duration: 100 }),
-            withTiming(0, { duration: 0 }),
-            withDelay(1400, withTiming(0, { duration: 0 })),
+            withTiming(6, {
+              duration: 50,
+            }),
+            withTiming(-6, {
+              duration: 100,
+            }),
+            withTiming(6, {
+              duration: 50,
+            }),
+            withTiming(-6, {
+              duration: 100,
+            }),
+            withTiming(6, {
+              duration: 50,
+            }),
+            withTiming(-6, {
+              duration: 100,
+            }),
+            withTiming(6, {
+              duration: 50,
+            }),
+            withTiming(-6, {
+              duration: 100,
+            }),
+            withTiming(0, {
+              duration: 0,
+            }),
+            withDelay(
+              1400,
+              withTiming(0, {
+                duration: 0,
+              }),
+            ),
           ),
           -1,
           false,
         );
       };
 
-      const delayTimer = setTimeout(() => {
-        startShake();
-      }, 1000);
+      const delayTimer = setTimeout(
+        startShake,
+        1000,
+      );
 
       return () => {
         clearTimeout(delayTimer);
@@ -427,45 +599,67 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
         shakeZoom.value = 0.9;
       };
     }
-  }, [isPresented, shakeDegrees, shakeZoom]);
+  }, [
+    isPresented,
+    shakeDegrees,
+    shakeZoom,
+  ]);
 
   const handleRestore = async () => {
     const restored = await restorePurchases();
-    if (!restored) setShowNoneRestoredAlert(true);
+
+    if (!restored) {
+      setShowNoneRestoredAlert(true);
+    }
   };
 
-  // ── Animated styles ──
-  const heroAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { rotate: `${shakeDegrees.value}deg` },
-      { scale: shakeZoom.value },
-    ],
-  }));
+  const heroAnimatedStyle = useAnimatedStyle(
+    () => ({
+      transform: [
+        {
+          rotate: `${shakeDegrees.value}deg`,
+        },
+        {
+          scale: shakeZoom.value,
+        },
+      ],
+    }),
+  );
 
-  // ── Handlers ──
-  const handleToggleSwitch = (value: boolean) => {
+  const handleToggleSwitch = (
+    value: boolean,
+  ) => {
     setIsWeeklyPlan(value);
   };
 
-  const handleProductSelect = (productId: string) => {
-    const product = productDetails.find((p) => p.productId === productId);
+  const handleProductSelect = (
+    productId: string,
+  ) => {
+    const product = productDetails.find(
+      (p) => p.productId === productId,
+    );
+
     if (product) {
-      setIsWeeklyPlan(product.duration === "week");
+      setIsWeeklyPlan(
+        product.duration === "week",
+      );
+
       setSelectedProductId(productId);
     }
   };
 
-  // ── Render ──
-  // Note: We do NOT return null here, because BottomSheet needs to be rendered to manage state.
-  const handleCountdownComplete = useCallback(() => {
-    setIsCountdownComplete(true);
-    console.log("countdown finished!");
-  }, []);
+  const handleCountdownComplete =
+    useCallback(() => {
+      setIsCountdownComplete(true);
+      console.log(
+        "countdown finished!",
+      );
+    }, []);
+
   const handleDismiss = useCallback(() => {
     onDismiss();
-    console.log("countdown reset!");
     setIsCountdownComplete(false);
-  }, []);
+  }, [onDismiss]);
 
   return (
     <BottomSheet
@@ -473,53 +667,94 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
       snapPoints={["98.5%"]}
       index={-1}
       onClose={handleDismiss}
-      enablePanDownToClose={isCountdownComplete}
-      backgroundStyle={{ backgroundColor: "#08071A" }}
-      handleIndicatorStyle={{ backgroundColor: Brand.textSecondary }}
+      enablePanDownToClose={
+        isCountdownComplete
+      }
+      backgroundStyle={{
+        backgroundColor: "#08071A",
+      }}
+      handleIndicatorStyle={{
+        backgroundColor:
+          Brand.textSecondary,
+      }}
     >
-      <BottomSheetView style={styles.bottomSheetContent}>
-        <SafeAreaView style={styles.container}>
+      <BottomSheetView
+        style={styles.bottomSheetContent}
+      >
+        <SafeAreaView
+          style={styles.container}
+        >
           <View style={styles.closeContainer}>
             <CountdownCloseButton
               duration={5000}
               active={isPresented}
-              onComplete={handleCountdownComplete} // <-- New prop
+              onComplete={
+                handleCountdownComplete
+              }
               onPress={handleDismiss}
             />
           </View>
 
-          {/* Content */}
           <View style={styles.content}>
-            {/* Hero Image */}
-            <View style={styles.heroWrapper}>
+            {/* Hero */}
+            <View
+              style={styles.heroWrapper}
+            >
               <Animated.Image
                 source={require("@/assets/images/logo.png")}
-                style={[styles.heroImage, heroAnimatedStyle]}
+                style={[
+                  styles.heroImage,
+                  heroAnimatedStyle,
+                ]}
                 resizeMode="contain"
               />
             </View>
 
-            {/* Title & Features */}
-            <View style={{ alignItems: "center" }}>
-              <Text style={styles.title}>Premium Access</Text>
-              <View style={styles.featuresContainer}>
+            {/* Title + Features */}
+            <View
+              style={{
+                alignItems: "center",
+              }}
+            >
+              <Text style={styles.title}>
+                {t(
+                  "premium_access_screen.title",
+                )}
+              </Text>
+
+              <View
+                style={
+                  styles.featuresContainer
+                }
+              >
                 <PurchaseFeatureView
-                  title="Unlimited Deletion"
+                  title={t(
+                    "premium_access_screen.features.unlimited_deletion",
+                  )}
                   icon="trash-can"
                   color={Brand.primary}
                 />
+
                 <PurchaseFeatureView
-                  title="AI Smart Select"
+                  title={t(
+                    "premium_access_screen.features.ai_smart_select",
+                  )}
                   icon="sparkles"
                   color={Brand.primary}
                 />
+
                 <PurchaseFeatureView
-                  title="One-Tap Clean Up"
+                  title={t(
+                    "premium_access_screen.features.one_tap_clean_up",
+                  )}
                   icon="lightning-bolt"
                   color={Brand.primary}
                 />
+
                 <PurchaseFeatureView
-                  title="Seamless Experience"
+                  title={t(
+                    "premium_access_screen.features.seamless_experience",
+                  )}
                   icon="gem"
                   color={Brand.primary}
                 />
@@ -532,89 +767,221 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
             <View
               style={[
                 styles.optionsContainer,
-                { opacity: isFetchingProducts ? 0 : 1 },
+                {
+                  opacity:
+                    isFetchingProducts
+                      ? 0
+                      : 1,
+                },
               ]}
             >
-              {productDetails.map((product) => (
-                <ProductOption
-                  key={product.id}
-                  product={product}
-                  selected={selectedProductId === product.productId}
-                  onSelect={() => handleProductSelect(product.productId)}
-                  color={Brand.primary}
-                  fullPrice={fullPrice}
-                />
-              ))}
+              {productDetails.map(
+                (product) => (
+                  <ProductOption
+                    key={product.id}
+                    product={product}
+                    selected={
+                      selectedProductId ===
+                      product.productId
+                    }
+                    onSelect={() =>
+                      handleProductSelect(
+                        product.productId,
+                      )
+                    }
+                    color={
+                      Brand.primary
+                    }
+                    fullPrice={
+                      fullPrice
+                    }
+                  />
+                ),
+              )}
             </View>
 
-            {/* Free Trial Toggle */}
-            <View style={styles.trialContainer}>
-              <Text style={styles.trialText}>Free Trial Enabled</Text>
+            {/* Trial Toggle */}
+            <View
+              style={styles.trialContainer}
+            >
+              <Text
+                style={styles.trialText}
+              >
+                {t(
+                  "premium_access_screen.toggle.free_trial_enabled",
+                )}
+              </Text>
+
               <Switch
-                trackColor={{ false: "#E5E5EA", true: "#34C759" }}
-                thumbColor={"#FFFFFF"}
+                trackColor={{
+                  false: "#E5E5EA",
+                  true: "#34C759",
+                }}
+                thumbColor="#FFFFFF"
                 ios_backgroundColor="#E5E5EA"
-                onValueChange={handleToggleSwitch}
+                onValueChange={
+                  handleToggleSwitch
+                }
                 value={isWeeklyPlan}
-                style={{ transform: [{ scaleX: 0.9 }, { scaleY: 0.9 }] }}
+                style={{
+                  transform: [
+                    {
+                      scaleX: 0.9,
+                    },
+                    {
+                      scaleY: 0.9,
+                    },
+                  ],
+                }}
               />
             </View>
 
-            <Text style={[styles.title, { fontSize: 16, fontWeight: "600" }]}>
-              {isWeeklyPlan && `NO PAYMENT REQUIRED TODAY`}
+            {/* No payment label */}
+            <Text
+              style={[
+                styles.title,
+                {
+                  fontSize: 16,
+                  fontWeight: "600",
+                },
+              ]}
+            >
+              {isWeeklyPlan
+                ? t(
+                    "premium_access_screen.label.no_payment_text",
+                  )
+                : ""}
             </Text>
 
-            {/* Purchase Button & Loading */}
-            <View style={{ marginTop: 5 }}>
+            {/* Purchase */}
+            <View
+              style={{ marginTop: 5 }}
+            >
               <GradientButton
-                textStyle={{ fontSize: 19, fontWeight: 700 }}
-                title={callToActionText + "  ›"}
+                textStyle={{
+                  fontSize: 19,
+                  fontWeight: 700,
+                }}
+                title={`${callToActionText}  ›`}
                 onPress={() => {
-                  if (!isPurchasing && selectedProductId) {
-                    purchaseSubscription(selectedProductId);
+                  if (
+                    !isPurchasing &&
+                    selectedProductId
+                  ) {
+                    purchaseSubscription(
+                      selectedProductId,
+                    );
                   }
                 }}
-                // Icon={WandSparkles}
-                disabled={isPurchasing}
+                disabled={
+                  isPurchasing
+                }
               />
             </View>
 
-            {/* Footer Links */}
+            {/* Footer */}
             <View style={styles.footer}>
               <TouchableOpacity
                 onPress={handleRestore}
                 style={styles.footerLink}
               >
-                <Text style={styles.footerLinkText}>Restore</Text>
-                <View style={styles.underline} />
+                <Text
+                  style={
+                    styles.footerLinkText
+                  }
+                >
+                  {t(
+                    "premium_access_screen.footer.restore",
+                  )}
+                </Text>
+
+                <View
+                  style={
+                    styles.underline
+                  }
+                />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.footerLink}>
+
+              <TouchableOpacity
+                style={styles.footerLink}
+              >
                 <Link href="https://unpile.vercel.app/legal">
-                  <Text style={styles.footerLinkText}>
-                    Terms of Use & Privacy Policy
+                  <Text
+                    style={
+                      styles.footerLinkText
+                    }
+                  >
+                    {t(
+                      "premium_access_screen.footer.terms_privacy",
+                    )}
                   </Text>
                 </Link>
-                <View style={styles.underline} />
+
+                <View
+                  style={
+                    styles.underline
+                  }
+                />
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Alert for no purchases restored */}
+          {/* Restore Alert */}
           {showNoneRestoredAlert && (
             <Modal
               transparent
               animationType="fade"
-              visible={showNoneRestoredAlert}
+              visible={
+                showNoneRestoredAlert
+              }
             >
-              <View style={styles.alertOverlay}>
-                <View style={styles.alertBox}>
-                  <Text style={styles.alertTitle}>Restore Purchases</Text>
-                  <Text style={styles.alertMessage}>No purchases restored</Text>
-                  <TouchableOpacity
-                    style={styles.alertButton}
-                    onPress={() => setShowNoneRestoredAlert(false)}
+              <View
+                style={
+                  styles.alertOverlay
+                }
+              >
+                <View
+                  style={styles.alertBox}
+                >
+                  <Text
+                    style={
+                      styles.alertTitle
+                    }
                   >
-                    <Text style={styles.alertButtonText}>OK</Text>
+                    {t(
+                      "premium_access_screen.restore_purchases.title",
+                    )}
+                  </Text>
+
+                  <Text
+                    style={
+                      styles.alertMessage
+                    }
+                  >
+                    {t(
+                      "premium_access_screen.restore_purchases.message",
+                    )}
+                  </Text>
+
+                  <TouchableOpacity
+                    style={
+                      styles.alertButton
+                    }
+                    onPress={() =>
+                      setShowNoneRestoredAlert(
+                        false,
+                      )
+                    }
+                  >
+                    <Text
+                      style={
+                        styles.alertButtonText
+                      }
+                    >
+                      {t(
+                        "premium_access_screen.restore_purchases.button",
+                      )}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -627,7 +994,7 @@ const Paywall: React.FC<PaywallProps> = ({ isPresented, onDismiss }) => {
 };
 
 // -----------------------------------------------------------------------------
-// 6. Styles
+// 7. Styles
 // -----------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
@@ -635,9 +1002,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
-    backgroundColor: "#08071A", // Your deep near-black app background
+    backgroundColor: "#08071A",
     flex: 1,
-    paddingHorizontal: 20, //TODO: check here if big width devices do padding else remove it
+    paddingHorizontal: 20,
   },
   closeContainer: {
     flexDirection: "row",
@@ -652,11 +1019,9 @@ const styles = StyleSheet.create({
   closeIcon: {
     fontSize: 24,
     fontWeight: "300",
-    color: "rgba(255, 255, 255, 0.4)", // White opacity close icon
+    color: "rgba(255, 255, 255, 0.4)",
   },
-  progressSvg: {
-    // dimensions set in component
-  },
+  progressSvg: {},
   content: {
     flex: 1,
   },
@@ -670,10 +1035,10 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 30,
-    fontWeight: "700", // Shifted to bold to match "Scan Complete" style
+    fontWeight: "700",
     textAlign: "center",
     marginTop: 15,
-    color: "#FFFFFF", // Premium crisp white title text
+    color: "#FFFFFF",
   },
   featuresContainer: {
     marginBottom: 10,
@@ -691,7 +1056,7 @@ const styles = StyleSheet.create({
   featureText: {
     fontSize: 17,
     fontWeight: "400",
-    color: "rgba(255, 255, 255, 0.9)", // Highly readable muted white text
+    color: "rgba(255, 255, 255, 0.9)",
   },
   trialContainer: {
     flexDirection: "row",
@@ -717,16 +1082,17 @@ const styles = StyleSheet.create({
   },
   productOption: {
     borderWidth: 1,
-    borderRadius: 12, // Smoother corners matching app screenshots
+    borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     marginBottom: 10,
-    backgroundColor: "#15131F", // Dark card fill matching app containers
-    borderColor: "#3A2E6E", // Clear faint violet outline
+    backgroundColor: "#15131F",
+    borderColor: "#3A2E6E",
   },
   productOptionSelected: {
-    backgroundColor: "rgba(123, 79, 224, 0.15)", // Subtle brand purple background glow
-    borderColor: "#9B6FF5", // Bright purple pop-out active border
+    backgroundColor:
+      "rgba(123, 79, 224, 0.15)",
+    borderColor: "#9B6FF5",
   },
   productOptionContent: {
     flexDirection: "row",
@@ -747,17 +1113,17 @@ const styles = StyleSheet.create({
   },
   productPriceDetail: {
     fontSize: 14,
-    color: "rgba(255, 255, 255, 0.85)", // Muted white pricing description
+    color: "rgba(255, 255, 255, 0.85)",
   },
   productStrikethrough: {
     fontSize: 14,
     textDecorationLine: "line-through",
-    color: "rgba(255, 255, 255, 0.35)", // Muted greyed-out crossed text
+    color: "rgba(255, 255, 255, 0.35)",
   },
   saveBadge: {
-    backgroundColor: "#7B4FE0", // Changed from red to your solid button purple accent
+    backgroundColor: "#7B4FE0",
     borderRadius: 6,
-    paddingVertical: 4, // Tighter spacing for modern accent badge shape
+    paddingVertical: 4,
     paddingHorizontal: 8,
     marginHorizontal: 10,
     justifyContent: "center",
@@ -775,7 +1141,8 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.3)", // Border adjustments for dark visibility
+    borderColor:
+      "rgba(255, 255, 255, 0.3)",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -797,8 +1164,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   purchaseButton: {
-    backgroundColor: "#7B4FE0", // Base brand purple (Swap this out if using LinearGradient component)
-    borderRadius: 12, // Perfect matched corner radius to your "Review Items" design
+    backgroundColor: "#7B4FE0",
+    borderRadius: 12,
     paddingVertical: 16,
     paddingHorizontal: 30,
     width: "100%",
@@ -826,22 +1193,24 @@ const styles = StyleSheet.create({
   },
   footerLinkText: {
     fontSize: 13,
-    color: "rgba(255, 255, 255, 0.4)", // Grayed text readable on black ground
+    color: "rgba(255, 255, 255, 0.4)",
   },
   underline: {
     height: 1,
     width: "100%",
-    backgroundColor: "rgba(255, 255, 255, 0.4)",
+    backgroundColor:
+      "rgba(255, 255, 255, 0.4)",
     marginTop: 1,
   },
   alertOverlay: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0,0,0,0.6)", // Deeper backdrop blend
+    backgroundColor:
+      "rgba(0,0,0,0.6)",
   },
   alertBox: {
-    backgroundColor: "#15131F", // Custom card modal theme
+    backgroundColor: "#15131F",
     borderWidth: 1,
     borderColor: "#3A2E6E",
     borderRadius: 14,
@@ -862,7 +1231,7 @@ const styles = StyleSheet.create({
     color: "rgba(255, 255, 255, 0.8)",
   },
   alertButton: {
-    backgroundColor: "#7B4FE0", // Removed corporate blue
+    backgroundColor: "#7B4FE0",
     paddingVertical: 10,
     paddingHorizontal: 30,
     borderRadius: 8,
@@ -874,10 +1243,11 @@ const styles = StyleSheet.create({
   termsOverlay: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.6)",
+    backgroundColor:
+      "rgba(0,0,0,0.6)",
   },
   termsBox: {
-    backgroundColor: "#15131F", // Bottom sheet dark wrapper
+    backgroundColor: "#15131F",
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     borderTopWidth: 1,
@@ -896,7 +1266,7 @@ const styles = StyleSheet.create({
   termsOption: {
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#3A2E6E", // Premium custom partition divider line
+    borderBottomColor: "#3A2E6E",
   },
   termsOptionText: {
     fontSize: 18,
@@ -908,7 +1278,7 @@ const styles = StyleSheet.create({
   },
   termsCancelText: {
     fontSize: 18,
-    color: "#FF453A", // Premium light system-red accent color for dark background clarity
+    color: "#FF453A",
     textAlign: "center",
     fontWeight: "600",
   },

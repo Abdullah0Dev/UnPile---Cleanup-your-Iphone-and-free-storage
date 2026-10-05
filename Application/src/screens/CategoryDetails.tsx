@@ -1,3 +1,16 @@
+import { StyleSheet, Text, View, TouchableOpacity, Pressable, Dimensions, Modal } from "react-native";
+import React, { useMemo, useState } from "react";
+import { Image } from "expo-image";
+import Animated from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
+import BottomSheet, { BottomSheetView } from "@expo/ui/community/bottom-sheet";
+import { BlurView } from "expo-blur";
+import { LinearGradient } from "expo-linear-gradient";
+import { router, useLocalSearchParams } from "expo-router";
+import { Check } from "lucide-react-native";
+import { FlashList, ListRenderItemInfo } from "@shopify/flash-list";
+import { useTranslation } from "react-i18next";
+
 import { GradientButton } from "@/components/ui/gradient-button";
 import {
   Brand,
@@ -12,24 +25,8 @@ import {
   useAnalysis,
 } from "@/context/AnalysisContext";
 import { useEntrance, useSheetEntrance } from "@/hooks/use-entrance";
-import { FlashList, ListRenderItemInfo } from "@shopify/flash-list";
-import { BlurView } from "expo-blur";
-import { Image } from "expo-image";
-import { LinearGradient } from "expo-linear-gradient";
-import { router, useLocalSearchParams } from "expo-router";
-import { Check } from "lucide-react-native";
-import { useMemo, useState } from "react";
-import {
-  Dimensions,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import Animated from "react-native-reanimated";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { CATEGORY_TRANSLATION_KEYS } from "./Home";
+
 
 // Types
 export type CategoryVariant = CategoryKey;
@@ -44,15 +41,18 @@ type PhotoItem = {
 
 type DuplicateGroup = {
   groupId: string;
-  label: string;
   items: PhotoItem[];
 };
+ 
 
 // Screen
 const CategoryDetails = () => {
+  const { t } = useTranslation();
+
   const { category: variant } = useLocalSearchParams<{
     category: CategoryVariant;
   }>();
+
   const {
     result,
     getCategoryItems,
@@ -61,8 +61,9 @@ const CategoryDetails = () => {
     getSelectedSize,
   } = useAnalysis();
 
-  //  Preview state
-  const [previewImageId, setPreviewImageId] = useState<string | null>(null);
+  const [previewImageId, setPreviewImageId] = useState<string | null>(
+    null,
+  );
 
   // Guard: no result or invalid variant → redirect
   if (!result || !variant) {
@@ -74,52 +75,50 @@ const CategoryDetails = () => {
 
   const duplicateGroups = useMemo(() => {
     if (variant !== "duplicates") return [];
+
     const groups: DuplicateGroup[] = [];
     let groupIndex = 0;
     let currentGroup: PhotoItem[] = [];
+
     for (const item of rawItems) {
       if (item.isBest) {
         if (currentGroup.length > 0) {
           groups.push({
             groupId: `group-${groupIndex}`,
-            label: "Best Photo",
             items: currentGroup,
           });
           groupIndex++;
         }
+
         currentGroup = [item];
       } else {
         currentGroup.push(item);
       }
     }
+
     if (currentGroup.length > 0) {
       groups.push({
         groupId: `group-${groupIndex}`,
-        label: "Best Photo",
         items: currentGroup,
       });
     }
+
     return groups;
   }, [rawItems, variant]);
 
   const meta = useMemo(() => {
-    const titleMap: Record<CategoryVariant, string> = {
-      screenshots: "Screenshots",
-      duplicates: "Duplicates",
-      clutter: "Clutter",
-      blurry: "Blurry Photos",
-      live: "Live Photos",
-    };
-
     const totalItems = rawItems.length;
-    const selectedCount = rawItems.filter((i) => i.selected).length;
+    const selectedCount = rawItems.filter(
+      (i) => i.selected,
+    ).length;
 
-    // Use context helper to get total size of selected items
     const selectedSizeBytes = getSelectedSize(variant);
-    const selectedSizeFormatted = formatBytes(selectedSizeBytes);
+    const selectedSizeFormatted = formatBytes(
+      selectedSizeBytes,
+    );
 
     return {
-      title: titleMap[variant] || variant,
+      titleKey: CATEGORY_TRANSLATION_KEYS[variant],
       itemCount: totalItems,
       selectedCount,
       selectedSizeBytes,
@@ -128,13 +127,17 @@ const CategoryDetails = () => {
   }, [variant, rawItems, getSelectedSize]);
 
   const {
+    titleKey,
     selectedCount,
     selectedSizeBytes,
     selectedSizeFormatted,
     itemCount,
-    title,
   } = meta;
-  const allSelected = itemCount > 0 && selectedCount === itemCount;
+
+  const title = t(`${titleKey}.title`);
+
+  const allSelected =
+    itemCount > 0 && selectedCount === itemCount;
 
   const handleToggleSelectAll = () => {
     setAllSelected(variant, !allSelected);
@@ -153,7 +156,7 @@ const CategoryDetails = () => {
     });
   };
 
-  //  Entrance animations
+  // Entrance animations
   const headerEntrance = useEntrance(0);
   const subtitleEntrance = useEntrance(80);
   const footerEntrance = useSheetEntrance(420);
@@ -161,9 +164,14 @@ const CategoryDetails = () => {
   const handleGoBack = () => router.back();
 
   const renderHeaderRight = () => (
-    <Pressable hitSlop={8} onPress={handleToggleSelectAll}>
+    <Pressable
+      hitSlop={8}
+      onPress={handleToggleSelectAll}
+    >
       <Text style={styles.headerAction}>
-        {allSelected ? "Deselect All" : "Select All"}
+        {allSelected
+          ? t("review_screen.header.deselect_all")
+          : t("review_screen.header.select_all")}
       </Text>
     </Pressable>
   );
@@ -181,7 +189,12 @@ const CategoryDetails = () => {
         },
       ]}
     >
-      <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
+      <BlurView
+        intensity={40}
+        tint="dark"
+        style={StyleSheet.absoluteFill}
+      />
+
       <LinearGradient
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0.8 }}
@@ -196,14 +209,23 @@ const CategoryDetails = () => {
         style={styles.summaryGradient}
         pointerEvents="none"
       />
+
       <View style={styles.footerContent}>
         <View style={styles.footerLeft}>
-          <Text style={styles.footerCount}>{selectedCount} Selected</Text>
-          <Text style={styles.footerSize}>{selectedSizeFormatted}</Text>
+          <Text style={styles.footerCount}>
+            {t("review_screen.bottom_bar.selected_count", {
+              count: selectedCount,
+            })}
+          </Text>
+
+          <Text style={styles.footerSize}>
+            {selectedSizeFormatted}
+          </Text>
         </View>
+
         <View style={{ width: "50%" }}>
           <GradientButton
-            title="Delete"
+            title={t("review_screen.bottom_bar.delete_button")}
             onPress={handleDeleteSelected}
             disabled={selectedCount === 0}
           />
@@ -212,24 +234,33 @@ const CategoryDetails = () => {
     </Animated.View>
   );
 
-  //  Dimensions
+  // Dimensions
   const SCREEN_WIDTH = Dimensions.get("window").width;
   const GRID_PADDING = Spacing.four;
   const GRID_GAP = Spacing.two;
   const COLUMNS = 4;
+
   const TILE_SIZE =
-    (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * (COLUMNS - 1)) / COLUMNS;
+    (SCREEN_WIDTH -
+      GRID_PADDING * 2 -
+      GRID_GAP * (COLUMNS - 1)) /
+    COLUMNS;
 
   const DUPLICATE_COLUMNS = 3;
+
   const DUPLICATE_TILE_SIZE =
-    (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * (DUPLICATE_COLUMNS - 1)) /
+    (SCREEN_WIDTH -
+      GRID_PADDING * 2 -
+      GRID_GAP * (DUPLICATE_COLUMNS - 1)) /
     DUPLICATE_COLUMNS;
 
-  //  Render: Duplicates
+  // Render: Duplicates
   if (variant === "duplicates") {
     return (
       <SafeAreaView style={styles.screen}>
-        <Animated.View style={[styles.header, headerEntrance]}>
+        <Animated.View
+          style={[styles.header, headerEntrance]}
+        >
           <Pressable onPress={handleGoBack}>
             <Image
               source={require("@/assets/icons/back-arrow.png")}
@@ -237,19 +268,35 @@ const CategoryDetails = () => {
               style={{ width: 28, height: 28 }}
             />
           </Pressable>
+
           <Text style={styles.title}>{title}</Text>
+
           {renderHeaderRight()}
         </Animated.View>
-        <Animated.Text style={[styles.subtitle, subtitleEntrance]}>
-          {itemCount} items · {selectedCount} selected · {selectedSizeFormatted}
+
+        <Animated.Text
+          style={[styles.subtitle, subtitleEntrance]}
+        >
+          {t("review_screen.status_bar", {
+            total: itemCount,
+            selected: selectedCount,
+            size: selectedSizeFormatted,
+          })}
         </Animated.Text>
 
         <FlashList
           data={duplicateGroups}
           keyExtractor={(g) => g.groupId}
-          contentContainerStyle={styles.duplicatesListContent}
-          ListFooterComponent={<View style={{ height: 100 }} />}
-          renderItem={({ item, index }: ListRenderItemInfo<DuplicateGroup>) => (
+          contentContainerStyle={
+            styles.duplicatesListContent
+          }
+          ListFooterComponent={
+            <View style={{ height: 100 }} />
+          }
+          renderItem={({
+            item,
+            index,
+          }: ListRenderItemInfo<DuplicateGroup>) => (
             <DuplicateGroupRow
               group={item}
               index={index}
@@ -263,7 +310,6 @@ const CategoryDetails = () => {
 
         <Footer />
 
-        {/*  Full‑screen image preview modal  */}
         <ImagePreviewModal
           imageId={previewImageId}
           onClose={() => setPreviewImageId(null)}
@@ -272,10 +318,12 @@ const CategoryDetails = () => {
     );
   }
 
-  //  Render: Other categories (grid)
+  // Render: Other categories
   return (
     <SafeAreaView style={styles.screen}>
-      <Animated.View style={[styles.header, headerEntrance]}>
+      <Animated.View
+        style={[styles.header, headerEntrance]}
+      >
         <Pressable onPress={handleGoBack}>
           <Image
             source={require("@/assets/icons/back-arrow.png")}
@@ -283,26 +331,46 @@ const CategoryDetails = () => {
             style={{ width: 28, height: 28 }}
           />
         </Pressable>
+
         <Text style={styles.title}>{title}</Text>
+
         {renderHeaderRight()}
       </Animated.View>
-      <Animated.Text style={[styles.subtitle, subtitleEntrance]}>
-        {itemCount} items · {selectedCount} selected · {selectedSizeFormatted}
+
+      <Animated.Text
+        style={[styles.subtitle, subtitleEntrance]}
+      >
+        {t("review_screen.status_bar", {
+          total: itemCount,
+          selected: selectedCount,
+          size: selectedSizeFormatted,
+        })}
       </Animated.Text>
 
       <FlashList
         data={rawItems}
         keyExtractor={(i) => i.id}
         numColumns={COLUMNS}
-        contentContainerStyle={{ paddingBottom: Spacing.four }}
-        ListFooterComponent={<View style={{ height: 60 }} />}
-        renderItem={({ item, index }: ListRenderItemInfo<PhotoItem>) => {
+        contentContainerStyle={{
+          paddingBottom: Spacing.four,
+        }}
+        ListFooterComponent={
+          <View style={{ height: 60 }} />
+        }
+        renderItem={({
+          item,
+          index,
+        }: ListRenderItemInfo<PhotoItem>) => {
           const row = Math.floor(index / COLUMNS);
-          const isLastInRow = (index + 1) % COLUMNS === 0;
+          const isLastInRow =
+            (index + 1) % COLUMNS === 0;
+
           return (
             <View
               style={{
-                marginRight: isLastInRow ? 0 : GRID_GAP,
+                marginRight: isLastInRow
+                  ? 0
+                  : GRID_GAP,
                 marginBottom: GRID_GAP,
               }}
             >
@@ -322,7 +390,6 @@ const CategoryDetails = () => {
 
       <Footer />
 
-      {/*  Full‑screen image preview modal  */}
       <ImagePreviewModal
         imageId={previewImageId}
         onClose={() => setPreviewImageId(null)}
@@ -333,7 +400,6 @@ const CategoryDetails = () => {
 
 export default CategoryDetails;
 
-
 // Image Preview Modal
 const ImagePreviewModal = ({
   imageId,
@@ -342,24 +408,45 @@ const ImagePreviewModal = ({
   imageId: string | null;
   onClose: () => void;
 }) => {
+  const { t } = useTranslation();
+
   if (!imageId) return null;
 
   return (
     <Modal visible={!!imageId} transparent animationType="fade">
-      <SafeAreaView style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.95)" }}>
+      <SafeAreaView
+        style={{ 
+          flex: 1,
+          backgroundColor: "rgba(0,0,0,0.95)",
+        }}
+      >
         <TouchableOpacity
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
           activeOpacity={1}
           onPress={onClose}
         >
           <Image
             source={{ uri: `ph://${imageId}` }}
-            style={{ width: "100%", height: "85%" }}
+            style={{
+              width: "100%",
+              height: "85%",
+            }}
             contentFit="contain"
             recyclingKey={imageId}
           />
-          <Text style={{ color: "white", marginTop: 20, fontSize: 14 }}>
-            Tap to close
+
+          <Text
+            style={{
+              color: "white",
+              marginTop: 20,
+              fontSize: 14,
+            }}
+          >
+            {t("review_screen.bottom_sheet.tap_to_close")}
           </Text>
         </TouchableOpacity>
       </SafeAreaView>
@@ -367,20 +454,28 @@ const ImagePreviewModal = ({
   );
 };
 
-
 // Selection badge
-const SelectionBadge = ({ selected }: { selected: boolean }) => {
+const SelectionBadge = ({
+  selected,
+}: {
+  selected: boolean;
+}) => {
   if (selected) {
     return (
       <View style={styles.badgeSelected}>
-        <Check size={12} strokeWidth={3} color={Brand.textOnPrimary} />
+        <Check
+          size={12}
+          strokeWidth={3}
+          color={Brand.textOnPrimary}
+        />
       </View>
     );
   }
+
   return <View style={styles.badgeUnselected} />;
 };
 
-// Photo thumbnail (grid)
+// Photo thumbnail
 const PhotoThumbnail = ({
   item,
   variant,
@@ -394,7 +489,10 @@ const PhotoThumbnail = ({
   variant: CategoryVariant;
   size: number;
   row: number;
-  onToggle: (category: CategoryVariant, id: string) => void;
+  onToggle: (
+    category: CategoryVariant,
+    id: string,
+  ) => void;
   category: CategoryVariant;
   onLongPress: (id: string) => void;
 }) => {
@@ -402,18 +500,24 @@ const PhotoThumbnail = ({
   const isLive = variant === "live";
 
   const shouldAnimate = row < 12;
+
   const entrance = useEntrance(
     shouldAnimate ? 260 + row * 55 : 0,
     shouldAnimate ? 10 : 0,
   );
 
   return (
-    <Animated.View style={shouldAnimate ? entrance : undefined}>
+    <Animated.View
+      style={shouldAnimate ? entrance : undefined}
+    >
       <Pressable
         onPress={() => onToggle(category, item.id)}
         onLongPress={() => onLongPress(item.id)}
         delayLongPress={500}
-        style={[styles.thumbnail, { width: size, height: size }]}
+        style={[
+          styles.thumbnail,
+          { width: size, height: size },
+        ]}
       >
         <Image
           source={{ uri: item.image }}
@@ -434,18 +538,24 @@ const PhotoThumbnail = ({
         {isLive && (
           <View style={styles.liveBadge}>
             <View style={styles.liveDot} />
-            <Text style={styles.liveBadgeText}>LIVE</Text>
+            <Text style={styles.liveBadgeText}>
+              LIVE
+            </Text>
           </View>
         )}
 
         {item.isBest && (
           <View style={styles.bestBadge}>
-            <Text style={styles.bestBadgeText}>👑</Text>
+            <Text style={styles.bestBadgeText}>
+              👑
+            </Text>
           </View>
         )}
 
         <View style={styles.thumbnailBadgeWrap}>
-          <SelectionBadge selected={item.selected} />
+          <SelectionBadge
+            selected={item.selected}
+          />
         </View>
       </Pressable>
     </Animated.View>
@@ -463,12 +573,18 @@ const DuplicateGroupRow = ({
 }: {
   group: DuplicateGroup;
   index: number;
-  onToggle: (category: CategoryVariant, id: string) => void;
+  onToggle: (
+    category: CategoryVariant,
+    id: string,
+  ) => void;
   category: CategoryVariant;
   tileSize: number;
   onLongPress: (id: string) => void;
 }) => {
+  const { t } = useTranslation();
+
   const shouldAnimate = index < 6;
+
   const entrance = useEntrance(
     shouldAnimate ? 260 + index * 90 : 0,
     shouldAnimate ? 12 : 0,
@@ -476,20 +592,39 @@ const DuplicateGroupRow = ({
 
   return (
     <Animated.View
-      style={[styles.duplicateGroup, shouldAnimate ? entrance : undefined]}
+      style={[
+        styles.duplicateGroup,
+        shouldAnimate ? entrance : undefined,
+      ]}
     >
       <View style={styles.bestLabelRow}>
-        <Text style={styles.bestLabelIcon}>👑</Text>
-        <Text style={styles.bestLabelText}>{group.label}</Text>
+        <Text style={styles.bestLabelIcon}>
+          👑
+        </Text>
+
+        <Text style={styles.bestLabelText}>
+          {t("review_screen.labels.best_photo")}
+        </Text>
       </View>
+
       <View style={styles.duplicateGroupRow}>
         {group.items.map((item) => (
           <Pressable
             key={item.id}
-            onPress={() => onToggle(category, item.id)}
-            onLongPress={() => onLongPress(item.id)}
+            onPress={() =>
+              onToggle(category, item.id)
+            }
+            onLongPress={() =>
+              onLongPress(item.id)
+            }
             delayLongPress={500}
-            style={[styles.thumbnail, { width: tileSize, height: tileSize }]}
+            style={[
+              styles.thumbnail,
+              {
+                width: tileSize,
+                height: tileSize,
+              },
+            ]}
           >
             <Image
               source={{ uri: item.image }}
@@ -497,13 +632,21 @@ const DuplicateGroupRow = ({
               contentFit="cover"
               recyclingKey={item.id}
             />
+
             {item.isBest && (
               <View style={styles.bestBadge}>
-                <Text style={styles.bestBadgeText}>👑</Text>
+                <Text style={styles.bestBadgeText}>
+                  👑
+                </Text>
               </View>
             )}
-            <View style={styles.thumbnailBadgeWrap}>
-              <SelectionBadge selected={item.selected} />
+
+            <View
+              style={styles.thumbnailBadgeWrap}
+            >
+              <SelectionBadge
+                selected={item.selected}
+              />
             </View>
           </Pressable>
         ))}
@@ -511,8 +654,6 @@ const DuplicateGroupRow = ({
     </Animated.View>
   );
 };
-
-
 
 const styles = StyleSheet.create({
   screen: {

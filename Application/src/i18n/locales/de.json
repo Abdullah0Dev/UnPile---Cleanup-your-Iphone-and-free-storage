@@ -35,10 +35,10 @@
     }
   },
   "permission_required": {
-  "title": "Zugriff erforderlich",
-  "message": "Bitte erlaube in den Einstellungen den Zugriff auf deine Fotomediathek, um deine Fotos zu scannen.",
-  "button": "OK"
-},
+    "title": "Zugriff erforderlich",
+    "message": "Bitte erlaube in den Einstellungen den Zugriff auf deine Fotomediathek, um deine Fotos zu scannen.",
+    "button": "OK"
+  },
   "credits_popup": {
     "title": "Bereit, deine Galerie aufzuräumen?",
     "subtitle": {
@@ -49,7 +49,7 @@
       "part_5": "jeden Tag, nur fürs Vorbeischauen!"
     },
     "buttons": {
-      "primary": "Unbegrenzten Zugriff freischalten (KOSTENLOS)",
+      "primary": "Unbegrenzt testen",
       "secondary": "Mit 50 kostenlosen Credits fortfahren"
     }
   },
@@ -70,10 +70,15 @@
       },
       "trial_plan": {
         "title": "3-Tage-Testversion",
-        "subtitle": "danach $2.99 pro Woche",
+  "subtitle": "danach {price} pro Woche",
         "tag": "Kurzfristig"
       }
     },
+    "restore_purchases": {
+  "title": "Käufe wiederherstellen",
+  "message": "Es wurden keine Käufe wiederhergestellt.",
+  "button": "OK"
+},
     "toggle": {
       "free_trial_enabled": "Kostenlose Testversion aktiviert"
     },
@@ -86,13 +91,14 @@
     },
     "footer": {
       "restore": "Wiederherstellen",
-      "terms_privacy": "Nutzungsbedingungen & Datenschutzrichtlinie"
+      "terms_privacy": "Bedingungen & Datenschutz"
     }
   },
   "success_screen": {
     "title": "Alles erledigt! 🎉",
     "subtitle": "Du hast gespart",
     "size_freed": "{size}",
+    "upgrade_prompt": "Es bleiben <count>{count}</count> Elemente übrig.\nTippen, um alle zu löschen →",
     "details": {
       "items_deleted": "{count} Elemente gelöscht",
       "credits_left": "Noch {count} Credits"
@@ -107,7 +113,9 @@
     "title_plural": "{count} Elemente löschen?",
     "subtitle": "Fotos werden in den Papierkorb verschoben und können 30 Tage lang wiederhergestellt werden.",
     "credits_available": "Verfügbare Credits: {count}",
+    "premium_required": "Du benötigst mehr Credits. Schalte den unbegrenzten Zugriff mit Premium frei.",
     "buttons": {
+      "unlock_unlimited": "Unbegrenzt freischalten",
       "delete_everything": "Alles löschen",
       "delete": "Löschen",
       "cancel": "Abbrechen"
@@ -181,8 +189,13 @@
       "title": "Kategorien",
       "see_all": "Alle ansehen"
     },
+    "empty_state": {
+      "subtitle": "Rien à supprimer.",
+      "hint": "Alles ist bereits aufgeräumt."
+    },
     "buttons": {
-      "review_items": "Elemente überprüfen"
+      "review_items": "Elemente überprüfen",
+      "rescan_photos": "Erneut scannen"
     },
     "footer": {
       "credits_remaining": "Noch {count} Credits"

@@ -1,7 +1,4 @@
-1. make the image doesn't matter to include the age.. age is optional to catch the clutter
 2. make the app scanning super fast => fix the scanning
-3. support language: Arabic/Spanish/Germany/Japanese/Turkish | handle scanning progress lang
-4. Work on App Store Optimization (ASO) localization => text/desc/title/ss
 5. the video and marketing while apple review the app
 
 FOR NOW: English/Arabic || /Spanish/Germany/Japanese/Turkish

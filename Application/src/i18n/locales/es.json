@@ -35,10 +35,10 @@
     }
   },
   "permission_required": {
-  "title": "Se requiere permiso",
-  "message": "Permite el acceso a tu fototeca en Ajustes para analizar tus fotos.",
-  "button": "OK"
-},
+    "title": "Se requiere permiso",
+    "message": "Permite el acceso a tu fototeca en Ajustes para analizar tus fotos.",
+    "button": "OK"
+  },
   "credits_popup": {
     "title": "¿Listo para limpiar tu galería?",
     "subtitle": {
@@ -49,7 +49,7 @@
       "part_5": "cada día solo por entrar."
     },
     "buttons": {
-      "primary": "Desbloquear acceso ilimitado (GRATIS)",
+      "primary": "Probar gratis sin límites",
       "secondary": "Continuar con 50 créditos gratis"
     }
   },
@@ -70,10 +70,15 @@
       },
       "trial_plan": {
         "title": "Prueba de 3 días",
-        "subtitle": "luego $2.99 por semana",
+  "subtitle": "luego {price} por semana",
         "tag": "Corto plazo"
       }
     },
+    "restore_purchases": {
+  "title": "Restaurar compras",
+  "message": "No se restauraron compras.",
+  "button": "OK"
+},
     "toggle": {
       "free_trial_enabled": "Prueba gratuita activada"
     },
@@ -86,13 +91,14 @@
     },
     "footer": {
       "restore": "Restaurar",
-      "terms_privacy": "Términos de uso y política de privacidad"
+     "terms_privacy": "Términos y privacidad"
     }
   },
   "success_screen": {
     "title": "¡Todo listo! 🎉",
     "subtitle": "Has liberado",
     "size_freed": "{size}",
+    "upgrade_prompt": "Aún tienes <count>{count}</count> elementos.\nToca para eliminarlos todos →",
     "details": {
       "items_deleted": "{count} elementos eliminados",
       "credits_left": "Quedan {count} créditos"
@@ -107,7 +113,9 @@
     "title_plural": "¿Eliminar {count} elementos?",
     "subtitle": "Las fotos se moverán a la papelera y se podrán restaurar durante 30 días.",
     "credits_available": "Créditos disponibles: {count}",
+    "premium_required": "Necesitas más créditos. Desbloquea el acceso ilimitado con Premium.",
     "buttons": {
+      "unlock_unlimited": "Desbloquear acceso ilimitado",
       "delete_everything": "Eliminar todo",
       "delete": "Eliminar",
       "cancel": "Cancelar"
@@ -181,8 +189,13 @@
       "title": "Categorías",
       "see_all": "Ver todo"
     },
+    "empty_state": {
+      "subtitle": "No hay nada que eliminar.",
+      "hint": "Todo está en orden."
+    },
     "buttons": {
-      "review_items": "Revisar elementos"
+      "review_items": "Revisar elementos",
+      "rescan_photos": "Volver a escanear"
     },
     "footer": {
       "credits_remaining": "Quedan {count} créditos"

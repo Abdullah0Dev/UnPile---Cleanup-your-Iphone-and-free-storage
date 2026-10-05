@@ -30,11 +30,11 @@ import { GradientText } from "@/components/ui/gradient-text";
 import { useCredits } from "@/context/CreditsContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AnimatedSplashOverlay } from "@/components/animated-icon";
+import { useTranslation } from "react-i18next";
 
-//  Types
+// Types
 type CategoryRowData = {
   key: CategoryVariant;
-  label: string;
   itemCount: number;
   sizeBytes: number;
   image: ImageSource;
@@ -42,7 +42,15 @@ type CategoryRowData = {
 
 const ROW_STAGGER_MS = 70;
 
-//  Category List Component
+export const CATEGORY_TRANSLATION_KEYS = {
+  screenshots: "categories_overview_screen.categories.screenshots",
+  duplicates: "categories_overview_screen.categories.duplicates",
+  clutter: "categories_overview_screen.categories.clutter",
+  blurry: "categories_overview_screen.categories.blurry_photos",
+  live: "categories_overview_screen.categories.live_photos",
+} as const satisfies Record<CategoryVariant, string>;
+
+// Category List Component
 export function CategoriesList({
   categoryRows,
   marginTop = false,
@@ -54,10 +62,10 @@ export function CategoriesList({
   const [contentHeight, setContentHeight] = React.useState(0);
 
   const isScrollable = contentHeight > containerHeight;
+
   if (categoryRows.length === 0) {
     return <EmptyState />;
   }
-  console.log("categoryRows.length: ", categoryRows.length);
 
   return (
     <Animated.ScrollView
@@ -72,26 +80,24 @@ export function CategoriesList({
       onLayout={(e) => setContainerHeight(e.nativeEvent.layout.height)}
       onContentSizeChange={(w, h) => setContentHeight(h)}
     >
-      {categoryRows.map(
-        ({ key, label, itemCount, sizeBytes, image }, index) => (
-          <CategoryRow
-            id={key}
-            key={key}
-            label={label}
-            itemCount={itemCount}
-            sizeBytes={sizeBytes}
-            image={image}
-            delay={220 + index * ROW_STAGGER_MS}
-          />
-        ),
-      )}
+      {categoryRows.map(({ key, itemCount, sizeBytes, image }, index) => (
+        <CategoryRow
+          id={key}
+          key={key}
+          itemCount={itemCount}
+          sizeBytes={sizeBytes}
+          image={image}
+          delay={220 + index * ROW_STAGGER_MS}
+        />
+      ))}
     </Animated.ScrollView>
   );
 }
 
-//  Empty State
+// Empty State
 const EmptyState = () => {
   const entrance = useEntrance(140);
+  const { t } = useTranslation();
 
   return (
     <Animated.View style={[styles.emptyContainer, entrance]}>
@@ -100,147 +106,159 @@ const EmptyState = () => {
         contentFit="contain"
         style={styles.emptyImage}
       />
-      <Text style={styles.emptySubtitle}>You have no nothing to delete.</Text>
-      <Text style={styles.emptyHint}>You're mostly done.</Text>
+
+      <Text style={styles.emptySubtitle}>
+        {t("scan_complete_screen.empty_state.subtitle")}
+      </Text>
+
+      <Text style={styles.emptyHint}>
+        {t("scan_complete_screen.empty_state.hint")}
+      </Text>
     </Animated.View>
   );
 };
 
-//  Home Screen
+// Home Screen
 const Home = () => {
+  const { t } = useTranslation();
+
   const headerEntrance = useEntrance(0);
   const titleEntrance = useEntrance(60);
   const statCardEntrance = useEntrance(140);
   const sectionHeaderEntrance = useEntrance(220);
-  const ctaEntrance = useEntrance(140 + 5 * ROW_STAGGER_MS + 160);
-  const [showCreditsOnboarding, setShowCreditsOnboarding] = useState(false);
+  const ctaEntrance = useEntrance(
+    140 + 5 * ROW_STAGGER_MS + 160,
+  );
+
+  const [showCreditsOnboarding, setShowCreditsOnboarding] =
+    useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+
   const { result, clearResult } = useAnalysis();
   const { credits: currentCredits, isSubscribed } = useCredits();
 
-  // useEffect(() => {
-  //   if (!result) {
-  //     const timer = setTimeout(() => {
-  //       router.replace("/");
-  //     }, 0);
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [result]);
   useEffect(() => {
-    let timer: number | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
 
     const checkOnboarding = async () => {
-      // 1. Only trigger if the user has a valid scan result
       if (result) {
-        const hasSeenIntro = await AsyncStorage.getItem("hasSeenCreditIntro");
+        const hasSeenIntro = await AsyncStorage.getItem(
+          "hasSeenCreditIntro",
+        );
 
-        // 2. Check if they haven't seen it, and they still have the 500 credits
         if (!hasSeenIntro && currentCredits === 500) {
-          // Start a 1.5-second delay so the page loads smoothly first
           timer = setTimeout(async () => {
-            // Show the bottom sheet
             setShowCreditsOnboarding(true);
 
-            // Mark as seen NOW, right when it shows up
-            await AsyncStorage.setItem("hasSeenCreditIntro", "true");
-          }, 1500); // 1500ms = 1.5 seconds
+            await AsyncStorage.setItem(
+              "hasSeenCreditIntro",
+              "true",
+            );
+          }, 1500);
         }
       }
     };
 
     checkOnboarding();
 
-    // 🧹 Cleanup function: Clears the timeout if the user navigates away
-    // before the 1.5 seconds are up. Prevents memory leaks and React warnings.
     return () => {
-      if (timer) clearTimeout(timer);
+      if (timer) {
+        clearTimeout(timer);
+      }
     };
   }, [result, currentCredits]);
-  // Early return after all hooks
+
   if (!result) {
     return <AnimatedSplashOverlay />;
   }
+
   const assetSizes = result.assetSizes || {};
 
-  //  Compute deletable items per category
+  // Compute deletable items per category
   const categoryStats = useMemo(() => {
-    // Helper to sum sizes of an ID array
     const sumSizes = (ids: string[]) =>
-      ids.reduce((sum, id) => sum + (assetSizes[id] || 0), 0);
+      ids.reduce(
+        (sum, id) => sum + (assetSizes[id] || 0),
+        0,
+      );
 
-    // 1. Screenshots: all screenshots are deletable
+    // Screenshots
     const screenshotIds = result.screenshots || [];
     const screenshotSize = sumSizes(screenshotIds);
     const screenshotCount = screenshotIds.length;
 
-    // 2. Duplicates: duplicateAssetIds from all groups
+    // Duplicates
     const duplicateIds = result.duplicateGroups.flatMap(
       (g) => g.duplicateAssetIds,
     );
     const duplicateSize = sumSizes(duplicateIds);
     const duplicateCount = duplicateIds.length;
 
-    // 3. Clutter: all clutter are deletable
+    // Clutter
     const clutterIds = result.clutter || [];
     const clutterSize = sumSizes(clutterIds);
     const clutterCount = clutterIds.length;
 
-    // 4. Blurry: all blurry are deletable
+    // Blurry
     const blurryIds = result.blurry || [];
     const blurrySize = sumSizes(blurryIds);
     const blurryCount = blurryIds.length;
 
-    // 5. Live Photos: livePhotoCandidates are deletable
+    // Live Photos
     const liveIds = result.livePhotoCandidates || [];
     const liveSize = sumSizes(liveIds);
     const liveCount = liveIds.length;
 
     const totalFreeableBytes =
-      screenshotSize + duplicateSize + clutterSize + blurrySize + liveSize;
-    const totalFreeableItems =
-      screenshotCount + duplicateCount + clutterCount + blurryCount + liveCount;
+      screenshotSize +
+      duplicateSize +
+      clutterSize +
+      blurrySize +
+      liveSize;
 
-    // Build rows for all categories that have items
+    const totalFreeableItems =
+      screenshotCount +
+      duplicateCount +
+      clutterCount +
+      blurryCount +
+      liveCount;
+
     const allRows: CategoryRowData[] = [
       {
         key: "screenshots",
-        label: "Screenshots",
         itemCount: screenshotCount,
         sizeBytes: screenshotSize,
         image: ScreenshotsIcon,
       },
       {
         key: "duplicates",
-        label: "Duplicates",
         itemCount: duplicateCount,
         sizeBytes: duplicateSize,
         image: DuplicatesIcon,
       },
       {
         key: "clutter",
-        label: "Clutter",
         itemCount: clutterCount,
         sizeBytes: clutterSize,
         image: ClutterIcon,
       },
       {
         key: "blurry",
-        label: "Blurry Photos",
         itemCount: blurryCount,
         sizeBytes: blurrySize,
         image: BlurryPhotosIcon,
       },
       {
         key: "live",
-        label: "Live Photos",
         itemCount: liveCount,
         sizeBytes: liveSize,
         image: LivePhotosIcon,
       },
     ];
 
-    // ✅ Only show categories that have at least one deletable item
-    const rows = allRows.filter((row) => row.itemCount > 0);
+    const rows = allRows.filter(
+      (row) => row.itemCount > 0,
+    );
 
     return {
       rows,
@@ -249,7 +267,11 @@ const Home = () => {
     };
   }, [result, assetSizes]);
 
-  const { rows, totalFreeableBytes, totalFreeableItems } = categoryStats;
+  const {
+    rows,
+    totalFreeableBytes,
+    totalFreeableItems,
+  } = categoryStats;
 
   const handleGoBack = async () => {
     await clearResult();
@@ -257,16 +279,22 @@ const Home = () => {
     router.replace("/");
   };
 
-  const handleReviewItems = () => router.push("/delete-confirmation");
-  const handleSeeAllCategories = () => router.push("/all-categories");
+  const handleReviewItems = () =>
+    router.push("/delete-confirmation");
+
+  const handleSeeAllCategories = () =>
+    router.push("/all-categories");
+
   const handleUpgrade = () => {
     setShowCreditsOnboarding(false);
-    setShowPaywall(true); // Opens the real Paywall immediately
+    setShowPaywall(true);
   };
 
   return (
     <SafeAreaView style={styles.screen}>
-      <Animated.View style={[styles.header, headerEntrance]}>
+      <Animated.View
+        style={[styles.header, headerEntrance]}
+      >
         <Pressable onPress={handleGoBack}>
           <Image
             source={require("@/assets/icons/back-arrow.png")}
@@ -276,11 +304,15 @@ const Home = () => {
         </Pressable>
       </Animated.View>
 
-      <Animated.Text style={[styles.title, titleEntrance]}>
-        Scan Complete ✨
+      <Animated.Text
+        style={[styles.title, titleEntrance]}
+      >
+        {t("scan_complete_screen.title")}
       </Animated.Text>
 
-      <Animated.View style={[styles.statCard, statCardEntrance]}>
+      <Animated.View
+        style={[styles.statCard, statCardEntrance]}
+      >
         <LinearGradient
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0.8 }}
@@ -294,17 +326,38 @@ const Home = () => {
           locations={[0, 0.3, 0.5, 0.7, 1]}
           style={styles.statCardGradient}
         />
-        <Text style={styles.statLabel}>You can free up</Text>
-        <Text style={styles.statValue}>{formatBytes(totalFreeableBytes)}</Text>
+
+        <Text style={styles.statLabel}>
+          {t("scan_complete_screen.summary.subtitle")}
+        </Text>
+
+        <Text style={styles.statValue}>
+          {formatBytes(totalFreeableBytes)}
+        </Text>
+
         <Text style={styles.statSubtitle}>
-          {totalFreeableItems.toLocaleString()} items
+          {t("scan_complete_screen.summary.item_count", {
+            count: totalFreeableItems,
+          })}
         </Text>
       </Animated.View>
 
-      <Animated.View style={[styles.sectionHeader, sectionHeaderEntrance]}>
-        <Text style={styles.sectionTitle}>Categories</Text>
+      <Animated.View
+        style={[
+          styles.sectionHeader,
+          sectionHeaderEntrance,
+        ]}
+      >
+        <Text style={styles.sectionTitle}>
+          {t("scan_complete_screen.categories_section.title")}
+        </Text>
+
         <Pressable onPress={handleSeeAllCategories}>
-          <Text style={styles.seeAllButton}>See All</Text>
+          <Text style={styles.seeAllButton}>
+            {t(
+              "scan_complete_screen.categories_section.see_all",
+            )}
+          </Text>
         </Pressable>
       </Animated.View>
 
@@ -312,25 +365,43 @@ const Home = () => {
 
       <Animated.View style={[styles.ctaWrap, ctaEntrance]}>
         <GradientButton
-          title={totalFreeableItems === 0 ? "Re-Scan Photos" : "Review Items"}
-          onPress={totalFreeableItems === 0 ? handleGoBack : handleReviewItems}
+          title={
+            totalFreeableItems === 0
+              ? t("scan_complete_screen.buttons.rescan_photos")
+              : t("scan_complete_screen.buttons.review_items")
+          }
+          onPress={
+            totalFreeableItems === 0
+              ? handleGoBack
+              : handleReviewItems
+          }
         />
+
         {!isSubscribed && (
           <GradientText
             end={{ x: 0.5, y: 0.5 }}
             colors={Gradients.primaryButton}
             style={[
               styles.statSubtitle,
-              { textAlign: "center", marginTop: 4, fontSize: 14 },
+              {
+                textAlign: "center",
+                marginTop: 4,
+                fontSize: 14,
+              },
             ]}
           >
-            {currentCredits.toLocaleString()} Credits Remaining
+            {t("scan_complete_screen.footer.credits_remaining", {
+              count: currentCredits,
+            })}
           </GradientText>
         )}
       </Animated.View>
+
       <OnboardingCredits
         isPresented={showCreditsOnboarding}
-        onDismiss={() => setShowCreditsOnboarding(false)}
+        onDismiss={() =>
+          setShowCreditsOnboarding(false)
+        }
         onUpgrade={handleUpgrade}
       />
 
@@ -344,39 +415,56 @@ const Home = () => {
 
 export default Home;
 
-//  Category Row Component
+// Category Row Component
 export const CategoryRow = ({
   id,
-  label,
   itemCount,
   sizeBytes,
   image,
   delay,
 }: {
   id: CategoryVariant;
-  label: string;
   itemCount: number;
   sizeBytes: number;
   image: ImageSource;
   delay: number;
 }) => {
   const rowEntrance = useEntrance(delay, 10);
+  const { t } = useTranslation();
 
   const handlePress = () => {
     router.navigate(`/category-details/${id}`);
   };
 
+  const translationKey = CATEGORY_TRANSLATION_KEYS[id];
+
   return (
     <Pressable onPress={handlePress}>
-      <Animated.View style={[styles.categoryRow, rowEntrance]}>
+      <Animated.View
+        style={[styles.categoryRow, rowEntrance]}
+      >
         <View style={styles.categoryIconWrap}>
-          <Image style={{ width: 32, height: 32 }} source={image} />
+          <Image
+            style={{ width: 32, height: 32 }}
+            source={image}
+          />
         </View>
+
         <View style={styles.categoryTextWrap}>
-          <Text style={styles.categoryLabel}>{label}</Text>
-          <Text style={styles.categoryCount}>{itemCount} items</Text>
+          <Text style={styles.categoryLabel}>
+            {t(`${translationKey}.title`)}
+          </Text>
+
+          <Text style={styles.categoryCount}>
+            {t(`${translationKey}.item_count`, {
+              count: itemCount,
+            })}
+          </Text>
         </View>
-        <Text style={styles.categorySize}>{formatBytes(sizeBytes)}</Text>
+
+        <Text style={styles.categorySize}>
+          {formatBytes(sizeBytes)}
+        </Text>
       </Animated.View>
     </Pressable>
   );
@@ -468,7 +556,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: Spacing.three,
     paddingHorizontal: Spacing.three,
-    backgroundColor: `#12112860`,
+    backgroundColor: "#12112860",
     borderWidth: 1,
     borderColor: Brand.cardBorder,
     borderRadius: Radii.large,

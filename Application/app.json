@@ -2,11 +2,12 @@
   "expo": {
     "name": "UnPile",
     "slug": "unpile",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "unpile",
     "userInterfaceStyle": "automatic",
+
     "ios": {
       "icon": "./assets/images/icon.png",
       "backgroundColor": "#08071A",
@@ -14,15 +15,57 @@
       "supportsTablet": false,
       "requireFullScreen": true,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleAllowMixedLocalizations": true
       }
     },
+
+    "locales": {
+      "en": {
+        "ios": {
+          "NSPhotoLibraryUsageDescription": "UnPile needs access to your photo library to scan for duplicates, blurry images, and clutter so you can review and delete them."
+        }
+      },
+      "fr": {
+        "ios": {
+          "NSPhotoLibraryUsageDescription": "UnPile a besoin d’accéder à votre photothèque pour rechercher les doublons, les photos floues et les photos inutiles afin que vous puissiez les vérifier et les supprimer."
+        }
+      },
+      "de": {
+        "ios": {
+          "NSPhotoLibraryUsageDescription": "UnPile benötigt Zugriff auf deine Fotomediathek, um Duplikate, verschwommene Fotos und unnötige Fotos zu erkennen, damit du sie überprüfen und löschen kannst."
+        }
+      },
+      "es": {
+        "ios": {
+          "NSPhotoLibraryUsageDescription": "UnPile necesita acceder a tu fototeca para buscar duplicados, fotos borrosas y fotos innecesarias, para que puedas revisarlos y eliminarlos."
+        }
+      },
+      "ar": {
+        "ios": {
+          "NSPhotoLibraryUsageDescription": "يحتاج UnPile إلى الوصول إلى مكتبة الصور للبحث عن الصور المكررة والصور الضبابية والصور غير الضرورية، حتى تتمكن من مراجعتها وحذفها."
+        }
+      },
+      "ja": {
+        "ios": {
+          "NSPhotoLibraryUsageDescription": "UnPileは、重複した写真やぼやけた写真、不要な写真を見つけて確認・削除できるよう、写真へのアクセスを必要とします。"
+        }
+      },
+      "tr": {
+        "ios": {
+          "NSPhotoLibraryUsageDescription": "UnPile, yinelenen, bulanık ve gereksiz fotoğrafları bulup inceleyebilmeniz ve silebilmeniz için fotoğraf arşivinize erişim gerektirir."
+        }
+      }
+    },
+
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
+
     "plugins": [
       "expo-router",
+
       [
         "expo-splash-screen",
         {
@@ -31,13 +74,16 @@
           "imageWidth": 300
         }
       ],
+
       "expo-image",
+
       [
         "expo-image-picker",
         {
-          "photosPermission": "UnPile needs access to your photo library to scan for duplicates, blurry images, and clutter so you can review and delete them. Only the photos you choose to clean are affected."
+          "photosPermission": "UnPile needs access to your photo library to scan for duplicates, blurry images, and clutter so you can review and delete them."
         }
       ],
+
       [
         "expo-localization",
         {
@@ -65,13 +111,16 @@
         }
       ]
     ],
+
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
+
     "android": {
       "package": "com.unpile"
     },
+
     "extra": {
       "router": {},
       "eas": {

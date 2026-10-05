@@ -8,14 +8,14 @@ import Animated, {
   withRepeat,
   withSequence,
   withDelay,
-  Easing,
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BottomSheet, { BottomSheetView } from "@expo/ui/community/bottom-sheet";
+import { useTranslation } from "react-i18next";
 
 import { GradientButton } from "./gradient-button";
 import CountdownCloseButton from "./countdown-close-button";
-import { Brand, FontSizes, FontWeights } from "@/constants/theme";
+import { Brand } from "@/constants/theme";
 import {
   DAILY_REFILL_CREDITS,
   WELCOME_BONUS_CREDITS,
@@ -32,16 +32,16 @@ const OnboardingCredits = ({
   onDismiss,
   onUpgrade,
 }: OnboardingCreditsProps) => {
-  // ── Bottom Sheet Ref ──
+  const { t } = useTranslation();
+
+  // Bottom Sheet Ref
   const sheetRef = useRef<BottomSheet>(null);
 
-  // ── Shared values for animations ──
+  // Shared values for animations
   const shakeDegrees = useSharedValue(0);
   const shakeZoom = useSharedValue(0.9);
 
-  // ── Effects ──
-
-  // Control the bottom sheet visibility based on isPresented
+  // Control bottom sheet visibility
   useEffect(() => {
     if (isPresented) {
       sheetRef.current?.snapToIndex(0);
@@ -50,7 +50,7 @@ const OnboardingCredits = ({
     }
   }, [isPresented]);
 
-  // Start shake animation after 1 second (repeats)
+  // Start shake animation after 1 second
   useEffect(() => {
     if (isPresented) {
       const startShake = () => {
@@ -96,7 +96,6 @@ const OnboardingCredits = ({
     }
   }, [isPresented, shakeDegrees, shakeZoom]);
 
-  // ── Animated styles ──
   const heroAnimatedStyle = useAnimatedStyle(() => ({
     transform: [
       { rotate: `${shakeDegrees.value}deg` },
@@ -104,10 +103,7 @@ const OnboardingCredits = ({
     ],
   }));
 
-  // ── Handlers ──
   const handleCountdownComplete = useCallback(() => {
-    // Optionally enable a forced close if the countdown completes,
-    // but for this onboarding screen, we just let them tap it.
     console.log("Countdown finished");
   }, []);
 
@@ -121,13 +117,15 @@ const OnboardingCredits = ({
       snapPoints={["80%"]}
       index={-1}
       onClose={handleDismiss}
-      enablePanDownToClose={true} // Allow swiping down to close
+      enablePanDownToClose={true}
       backgroundStyle={{ backgroundColor: "#08071A" }}
-      handleIndicatorStyle={{ backgroundColor: Brand.textSecondary }}
+      handleIndicatorStyle={{
+        backgroundColor: Brand.textSecondary,
+      }}
     >
       <BottomSheetView style={styles.bottomSheetContent}>
         <SafeAreaView style={styles.container}>
-          {/* Close Button (Top Right) */}
+          {/* Close Button */}
           <View style={styles.closeContainer}>
             <CountdownCloseButton
               duration={5000}
@@ -139,10 +137,10 @@ const OnboardingCredits = ({
 
           {/* Content */}
           <View style={styles.content}>
-            {/* Hero Image (Gift) */}
+            {/* Hero Image */}
             <View style={styles.heroWrapper}>
               <Animated.Image
-                source={require("@/assets/icons/gift2.png")} // Make sure you have a gift icon here!
+                source={require("@/assets/icons/gift2.png")}
                 style={[styles.heroImage, heroAnimatedStyle]}
                 resizeMode="contain"
               />
@@ -150,17 +148,22 @@ const OnboardingCredits = ({
 
             {/* Title & Body */}
             <View style={{ alignItems: "center" }}>
-              <Text style={styles.title}>Ready to clean your gallery?</Text>
+              <Text style={styles.title}>
+                {t("credits_popup.title")}
+              </Text>
+
               <Text style={styles.bodyText}>
-                We've given you{" "}
+                {t("credits_popup.subtitle.part_1")}{" "}
                 <Text style={styles.highlight}>
-                  {WELCOME_BONUS_CREDITS} free credits
+                  {WELCOME_BONUS_CREDITS}{" "}
+                  {t("credits_popup.subtitle.part_2")}
                 </Text>{" "}
-                to try out our fast cleaning tool. Plus, you'll get{" "}
+                {t("credits_popup.subtitle.part_3")}{" "}
                 <Text style={styles.highlight}>
-                  {DAILY_REFILL_CREDITS} credits
+                  {DAILY_REFILL_CREDITS}{" "}
+                  {t("credits_popup.subtitle.part_4")}
                 </Text>{" "}
-                every day just for checking in!
+                {t("credits_popup.subtitle.part_5")}
               </Text>
             </View>
 
@@ -168,20 +171,21 @@ const OnboardingCredits = ({
 
             {/* Buttons */}
             <View style={styles.buttonGroup}>
-              {/* The main eye-catching action points to the trial */}
               <GradientButton
-                textStyle={{ fontSize: 19, fontWeight: "700" }}
-                title="Unlock Unlimited Access (FREE)"
+                textStyle={{
+                  fontSize: 19,
+                  fontWeight: "700",
+                }}
+                title={t("credits_popup.buttons.primary")}
                 onPress={onUpgrade}
               />
 
-              {/* The free fallback action */}
               <TouchableOpacity
                 onPress={handleDismiss}
                 style={styles.ghostButton}
               >
                 <Text style={styles.ghostText}>
-                  Continue with 50 free credits
+                  {t("credits_popup.buttons.secondary")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -199,7 +203,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
-    backgroundColor: "#08071A", // Deep background matching Paywall
+    backgroundColor: "#08071A",
     flex: 1,
     paddingHorizontal: 20,
   },

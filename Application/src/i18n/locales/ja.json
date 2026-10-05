@@ -35,10 +35,10 @@
     }
   },
   "permission_required": {
-  "title": "アクセスが必要です",
-  "message": "写真をスキャンするには、「設定」で写真へのアクセスを許可してください。",
-  "button": "OK"
-},
+    "title": "アクセスが必要です",
+    "message": "写真をスキャンするには、「設定」で写真へのアクセスを許可してください。",
+    "button": "OK"
+  },
   "credits_popup": {
     "title": "ギャラリーを整理する準備はできましたか？",
     "subtitle": {
@@ -49,7 +49,7 @@
       "part_5": "を獲得できます！"
     },
     "buttons": {
-      "primary": "無制限アクセスを解放（無料）",
+      "primary": "無料で無制限に試す",
       "secondary": "50無料クレジットで続行"
     }
   },
@@ -70,10 +70,15 @@
       },
       "trial_plan": {
         "title": "3日間トライアル",
-        "subtitle": "その後 週額$2.99",
+  "subtitle": "その後 {price}／週",
         "tag": "短期間"
       }
     },
+    "restore_purchases": {
+  "title": "購入を復元",
+  "message": "復元できる購入はありませんでした。",
+  "button": "OK"
+},
     "toggle": {
       "free_trial_enabled": "無料トライアル有効"
     },
@@ -86,13 +91,14 @@
     },
     "footer": {
       "restore": "復元",
-      "terms_privacy": "利用規約とプライバシーポリシー"
+      "terms_privacy": "利用規約・プライバシー"
     }
   },
   "success_screen": {
     "title": "完了！ 🎉",
     "subtitle": "解放した容量",
     "size_freed": "{size}",
+    "upgrade_prompt": "<count>{count}</count>件残っています。\nタップしてすべて削除 →",
     "details": {
       "items_deleted": "{count}件の項目を削除",
       "credits_left": "残り{count}クレジット"
@@ -107,7 +113,9 @@
     "title_plural": "{count}件の項目を削除しますか？",
     "subtitle": "写真はゴミ箱に移動され、30日間復元可能です。",
     "credits_available": "利用可能クレジット: {count}",
+    "premium_required": "クレジットが足りません。Premiumで無制限アクセスを解放できます。",
     "buttons": {
+      "unlock_unlimited": "無制限アクセスを解放",
       "delete_everything": "すべて削除",
       "delete": "削除",
       "cancel": "キャンセル"
@@ -181,8 +189,13 @@
       "title": "カテゴリ",
       "see_all": "すべて表示"
     },
+    "empty_state": {
+      "subtitle": "削除するものはありません。",
+      "hint": "すべて整理されています。"
+    },
     "buttons": {
-      "review_items": "項目を確認"
+      "review_items": "項目を確認",
+      "rescan_photos": "再スキャン"
     },
     "footer": {
       "credits_remaining": "残り{count}クレジット"

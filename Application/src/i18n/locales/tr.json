@@ -49,7 +49,7 @@
       "part_5": "kazanacaksınız!"
     },
     "buttons": {
-      "primary": "Sınırsız Erişimi Aç (ÜCRETSİZ)",
+      "primary": "Sınırsız Ücretsiz Dene",
       "secondary": "50 ücretsiz krediyle devam et"
     }
   },
@@ -70,9 +70,14 @@
       },
       "trial_plan": {
         "title": "3 Günlük Deneme",
-        "subtitle": "sonra haftada $2.99",
+        "subtitle": "sonra haftada {price}",
         "tag": "Kısa Vadeli"
       }
+    },
+    "restore_purchases": {
+      "title": "Satın Alımları Geri Yükle",
+      "message": "Geri yüklenecek satın alım bulunamadı.",
+      "button": "Tamam"
     },
     "toggle": {
       "free_trial_enabled": "Ücretsiz Deneme Açık"
@@ -86,13 +91,14 @@
     },
     "footer": {
       "restore": "Geri Yükle",
-      "terms_privacy": "Kullanım Koşulları ve Gizlilik Politikası"
+      "terms_privacy": "Koşullar ve gizlilik"
     }
   },
   "success_screen": {
     "title": "Hepsi Tamam! 🎉",
     "subtitle": "Şu kadar yer açtınız:",
     "size_freed": "{size}",
+    "upgrade_prompt": "Hâlâ <count>{count}</count> öğe kaldı.\nHepsini silmek için dokunun →",
     "details": {
       "items_deleted": "{count} Öğe silindi",
       "credits_left": "{count} Kredi Kaldı"
@@ -107,7 +113,9 @@
     "title_plural": "{count} öğe silinsin mi?",
     "subtitle": "Fotoğraflar Çöp Kutusu'na taşınacak ve 30 gün boyunca geri yüklenebilecek.",
     "credits_available": "Mevcut Kredi: {count}",
+    "premium_required": "Daha fazla krediye ihtiyacınız var. Premium ile sınırsız erişimin kilidini açın.",
     "buttons": {
+      "unlock_unlimited": "Sınırsız Erişimi Aç",
       "delete_everything": "Her Şeyi Sil",
       "delete": "Sil",
       "cancel": "İptal"
@@ -181,8 +189,13 @@
       "title": "Kategoriler",
       "see_all": "Tümünü Gör"
     },
+    "empty_state": {
+      "subtitle": "Silecek bir şey yok.",
+      "hint": "Her şey düzenli."
+    },
     "buttons": {
-      "review_items": "Öğeleri İncele"
+      "review_items": "Öğeleri İncele",
+      "rescan_photos": "Yeniden Tara"
     },
     "footer": {
       "credits_remaining": "{count} Kredi Kaldı"

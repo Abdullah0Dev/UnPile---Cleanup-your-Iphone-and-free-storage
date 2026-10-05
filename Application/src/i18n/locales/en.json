@@ -16,10 +16,10 @@
     }
   },
   "permission_required": {
-  "title": "Permission Required",
-  "message": "Please grant photo library access in Settings to scan your photos.",
-  "button": "OK"
-},
+    "title": "Permission Required",
+    "message": "Please grant photo library access in Settings to scan your photos.",
+    "button": "OK"
+  },
   "scanning_screen": {
     "title": "Scanning Library",
     "secure_bar": {
@@ -49,7 +49,7 @@
       "part_5": "every day just for checking in!"
     },
     "buttons": {
-      "primary": "Unlock Unlimited Access (FREE)",
+      "primary": "Try Unlimited Free",
       "secondary": "Continue with 50 free credits"
     }
   },
@@ -70,9 +70,14 @@
       },
       "trial_plan": {
         "title": "3-Day Trial",
-        "subtitle": "then $2.99 per week",
+        "subtitle": "then {price} per week",
         "tag": "Short Term"
       }
+    },
+    "restore_purchases": {
+      "title": "Restore Purchases",
+      "message": "No purchases were restored.",
+      "button": "OK"
     },
     "toggle": {
       "free_trial_enabled": "Free Trial Enabled"
@@ -93,6 +98,7 @@
     "title": "All Done! 🎉",
     "subtitle": "You freed up",
     "size_freed": "{size}",
+    "upgrade_prompt": "You still have <count>{count}</count> items remaining.\nTap to clear them all →",
     "details": {
       "items_deleted": "{count} Items deleted",
       "credits_left": "{count} Credits Left"
@@ -107,7 +113,9 @@
     "title_plural": "Delete {count} items?",
     "subtitle": "Photos will be moved to Trash and can be restored for 30 days.",
     "credits_available": "Credits Available: {count}",
+    "premium_required": "You need more credits. Unlock unlimited with Premium.",
     "buttons": {
+      "unlock_unlimited": "Unlock Unlimited",
       "delete_everything": "Delete Everything",
       "delete": "Delete",
       "cancel": "Cancel"
@@ -177,12 +185,17 @@
       "size_can_free": "{size}",
       "item_count": "{count} items"
     },
+    "empty_state": {
+      "subtitle": "You have nothing to delete.",
+      "hint": "You're all caught up."
+    },
+    "buttons": {
+      "review_items": "Review Items",
+      "rescan_photos": "Re-Scan Photos"
+    },
     "categories_section": {
       "title": "Categories",
       "see_all": "See All"
-    },
-    "buttons": {
-      "review_items": "Review Items"
     },
     "footer": {
       "credits_remaining": "{count} Credits Remaining"

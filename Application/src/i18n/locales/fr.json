@@ -15,11 +15,11 @@
       }
     }
   },
-"permission_required": {
-  "title": "Autorisation requise",
-  "message": "Veuillez autoriser l’accès à votre photothèque dans les Réglages pour analyser vos photos.",
-  "button": "OK"
-},
+  "permission_required": {
+    "title": "Autorisation requise",
+    "message": "Veuillez autoriser l’accès à votre photothèque dans les Réglages pour analyser vos photos.",
+    "button": "OK"
+  },
   "scanning_screen": {
     "title": "Analyse de la photothèque",
     "secure_bar": {
@@ -50,7 +50,7 @@
       "part_5": "chaque jour, simplement en revenant !"
     },
     "buttons": {
-      "primary": "Débloquer l’accès illimité (GRATUIT)",
+      "primary": "Essayer gratuitement",
       "secondary": "Continuer avec 50 crédits gratuits"
     }
   },
@@ -72,9 +72,14 @@
       },
       "trial_plan": {
         "title": "Essai de 3 jours",
-        "subtitle": "puis 2,99 $ par semaine",
+        "subtitle": "puis {price} par semaine",
         "tag": "Court terme"
       }
+    },
+    "restore_purchases": {
+      "title": "Restaurer les achats",
+      "message": "Aucun achat n’a été restauré.",
+      "button": "OK"
     },
     "toggle": {
       "free_trial_enabled": "Essai gratuit activé"
@@ -84,11 +89,11 @@
     },
     "buttons": {
       "unlock_now": "Débloquer maintenant",
-      "try_free": "Essayer gratuitement pendant 3 jours"
+      "try_free": "3 jours gratuits"
     },
     "footer": {
       "restore": "Restaurer",
-      "terms_privacy": "Conditions d’utilisation et politique de confidentialité"
+      "terms_privacy": "Conditions & confidentialité"
     }
   },
 
@@ -96,6 +101,7 @@
     "title": "C’est fait ! 🎉",
     "subtitle": "Vous avez libéré",
     "size_freed": "{size}",
+    "upgrade_prompt": "Il vous reste <count>{count}</count> éléments.\nTouchez pour tout supprimer →",
     "details": {
       "items_deleted": "{count} éléments supprimés",
       "credits_left": "Il vous reste {count} crédits"
@@ -111,7 +117,9 @@
     "title_plural": "Supprimer {count} éléments ?",
     "subtitle": "Les photos seront déplacées dans la corbeille et pourront être restaurées pendant 30 jours.",
     "credits_available": "Crédits disponibles : {count}",
+    "premium_required": "Vous avez besoin de plus de crédits. Débloquez l’accès illimité avec Premium.",
     "buttons": {
+      "unlock_unlimited": "Débloquer l’accès illimité",
       "delete_everything": "Tout supprimer",
       "delete": "Supprimer",
       "cancel": "Annuler"
@@ -188,8 +196,13 @@
       "title": "Catégories",
       "see_all": "Tout voir"
     },
+    "empty_state": {
+      "subtitle": "Rien à supprimer.",
+      "hint": "Tout est à jour."
+    },
     "buttons": {
-      "review_items": "Vérifier les éléments"
+      "review_items": "Vérifier les éléments",
+      "rescan_photos": "Analyser à nouveau"
     },
     "footer": {
       "credits_remaining": "Il vous reste {count} crédits"

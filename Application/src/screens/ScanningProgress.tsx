@@ -28,6 +28,7 @@ import Svg, {
   Stop,
   LinearGradient as SvgLinearGradient,
 } from "react-native-svg";
+import { useTranslation } from "react-i18next";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -49,9 +50,11 @@ const ScanningProgress = ({
   progress = 0,
   totalItems = 0,
   processedItems = 0,
-  categoryProgress = "Scanning Library",
+  categoryProgress,
 }: ScanningProgressProps) => {
-  //  Screen entrance
+  const { t } = useTranslation();
+
+  // Screen entrance
   const headerEntrance = useEntrance(0);
   const titleEntrance = useEntrance(60);
   const ringEntrance = useHeroEntrance(140);
@@ -59,18 +62,21 @@ const ScanningProgress = ({
   const scanningSubtitleEntrance = useEntrance(420);
   const privacyCardEntrance = useEntrance(500);
 
-  //  Comet sweep (always running)
+  // Comet sweep (always running)
   const sweepProgress = useSharedValue(0);
 
   useEffect(() => {
     sweepProgress.value = withRepeat(
-      withTiming(1, { duration: 1800, easing: Easing.linear }),
+      withTiming(1, {
+        duration: 1800,
+        easing: Easing.linear,
+      }),
       -1,
       false,
     );
   }, []);
 
-  //  Animated progress (smoothly follows the `progress` prop)
+  // Animated progress (smoothly follows the `progress` prop)
   const animatedProgress = useSharedValue(0);
   const [displayPercent, setDisplayPercent] = useState(0);
 
@@ -96,6 +102,7 @@ const ScanningProgress = ({
   const progressDashOffset = useDerivedValue(
     () => CIRCUMFERENCE - (CIRCUMFERENCE * animatedProgress.value) / 100,
   );
+
   const progressArcProps = useAnimatedProps(() => ({
     strokeDashoffset: progressDashOffset.value,
   }));
@@ -104,6 +111,7 @@ const ScanningProgress = ({
   const sweepDashOffset = useDerivedValue(
     () => -sweepProgress.value * CIRCUMFERENCE,
   );
+
   const sweepArcProps = useAnimatedProps(() => ({
     strokeDashoffset: sweepDashOffset.value,
   }));
@@ -111,6 +119,7 @@ const ScanningProgress = ({
   // Subtle pulse on the percent label
   const pulseStyle = useAnimatedStyle(() => {
     const isDone = animatedProgress.value >= 99.9;
+
     return {
       transform: [
         {
@@ -126,9 +135,20 @@ const ScanningProgress = ({
     router.back();
   };
 
+  const scanningLabel =
+    totalItems > 0
+      ? [
+          t("scanning_screen.progress.status.part_1"),
+          processedItems.toLocaleString(),
+          t("scanning_screen.progress.status.part_2"),
+          totalItems.toLocaleString(),
+          t("scanning_screen.progress.status.part_3"),
+        ].join(" ")
+      : categoryProgress || t("scanning_screen.title");
+
   return (
     <SafeAreaView style={styles.screen}>
-      {/*  Header  */}
+      {/* Header */}
       <Animated.View style={[styles.header, headerEntrance]}>
         <Pressable onPress={handleGoBack}>
           <Image
@@ -140,10 +160,10 @@ const ScanningProgress = ({
       </Animated.View>
 
       <Animated.Text style={[styles.title, titleEntrance]}>
-        Scanning Library
+        {t("scanning_screen.title")}
       </Animated.Text>
 
-      {/*  Progress ring  */}
+      {/* Progress ring */}
       <Animated.View style={[styles.ringWrap, ringEntrance]}>
         <View style={styles.glow} pointerEvents="none" />
 
@@ -180,10 +200,29 @@ const ScanningProgress = ({
               <Stop offset="0%" stopColor={Brand.primaryLight} />
               <Stop offset="100%" stopColor={Brand.primaryDark} />
             </SvgLinearGradient>
-            <SvgLinearGradient id="sweepGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <Stop offset="0%" stopColor={Brand.primary} stopOpacity={0} />
-              <Stop offset="75%" stopColor={Brand.glow} stopOpacity={0.95} />
-              <Stop offset="100%" stopColor="#ffffff" stopOpacity={1} />
+
+            <SvgLinearGradient
+              id="sweepGrad"
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="0%"
+            >
+              <Stop
+                offset="0%"
+                stopColor={Brand.primary}
+                stopOpacity={0}
+              />
+              <Stop
+                offset="75%"
+                stopColor={Brand.glow}
+                stopOpacity={0.95}
+              />
+              <Stop
+                offset="100%"
+                stopColor="#ffffff"
+                stopOpacity={1}
+              />
             </SvgLinearGradient>
           </Defs>
 
@@ -224,23 +263,18 @@ const ScanningProgress = ({
         </Animated.View>
       </Animated.View>
 
-      {/*  Status copy  */}
+      {/* Status copy */}
       <Animated.Text style={[styles.scanningLabel, scanningLabelEntrance]}>
-       {totalItems > 0
-    ? `Scanning ${
-        processedItems.toLocaleString()
-      } of ${
-        totalItems.toLocaleString()
-      } items...`
-    : categoryProgress}
+        {scanningLabel}
       </Animated.Text>
+
       <Animated.Text
         style={[styles.scanningSubtitle, scanningSubtitleEntrance]}
       >
-        This may take a few moments.
+        {t("scanning_screen.note")}
       </Animated.Text>
 
-      {/*  On-device privacy card  */}
+      {/* On-device privacy card */}
       <Animated.View style={[styles.privacyCard, privacyCardEntrance]}>
         <View style={styles.privacyIconWrap}>
           <Image
@@ -248,10 +282,14 @@ const ScanningProgress = ({
             style={styles.privacyIconImage}
           />
         </View>
+
         <View style={styles.privacyTextWrap}>
-          <Text style={styles.privacyTitle}>100% On-Device</Text>
+          <Text style={styles.privacyTitle}>
+            {t("scanning_screen.secure_bar.title")}
+          </Text>
+
           <Text style={styles.privacySubtitle}>
-            Your photos never leave your iPhone.
+            {t("scanning_screen.secure_bar.subtitle")}
           </Text>
         </View>
       </Animated.View>
@@ -260,6 +298,7 @@ const ScanningProgress = ({
 };
 
 export default ScanningProgress;
+
 const styles = StyleSheet.create({
   screen: {
     flex: 1,

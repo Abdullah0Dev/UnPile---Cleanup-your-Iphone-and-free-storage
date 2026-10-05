@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 
 import { GradientButton } from "@/components/ui/gradient-button";
 import {
@@ -27,11 +28,16 @@ import {
 } from "@/constants";
 import Paywall from "@/components/ui/paywall";
 import { useCredits } from "@/context/CreditsContext";
+import { CATEGORY_TRANSLATION_KEYS } from "./Home";
 
 const TILE_STAGGER_MS = 80;
 const GRID_BASE_DELAY = 140;
 
+ 
+
 const AllCategories = () => {
+  const { t } = useTranslation();
+
   const headerEntrance = useEntrance(0);
   const { result, resetSelections } = useAnalysis();
   const { isLoadingSubscription, isSubscribed } = useCredits();
@@ -46,9 +52,11 @@ const AllCategories = () => {
 
   // Compute deletable items per category
   const categoryData = useMemo(() => {
-    //  sum sizes of an ID array
     const sumSizes = (ids: string[]) =>
-      ids.reduce((sum, id) => sum + (assetSizes[id] || 0), 0);
+      ids.reduce(
+        (sum, id) => sum + (assetSizes[id] || 0),
+        0,
+      );
 
     const screenshotIds = result.screenshots || [];
     const screenshotSize = sumSizes(screenshotIds);
@@ -73,43 +81,46 @@ const AllCategories = () => {
     const liveCount = liveIds.length;
 
     const totalFreeableBytes =
-      screenshotSize + duplicateSize + clutterSize + blurrySize + liveSize;
-    const totalFreeableItems =
-      screenshotCount + duplicateCount + clutterCount + blurryCount + liveCount;
+      screenshotSize +
+      duplicateSize +
+      clutterSize +
+      blurrySize +
+      liveSize;
 
-    // All categories
+    const totalFreeableItems =
+      screenshotCount +
+      duplicateCount +
+      clutterCount +
+      blurryCount +
+      liveCount;
+
     const allRows = [
       {
         key: "screenshots" as CategoryVariant,
-        label: "Screenshots",
         itemCount: screenshotCount,
         sizeBytes: screenshotSize,
         image: ScreenshotsIcon,
       },
       {
         key: "clutter" as CategoryVariant,
-        label: "Clutter",
         itemCount: clutterCount,
         sizeBytes: clutterSize,
         image: ClutterIcon,
       },
       {
         key: "duplicates" as CategoryVariant,
-        label: "Duplicates",
         itemCount: duplicateCount,
         sizeBytes: duplicateSize,
         image: DuplicatesIcon,
       },
       {
         key: "blurry" as CategoryVariant,
-        label: "Blurry Photos",
         itemCount: blurryCount,
         sizeBytes: blurrySize,
         image: BlurryPhotosIcon,
       },
       {
         key: "live" as CategoryVariant,
-        label: "Live Photos",
         itemCount: liveCount,
         sizeBytes: liveSize,
         image: LivePhotosIcon,
@@ -123,19 +134,22 @@ const AllCategories = () => {
     };
   }, [result, assetSizes]);
 
-  const { rows, totalFreeableBytes, totalFreeableItems } = categoryData;
+  const { rows, totalFreeableBytes, totalFreeableItems } =
+    categoryData;
 
   const summaryCardEntrance = useEntrance(
     GRID_BASE_DELAY + rows.length * TILE_STAGGER_MS + 120,
   );
 
   const handleGoBack = () => router.back();
+
   const handleSmartDelete = async () => {
     if (isSubscribed) {
-      await resetSelections()
+      await resetSelections();
       router.push("/delete-confirmation");
       return;
     }
+
     setShowPaywall(true);
   };
 
@@ -150,27 +164,37 @@ const AllCategories = () => {
               style={{ width: 28, height: 28 }}
             />
           </Pressable>
-          <Text style={styles.title}>All Categories</Text>
+
+          <Text style={styles.title}>
+            {t("categories_overview_screen.header_title")}
+          </Text>
+
           <View />
         </Animated.View>
 
         <View style={styles.grid}>
-          {rows.map(({ key, label, itemCount, sizeBytes, image }, index) => (
-            <CategoryTile
-              key={key}
-              id={key}
-              label={label}
-              itemCount={itemCount}
-              size={formatBytes(sizeBytes)}
-              image={image}
-              delay={GRID_BASE_DELAY + index * TILE_STAGGER_MS}
-            />
-          ))}
+          {rows.map(
+            ({ key, itemCount, sizeBytes, image }, index) => (
+              <CategoryTile
+                key={key}
+                id={key}
+                itemCount={itemCount}
+                size={formatBytes(sizeBytes)}
+                image={image}
+                delay={
+                  GRID_BASE_DELAY +
+                  index * TILE_STAGGER_MS
+                }
+              />
+            ),
+          )}
         </View>
       </View>
 
-      {/*  Bottom summary card  */}
-      <Animated.View style={[styles.summaryCard, summaryCardEntrance]}>
+      {/* Bottom summary card */}
+      <Animated.View
+        style={[styles.summaryCard, summaryCardEntrance]}
+      >
         <LinearGradient
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0.8 }}
@@ -184,22 +208,37 @@ const AllCategories = () => {
           locations={[0, 0.3, 0.5, 0.7, 1]}
           style={styles.summaryGradient}
         />
+
         <Text style={styles.summaryValue}>
-          {formatBytes(totalFreeableBytes)} can be freed up
+          {t(
+            "categories_overview_screen.summary.size_can_free",
+            {
+              size: formatBytes(totalFreeableBytes),
+            },
+          )}
         </Text>
+
         <Text style={styles.summarySubtitle}>
-          {totalFreeableItems.toLocaleString()} items
+          {t(
+            "categories_overview_screen.summary.item_count",
+            {
+              count: totalFreeableItems,
+            },
+          )}
         </Text>
 
         <View style={styles.smartDeleteWrap}>
           <GradientButton
-            title="Smart Delete"
+            title={t(
+              "categories_overview_screen.buttons.smart_delete",
+            )}
             Icon={Sparkles}
             onPress={handleSmartDelete}
             disabled={isLoadingSubscription}
           />
         </View>
       </Animated.View>
+
       <Paywall
         isPresented={showPaywall}
         onDismiss={() => setShowPaywall(false)}
@@ -210,38 +249,55 @@ const AllCategories = () => {
 
 export default AllCategories;
 
-//  Subcomponent
+// Subcomponent
 const CategoryTile = ({
   id,
-  label,
   itemCount,
   size,
   image,
   delay,
 }: {
   id: CategoryVariant;
-  label: string;
   itemCount: number;
   size: string;
   image: ImageSource;
   delay: number;
 }) => {
+  const { t } = useTranslation();
   const tileEntrance = useEntrance(delay, 12);
+
   const handlePress = () => {
     router.navigate(`/category-details/${id}`);
   };
+
+  const translationKey = CATEGORY_TRANSLATION_KEYS[id];
+
   return (
-    <Animated.View style={[styles.tileWrap, tileEntrance]}>
+    <Animated.View
+      style={[styles.tileWrap, tileEntrance]}
+    >
       <Pressable onPress={handlePress}>
         <LinearGradient
           colors={["#120E38", Brand.appBackground]}
           style={styles.tile}
         >
           <View style={styles.tileIconWrap}>
-            <Image style={styles.tileIconImage} source={image} />
+            <Image
+              style={styles.tileIconImage}
+              source={image}
+            />
           </View>
-          <Text style={styles.tileLabel}>{label}</Text>
-          <Text style={styles.tileCount}>{itemCount} items</Text>
+
+          <Text style={styles.tileLabel}>
+            {t(`${translationKey}.title`)}
+          </Text>
+
+          <Text style={styles.tileCount}>
+            {t(`${translationKey}.item_count`, {
+              count: itemCount,
+            })}
+          </Text>
+
           <Text style={styles.tileSize}>{size}</Text>
         </LinearGradient>
       </Pressable>
@@ -301,6 +357,7 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.body,
     fontWeight: FontWeights.semibold as any,
     marginBottom: 2,
+    textAlign: "center",
   },
   tileCount: {
     color: Brand.textSecondary,
@@ -335,6 +392,7 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.headline,
     fontWeight: FontWeights.semibold as any,
     marginBottom: 2,
+    textAlign: "center",
   },
   summarySubtitle: {
     color: Brand.textSecondary,

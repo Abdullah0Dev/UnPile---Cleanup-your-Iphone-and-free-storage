@@ -35,10 +35,10 @@
     }
   },
   "permission_required": {
-  "title": " يلزم السماح بالوصول للصور",
-  "message": "يرجى السماح بالوصول إلى مكتبة الصور من الإعدادات لفحص صورك.",
-  "button": "موافق"
-},
+    "title": " يلزم السماح بالوصول للصور",
+    "message": "يرجى السماح بالوصول إلى مكتبة الصور من الإعدادات لفحص صورك.",
+    "button": "موافق"
+  },
   "credits_popup": {
     "title": "هل أنت مستعد لتنظيف معرض الصور؟",
     "subtitle": {
@@ -49,7 +49,7 @@
       "part_5": "كل يوم لمجرد تسجيل الدخول!"
     },
     "buttons": {
-      "primary": "فتح الوصول غير المحدود (مجاناً)",
+      "primary": "جرّب بلا حدود مجانًا",
       "secondary": "المتابعة بـ 50 نقطة مجانية"
     }
   },
@@ -70,10 +70,15 @@
       },
       "trial_plan": {
         "title": "تجربة 3 أيام",
-        "subtitle": "ثم $2.99 أسبوعياً",
+  "subtitle": "ثم {price} أسبوعيًا",
         "tag": "قصير المدى"
       }
     },
+    "restore_purchases": {
+  "title": "استعادة المشتريات",
+  "message": "لم تتم استعادة أي مشتريات.",
+  "button": "موافق"
+},
     "toggle": {
       "free_trial_enabled": "تم تفعيل التجربة المجانية"
     },
@@ -86,13 +91,14 @@
     },
     "footer": {
       "restore": "استعادة",
-      "terms_privacy": "شروط الاستخدام وسياسة الخصوصية"
+      "terms_privacy": "شروط الاستخدام "
     }
   },
   "success_screen": {
     "title": "كل شيء جاهز! 🎉",
     "subtitle": "لقد وفرت",
     "size_freed": "{size}",
+    "upgrade_prompt": "لا يزال لديك <count>{count}</count> عنصرًا.\nاضغط لحذفها جميعًا ←",
     "details": {
       "items_deleted": "تم حذف {count} عنصر",
       "credits_left": "متبقي {count} نقطة"
@@ -107,7 +113,9 @@
     "title_plural": "حذف {count} عناصر؟",
     "subtitle": "سيتم نقل الصور إلى سلة المهملات ويمكن استعادتها لمدة 30 يوماً.",
     "credits_available": "النقاط المتاحة: {count}",
+    "premium_required": "تحتاج إلى المزيد من النقاط. افتح الوصول الكامل مع Premium.",
     "buttons": {
+      "unlock_unlimited": "فتح الوصول الكامل",
       "delete_everything": "حذف الكل",
       "delete": "حذف",
       "cancel": "إلغاء"
@@ -181,8 +189,13 @@
       "title": "الفئات",
       "see_all": "عرض الكل"
     },
+    "empty_state": {
+      "subtitle": "لا توجد عناصر لحذفها.",
+      "hint": "كل شيء مرتب. الحمد لله"
+    },
     "buttons": {
-      "review_items": "مراجعة العناصر"
+      "review_items": "مراجعة العناصر",
+      "rescan_photos": "إعادة الفحص"
     },
     "footer": {
       "credits_remaining": "متبقي {count} نقطة"
