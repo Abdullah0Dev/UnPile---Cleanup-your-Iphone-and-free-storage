@@ -27,22 +27,18 @@
     },
     "note": "Esto puede tardar un momento.",
     "progress": {
-      "finding_screenshots": "Buscando capturas de pantalla...",
-      "screenshots_done": "Capturas de pantalla listas",
-      "scanning_duplicates": "Buscando duplicados...",
-      "duplicates_progress": "Duplicados {percent}%",
-      "duplicates_done": "Duplicados listos",
-      "checking_quality": "Comprobando calidad de fotos...",
-      "quality_progress": "Calidad {percent}%",
-      "quality_done": "Calidad lista",
-      "finding_live_photos": "Buscando fotos en vivo...",
-      "live_photos_done": "Fotos en vivo listas",
-      "finding_clutter": "Buscando desorden...",
-      "clutter_progress": "Desorden {percent}%",
-      "clutter_done": "Desorden listo",
-      "done": "Listo"
+      "status": {
+        "part_1": "Escaneando",
+        "part_2": "de",
+        "part_3": "elementos..."
+      }
     }
   },
+  "permission_required": {
+  "title": "Se requiere permiso",
+  "message": "Permite el acceso a tu fototeca en Ajustes para analizar tus fotos.",
+  "button": "OK"
+},
   "credits_popup": {
     "title": "¿Listo para limpiar tu galería?",
     "subtitle": {

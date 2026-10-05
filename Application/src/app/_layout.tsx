@@ -1,3 +1,4 @@
+import '@/i18n';
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState, useRef } from "react";
 import { useRouter, Stack, usePathname } from "expo-router";

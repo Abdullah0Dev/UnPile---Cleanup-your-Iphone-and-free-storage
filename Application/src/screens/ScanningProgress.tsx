@@ -41,12 +41,14 @@ type ScanningProgressProps = {
   progress?: number;
   /** Total items being scanned (optional) */
   totalItems?: number;
+  processedItems?: number;
   categoryProgress?: string;
 };
 
 const ScanningProgress = ({
   progress = 0,
   totalItems = 0,
+  processedItems = 0,
   categoryProgress = "Scanning Library",
 }: ScanningProgressProps) => {
   //  Screen entrance
@@ -224,9 +226,13 @@ const ScanningProgress = ({
 
       {/*  Status copy  */}
       <Animated.Text style={[styles.scanningLabel, scanningLabelEntrance]}>
-        {totalItems > 0
-          ? `Scanning ${totalItems.toLocaleString()} items...`
-          : categoryProgress}
+       {totalItems > 0
+    ? `Scanning ${
+        processedItems.toLocaleString()
+      } of ${
+        totalItems.toLocaleString()
+      } items...`
+    : categoryProgress}
       </Animated.Text>
       <Animated.Text
         style={[styles.scanningSubtitle, scanningSubtitleEntrance]}

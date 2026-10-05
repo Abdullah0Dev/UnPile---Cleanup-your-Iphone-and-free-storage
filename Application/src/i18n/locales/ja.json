@@ -27,22 +27,18 @@
     },
     "note": "少々お待ちください。",
     "progress": {
-      "finding_screenshots": "スクリーンショットを検索中...",
-      "screenshots_done": "スクリーンショット完了",
-      "scanning_duplicates": "重複写真をスキャン中...",
-      "duplicates_progress": "重複 {percent}%",
-      "duplicates_done": "重複完了",
-      "checking_quality": "写真の品質を確認中...",
-      "quality_progress": "品質チェック {percent}%",
-      "quality_done": "品質チェック完了",
-      "finding_live_photos": "ライブフォトを検索中...",
-      "live_photos_done": "ライブフォト完了",
-      "finding_clutter": "不要な写真を検索中...",
-      "clutter_progress": "不要な写真 {percent}%",
-      "clutter_done": "不要な写真完了",
-      "done": "完了"
+      "status": {
+        "part_1": "スキャン中",
+        "part_2": "/",
+        "part_3": "件..."
+      }
     }
   },
+  "permission_required": {
+  "title": "アクセスが必要です",
+  "message": "写真をスキャンするには、「設定」で写真へのアクセスを許可してください。",
+  "button": "OK"
+},
   "credits_popup": {
     "title": "ギャラリーを整理する準備はできましたか？",
     "subtitle": {

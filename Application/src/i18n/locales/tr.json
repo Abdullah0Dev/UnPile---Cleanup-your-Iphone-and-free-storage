@@ -27,21 +27,17 @@
     },
     "note": "Bu işlem biraz zaman alabilir.",
     "progress": {
-      "finding_screenshots": "Ekran görüntüleri bulunuyor...",
-      "screenshots_done": "Ekran görüntüleri tamam",
-      "scanning_duplicates": "Kopyalar taranıyor...",
-      "duplicates_progress": "Kopyalar %{percent}",
-      "duplicates_done": "Kopyalar tamam",
-      "checking_quality": "Fotoğraf kalitesi kontrol ediliyor...",
-      "quality_progress": "Kalite kontrolü %{percent}",
-      "quality_done": "Kalite kontrolü tamam",
-      "finding_live_photos": "Canlı Fotoğraflar bulunuyor...",
-      "live_photos_done": "Canlı Fotoğraflar tamam",
-      "finding_clutter": "Dağınıklık bulunuyor...",
-      "clutter_progress": "Dağınıklık %{percent}",
-      "clutter_done": "Dağınıklık tamam",
-      "done": "Tamam"
+      "status": {
+        "part_1": "Taranıyor",
+        "part_2": "/",
+        "part_3": "öğe..."
+      }
     }
+  },
+  "permission_required": {
+    "title": "İzin Gerekli",
+    "message": "Fotoğraflarınızı taramak için Ayarlar'dan fotoğraf arşivinize erişime izin verin.",
+    "button": "Tamam"
   },
   "credits_popup": {
     "title": "Galerinizi temizlemeye hazır mısınız?",

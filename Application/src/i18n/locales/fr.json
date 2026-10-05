@@ -1,0 +1,198 @@
+{
+  "get_started_screen": {
+    "title": {
+      "part_1": "Un",
+      "part_2": "Pile"
+    },
+    "subtitle": {
+      "part_1": "Nettoyez votre pellicule.",
+      "part_2": "Libérez de l’espace en quelques secondes."
+    },
+    "button": {
+      "title": {
+        "start": "Lancer l’analyse",
+        "checking": "Vérification..."
+      }
+    }
+  },
+"permission_required": {
+  "title": "Autorisation requise",
+  "message": "Veuillez autoriser l’accès à votre photothèque dans les Réglages pour analyser vos photos.",
+  "button": "OK"
+},
+  "scanning_screen": {
+    "title": "Analyse de la photothèque",
+    "secure_bar": {
+      "title": "100 % sur l’appareil",
+      "subtitle": "Vos photos ne quittent jamais votre iPhone."
+    },
+    "subtitle": {
+      "part_1": "Nettoyez votre pellicule.",
+      "part_2": "Libérez de l’espace en quelques secondes."
+    },
+    "note": "Cela peut prendre quelques instants.",
+    "progress": {
+      "status": {
+        "part_1": "Analyse de",
+        "part_2": "sur",
+        "part_3": "éléments..."
+      }
+    }
+  },
+
+  "credits_popup": {
+    "title": "Prêt à nettoyer votre galerie ?",
+    "subtitle": {
+      "part_1": "Nous vous offrons",
+      "part_2": "crédits gratuits",
+      "part_3": "pour essayer notre outil de nettoyage rapide. Et vous recevrez",
+      "part_4": "crédits",
+      "part_5": "chaque jour, simplement en revenant !"
+    },
+    "buttons": {
+      "primary": "Débloquer l’accès illimité (GRATUIT)",
+      "secondary": "Continuer avec 50 crédits gratuits"
+    }
+  },
+
+  "premium_access_screen": {
+    "title": "Accès Premium",
+    "features": {
+      "unlimited_deletion": "Suppression illimitée",
+      "ai_smart_select": "Sélection intelligente par IA",
+      "one_tap_clean_up": "Nettoyage en un geste",
+      "seamless_experience": "Expérience fluide"
+    },
+    "plans": {
+      "lifetime_plan": {
+        "title": "Accès à vie",
+        "original_price": "$155.48",
+        "discounted_price": "$19.99",
+        "badge": "MEILLEURE OFFRE"
+      },
+      "trial_plan": {
+        "title": "Essai de 3 jours",
+        "subtitle": "puis 2,99 $ par semaine",
+        "tag": "Court terme"
+      }
+    },
+    "toggle": {
+      "free_trial_enabled": "Essai gratuit activé"
+    },
+    "label": {
+      "no_payment_text": "AUCUN PAIEMENT AUJOURD’HUI"
+    },
+    "buttons": {
+      "unlock_now": "Débloquer maintenant",
+      "try_free": "Essayer gratuitement pendant 3 jours"
+    },
+    "footer": {
+      "restore": "Restaurer",
+      "terms_privacy": "Conditions d’utilisation et politique de confidentialité"
+    }
+  },
+
+  "success_screen": {
+    "title": "C’est fait ! 🎉",
+    "subtitle": "Vous avez libéré",
+    "size_freed": "{size}",
+    "details": {
+      "items_deleted": "{count} éléments supprimés",
+      "credits_left": "Il vous reste {count} crédits"
+    },
+    "buttons": {
+      "view_library": "Voir la photothèque",
+      "done": "Terminé"
+    }
+  },
+
+  "delete_confirmation_dialog": {
+    "title_singular": "Supprimer {count} élément ?",
+    "title_plural": "Supprimer {count} éléments ?",
+    "subtitle": "Les photos seront déplacées dans la corbeille et pourront être restaurées pendant 30 jours.",
+    "credits_available": "Crédits disponibles : {count}",
+    "buttons": {
+      "delete_everything": "Tout supprimer",
+      "delete": "Supprimer",
+      "cancel": "Annuler"
+    }
+  },
+
+  "review_screen": {
+    "header": {
+      "screenshots": "Captures d’écran",
+      "duplicates": "Doublons",
+      "select_all": "Tout sélectionner",
+      "deselect_all": "Tout désélectionner"
+    },
+    "status_bar": "{total} éléments · {selected} sélectionnés · {size}",
+    "labels": {
+      "best_photo": "Meilleure photo"
+    },
+    "bottom_sheet": {
+      "tap_to_close": "Touchez pour fermer"
+    },
+    "bottom_bar": {
+      "selected_count": "{count} sélectionnés",
+      "size": "{size}",
+      "delete_button": "Supprimer"
+    }
+  },
+
+  "categories_overview_screen": {
+    "header_title": "Toutes les catégories",
+    "categories": {
+      "screenshots": {
+        "title": "Captures d’écran",
+        "item_count": "{count} éléments",
+        "size": "{size}"
+      },
+      "clutter": {
+        "title": "Photos inutiles",
+        "item_count": "{count} éléments",
+        "size": "{size}"
+      },
+      "duplicates": {
+        "title": "Doublons",
+        "item_count": "{count} éléments",
+        "size": "{size}"
+      },
+      "blurry_photos": {
+        "title": "Photos floues",
+        "item_count": "{count} éléments",
+        "size": "{size}"
+      },
+      "live_photos": {
+        "title": "Live Photos",
+        "item_count": "{count} éléments",
+        "size": "{size}"
+      }
+    },
+    "summary": {
+      "size_can_free": "{size} peuvent être libérés",
+      "item_count": "{count} éléments"
+    },
+    "buttons": {
+      "smart_delete": "Suppression intelligente"
+    }
+  },
+
+  "scan_complete_screen": {
+    "title": "Analyse terminée ✨",
+    "summary": {
+      "subtitle": "Vous pouvez libérer",
+      "size_can_free": "{size}",
+      "item_count": "{count} éléments"
+    },
+    "categories_section": {
+      "title": "Catégories",
+      "see_all": "Tout voir"
+    },
+    "buttons": {
+      "review_items": "Vérifier les éléments"
+    },
+    "footer": {
+      "credits_remaining": "Il vous reste {count} crédits"
+    }
+  }
+}

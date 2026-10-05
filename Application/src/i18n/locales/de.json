@@ -27,22 +27,18 @@
     },
     "note": "Dies kann einen Moment dauern.",
     "progress": {
-      "finding_screenshots": "Suche nach Screenshots...",
-      "screenshots_done": "Screenshots fertig",
-      "scanning_duplicates": "Suche nach Duplikaten...",
-      "duplicates_progress": "Duplikate {percent}%",
-      "duplicates_done": "Duplikate fertig",
-      "checking_quality": "Überprüfe Fotoqualität...",
-      "quality_progress": "Qualitätsprüfung {percent}%",
-      "quality_done": "Qualitätsprüfung fertig",
-      "finding_live_photos": "Suche nach Live-Fotos...",
-      "live_photos_done": "Live-Fotos fertig",
-      "finding_clutter": "Suche nach Unordnung...",
-      "clutter_progress": "Unordnung {percent}%",
-      "clutter_done": "Unordnung fertig",
-      "done": "Fertig"
+      "status": {
+        "part_1": "Scannen",
+        "part_2": "von",
+        "part_3": "Elementen..."
+      }
     }
   },
+  "permission_required": {
+  "title": "Zugriff erforderlich",
+  "message": "Bitte erlaube in den Einstellungen den Zugriff auf deine Fotomediathek, um deine Fotos zu scannen.",
+  "button": "OK"
+},
   "credits_popup": {
     "title": "Bereit, deine Galerie aufzuräumen?",
     "subtitle": {

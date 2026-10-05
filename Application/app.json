@@ -37,6 +37,32 @@
         {
           "photosPermission": "UnPile needs access to your photo library to scan for duplicates, blurry images, and clutter so you can review and delete them. Only the photos you choose to clean are affected."
         }
+      ],
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": [
+              "en",
+              "ar",
+              "de",
+              "es",
+              "fr",
+              "ja",
+              "tr"
+            ],
+            "android": [
+              "en",
+              "ar",
+              "de",
+              "es",
+              "fr",
+              "ja",
+              "tr"
+            ]
+          },
+          "supportsRTL": true
+        }
       ]
     ],
     "experiments": {

@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -53,6 +54,8 @@ type AnalysisContextType = {
   isLoading: boolean;
   progress: number;
   category: string;
+  totalItems: number;
+  processedItems: number;
   startAnalysis: () => Promise<boolean>;
   clearResult: () => void;
   getCategoryItems: (category: CategoryKey) => CategoryItem[];
@@ -102,7 +105,8 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
   const [category, setCategory] = useState("");
   const [overrides, setOverrides] = useState<CategorySelectionOverrides>({});
   const [isLoadingCache, setIsLoadingCache] = useState(true);
-
+  const [totalItems, setTotalItems] = useState(0);
+  const [processedItems, setProcessedItems] = useState(0);
   // Load cached result on mount
   useEffect(() => {
     const loadCached = async () => {
@@ -120,39 +124,82 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const runningRef = useRef(false);
 
-  const startAnalysis = async (): Promise<boolean> => {
-    if (runningRef.current) return false;
+const startAnalysis = useCallback(
+  async (): Promise<boolean> => {
+    if (runningRef.current) {
+      return false;
+    }
+
     runningRef.current = true;
 
+    setTotalItems(0);
+    setProcessedItems(0);
     setIsLoading(true);
     setProgress(0);
     setCategory("");
     setResult(null);
     setOverrides({});
 
-    const subscription = ExpoPhotoAnalyzerModule.addListener(
-      "onProgress",
-      (e: any) => {
-        setProgress((p) => Math.max(p, e.progress)); // never goes backwards
-        setCategory(e.category);
-      },
-    );
+    const subscription =
+      ExpoPhotoAnalyzerModule.addListener(
+        "onProgress",
+        (e: any) => {
+          setProgress((previous) =>
+            Math.max(
+              previous,
+              e.progress ?? 0
+            )
+          );
+
+          setCategory(
+            e.stage ?? ""
+          );
+
+          setTotalItems(
+            e.totalItems ?? 0
+          );
+
+          setProcessedItems(
+            e.processedItems ?? 0
+          );
+        }
+      );
 
     let ok = false;
+
     try {
-      const data = await ExpoPhotoAnalyzerModule.analyzePhotos();
+      const data =
+        await ExpoPhotoAnalyzerModule.analyzePhotos();
+
       setResult(data);
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+      await AsyncStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(data)
+      );
+
       ok = true;
+
     } catch (error) {
-      console.error("Analysis failed:", error);
+
+      console.error(
+        "Analysis failed:",
+        error
+      );
+
     } finally {
+
       subscription.remove();
+
       runningRef.current = false;
+
       setIsLoading(false);
     }
+
     return ok;
-  };
+  },
+  []
+);
 
   const clearResult = async () => {
     setResult(null);
@@ -327,7 +374,7 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   //  Remove items from the result (after deletion)
-   //  Remove items from the result (after deletion)
+  //  Remove items from the result (after deletion)
   const removeItems = (ids: string[]) => {
     if (!result) return;
     const removeSet = new Set(ids);
@@ -463,6 +510,8 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
         isLoading,
         progress,
         category,
+        totalItems,
+        processedItems,
         startAnalysis,
         clearResult,
         getCategoryItems,

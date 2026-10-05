@@ -27,22 +27,18 @@
     },
     "note": "قد يستغرق هذا بعض الوقت.",
     "progress": {
-      "finding_screenshots": "البحث عن لقطات الشاشة...",
-      "screenshots_done": "تم العثور على لقطات الشاشة",
-      "scanning_duplicates": "البحث عن الصور المكررة...",
-      "duplicates_progress": "المكررة {percent}%",
-      "duplicates_done": "تم فحص المكررة",
-      "checking_quality": "جاري فحص جودة الصور...",
-      "quality_progress": "فحص الجودة {percent}%",
-      "quality_done": "تم فحص الجودة",
-      "finding_live_photos": "البحث عن الصور الحية...",
-      "live_photos_done": "تم العثور على الصور الحية",
-      "finding_clutter": "البحث عن الفوضى...",
-      "clutter_progress": "الفوضى {percent}%",
-      "clutter_done": "تم فحص الفوضى",
-      "done": "تم"
+      "status": {
+        "part_1": "جاري الفحص",
+        "part_2": "من",
+        "part_3": "عنصر..."
+      }
     }
   },
+  "permission_required": {
+  "title": " يلزم السماح بالوصول للصور",
+  "message": "يرجى السماح بالوصول إلى مكتبة الصور من الإعدادات لفحص صورك.",
+  "button": "موافق"
+},
   "credits_popup": {
     "title": "هل أنت مستعد لتنظيف معرض الصور؟",
     "subtitle": {

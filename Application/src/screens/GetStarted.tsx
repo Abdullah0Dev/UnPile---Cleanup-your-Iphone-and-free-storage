@@ -5,6 +5,7 @@ import { Image } from "expo-image";
 import Animated from "react-native-reanimated";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 import { Brand, FontSizes, FontWeights, Gradients } from "@/constants/theme";
 import { GradientText } from "@/components/ui/gradient-text";
@@ -13,6 +14,8 @@ import { useEntrance, useHeroEntrance } from "@/hooks/use-entrance";
 import { useAnalysis } from "@/context/AnalysisContext";
 
 const GetStarted = () => {
+  const { t } = useTranslation();
+
   const logoEntrance = useHeroEntrance(0);
   const wordmarkEntrance = useEntrance(160);
   const subtitleEntrance = useEntrance(240);
@@ -28,23 +31,33 @@ const GetStarted = () => {
       const { status } = await ImagePicker.getMediaLibraryPermissionsAsync();
       setPermissionGranted(status === "granted");
     };
+
     checkPermission();
   }, []);
 
   const requestPermission = async (): Promise<boolean> => {
     setIsCheckingPermission(true);
+
     try {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
+
       const granted = status === "granted";
       setPermissionGranted(granted);
+
       if (!granted) {
         Alert.alert(
-          "Permission Required",
-          "Please grant photo library access in Settings to scan your photos.",
-          [{ text: "OK", style: "default" }],
+          t("permission_required.title"),
+          t("permission_required.message"),
+          [
+            {
+              text: t("permission_required.button"),
+              style: "default",
+            },
+          ],
         );
       }
+
       return granted;
     } catch (error) {
       console.error("Permission error:", error);
@@ -53,13 +66,16 @@ const GetStarted = () => {
       setIsCheckingPermission(false);
     }
   };
+
   const handleStartScanning = async () => {
     if (!permissionGranted) {
       const granted = await requestPermission();
       if (!granted) return;
     }
+
     router.push("/scanning");
   };
+
   const isButtonDisabled = isLoading || isCheckingPermission;
 
   return (
@@ -74,12 +90,15 @@ const GetStarted = () => {
         </Animated.View>
 
         <Animated.View style={[styles.logoTextContainer, wordmarkEntrance]}>
-          <Text style={styles.logoText}>Un</Text>
+          <Text style={styles.logoText}>
+            {t("get_started_screen.title.part_1")}
+          </Text>
+
           <GradientText
             colors={Gradients.primaryButton}
             style={styles.logoText}
           >
-            Pile
+            {t("get_started_screen.title.part_2")}
           </GradientText>
         </Animated.View>
 
@@ -90,15 +109,24 @@ const GetStarted = () => {
             subtitleEntrance,
           ]}
         >
-          <Text style={styles.logoSubtitle}>Clean your camera roll.</Text>
-          <Text style={styles.logoSubtitle}>Free up space in seconds.</Text>
+          <Text style={styles.logoSubtitle}>
+            {t("get_started_screen.subtitle.part_1")}
+          </Text>
+
+          <Text style={styles.logoSubtitle}>
+            {t("get_started_screen.subtitle.part_2")}
+          </Text>
         </Animated.View>
       </View>
 
       <Animated.View style={buttonEntrance}>
         <GradientButton
           onPress={handleStartScanning}
-          title={isCheckingPermission ? "Checking..." : "Start Scanning"}
+          title={
+            isCheckingPermission
+              ? t("get_started_screen.button.title.checking")
+              : t("get_started_screen.button.title.start")
+          }
           disabled={isButtonDisabled}
         />
       </Animated.View>

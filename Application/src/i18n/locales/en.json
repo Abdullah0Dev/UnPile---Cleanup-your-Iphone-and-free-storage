@@ -15,6 +15,11 @@
       }
     }
   },
+  "permission_required": {
+  "title": "Permission Required",
+  "message": "Please grant photo library access in Settings to scan your photos.",
+  "button": "OK"
+},
   "scanning_screen": {
     "title": "Scanning Library",
     "secure_bar": {
@@ -27,20 +32,11 @@
     },
     "note": "This may take a few moments.",
     "progress": {
-      "finding_screenshots": "Finding screenshots...",
-      "screenshots_done": "Screenshots done",
-      "scanning_duplicates": "Scanning for duplicates...",
-      "duplicates_progress": "Duplicates {percent}%",
-      "duplicates_done": "Duplicates done",
-      "checking_quality": "Checking photo quality...",
-      "quality_progress": "Quality check {percent}%",
-      "quality_done": "Quality check done",
-      "finding_live_photos": "Finding Live Photos...",
-      "live_photos_done": "Live Photos done",
-      "finding_clutter": "Finding clutter...",
-      "clutter_progress": "Clutter {percent}%",
-      "clutter_done": "Clutter done",
-      "done": "Done"
+      "status": {
+        "part_1": "Scanning",
+        "part_2": "of",
+        "part_3": "items..."
+      }
     }
   },
   "credits_popup": {
@@ -57,7 +53,7 @@
       "secondary": "Continue with 50 free credits"
     }
   },
-    "premium_access_screen": {
+  "premium_access_screen": {
     "title": "Premium Access",
     "features": {
       "unlimited_deletion": "Unlimited Deletion",
@@ -193,4 +189,3 @@
     }
   }
 }
-
