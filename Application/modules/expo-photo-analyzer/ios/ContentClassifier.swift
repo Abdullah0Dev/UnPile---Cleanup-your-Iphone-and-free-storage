@@ -2,92 +2,72 @@ import CoreML
 import Vision
 import UIKit
 
-class ContentClassifier {
+struct ContentInfo {
+    let topLabel: String?
+    let isUnneededObject: Bool
+}
 
-    static let modelName = "MobileNet"  // Your model file name (without extension)
+/// Face detection via Apple's Vision (fast, no model file needed).
+/// Replaces the old label-contains("person") check, which never matches ImageNet labels.
+enum FaceDetector {
+    static func containsFace(_ cg: CGImage, orientation: CGImagePropertyOrientation = .up) -> Bool {
+        let request = VNDetectFaceRectanglesRequest()
+        let handler = VNImageRequestHandler(cgImage: cg, orientation: orientation, options: [:])
+        do { try handler.perform([request]) } catch { return false }
+        let faces = (request.results as? [VNFaceObservation]) ?? []
+        // ignore tiny background faces (<0.4% of the frame)
+        return faces.contains { $0.boundingBox.width * $0.boundingBox.height >= 0.004 }
+    }
+}
+
+final class ContentClassifier {
+    static let modelName = "MobileNet"
+    static let shared: ContentClassifier? = ContentClassifier()
+
+    /// A label only counts if the model is at least this confident.
+    var minConfidence: Float = 0.30
 
     private let model: VNCoreMLModel
-    private let inputSize = CGSize(width: 224, height: 224)
+    private let gate = DispatchSemaphore(value: 3)
+
+    /// ImageNet-style synonyms. Matched as WHOLE phrases (the old substring match
+    /// made "id" hit "bridge", "bird", etc.).
+    private static let unneededPhrases: Set<String> = [
+        "laptop", "laptop computer", "notebook", "notebook computer",
+        "monitor", "screen", "crt screen", "desktop computer", "television", "television receiver",
+        "whiteboard", "chalkboard", "blackboard",
+        "document", "paper", "receipt", "invoice", "envelope", "binder", "book jacket", "menu",
+        "id", "passport", "driver license", "card", "business card",
+        "keyboard", "computer keyboard", "mouse", "computer mouse", "printer", "web site",
+        "desk", "office", "book", "magazine", "comic book"
+    ]
 
     init?() {
-        guard let resourceBundleURL = Bundle.main.url(forResource: "ExpoPhotoAnalyzerResources", withExtension: "bundle"),
-              let resourceBundle = Bundle(url: resourceBundleURL),
-              let modelURL = resourceBundle.url(forResource: ContentClassifier.modelName, withExtension: "mlmodelc") else {
-            print("❌ Content model not found in resource bundle")
-            return nil
-        }
-
-        do {
-            let coreMLModel = try MLModel(contentsOf: modelURL)
-            let visionModel = try VNCoreMLModel(for: coreMLModel)
-            self.model = visionModel
-        } catch {
-            print("❌ Failed to load content model: \(error)")
-            return nil
-        }
+        guard let m = MLModelLoader.loadVisionModel(named: ContentClassifier.modelName) else { return nil }
+        model = m
     }
 
-    /// Classifies the image and returns the top label (e.g., "laptop", "desk", "person")
-    func classify(_ image: UIImage, completion: @escaping (String?) -> Void) {
-        guard let cgImage = image.cgImage else {
-            print("❌ classify: No CGImage")
-            completion(nil)
-            return
-        }
+    func classify(_ cg: CGImage, orientation: CGImagePropertyOrientation = .up) -> ContentInfo? {
+        gate.wait()
+        defer { gate.signal() }
 
-        let request = VNCoreMLRequest(model: model) { request, error in
-            if let error = error {
-                print("❌ classify error: \(error)")
-                completion(nil)
-                return
-            }
-            guard let observations = request.results as? [VNClassificationObservation] else {
-                print("❌ No observations")
-                completion(nil)
-                return
-            }
-            if let top = observations.first {
-                print("📸 Content label: \(top.identifier) (confidence: \(top.confidence))")
-                completion(top.identifier)
-            } else {
-                print("❌ No top observation")
-                completion(nil)
-            }
-        }
+        let request = VNCoreMLRequest(model: model)
+        request.imageCropAndScaleOption = .scaleFill
+        let handler = VNImageRequestHandler(cgImage: cg, orientation: orientation, options: [:])
+        do { try handler.perform([request]) } catch { return nil }
 
-        guard let resized = resizeImage(cgImage, to: inputSize) else {
-            print("❌ Failed to resize image")
-            completion(nil)
-            return
-        }
+        guard let obs = request.results as? [VNClassificationObservation], let top = obs.first else { return nil }
 
-        let handler = VNImageRequestHandler(cgImage: resized, options: [:])
-        do {
-            try handler.perform([request])
-            print("✅ classify request performed")
-        } catch {
-            print("❌ classify perform error: \(error)")
-            completion(nil)
+        let unneeded = obs.prefix(3).contains { o in
+            o.confidence >= minConfidence && ContentClassifier.matchesUnneeded(o.identifier)
         }
+        return ContentInfo(topLabel: top.identifier, isUnneededObject: unneeded)
     }
-    private func resizeImage(_ cgImage: CGImage, to size: CGSize) -> CGImage? {
-        let width = Int(size.width)
-        let height = Int(size.height)
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
-        let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue
 
-        guard let context = CGContext(
-            data: nil,
-            width: width,
-            height: height,
-            bitsPerComponent: 8,
-            bytesPerRow: 0,
-            space: colorSpace,
-            bitmapInfo: bitmapInfo
-        ) else { return nil }
-
-        context.interpolationQuality = .high
-        context.draw(cgImage, in: CGRect(origin: .zero, size: size))
-        return context.makeImage()
+    private static func matchesUnneeded(_ label: String) -> Bool {
+        label.lowercased()
+            .replacingOccurrences(of: "_", with: " ")
+            .split(separator: ",")
+            .contains { unneededPhrases.contains($0.trimmingCharacters(in: .whitespaces)) }
     }
 }

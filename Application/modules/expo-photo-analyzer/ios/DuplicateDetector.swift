@@ -1,162 +1,84 @@
 import Photos
-import UIKit
 
-class DuplicateDetector {
-    // Hamming distance threshold for 256‑bit hashes (16×16)
-    private let similarityThreshold = 15
+/// Clusters near-duplicates from precomputed fingerprints (no image loading here).
+/// Uses multi-index hashing: the 256-bit dHash is split into 16 chunks of 16 bits.
+/// If two hashes differ by <16 bits, at least one chunk matches exactly (pigeonhole),
+/// so we find ALL close pairs anywhere in the library without O(n²) comparisons.
+final class DuplicateDetector {
+    var dHashThreshold = 14      // max differing bits out of 256 (dHash)
+    var aHashThreshold = 22      // second hash must also agree (kills false positives)
+    var bucketCap = 120          // skip over-full buckets (flat/common patterns)
+    var timeWindow = 25          // also always compare with the next N photos by date
+    var aspectTolerance: Float = 0.02
 
-    func findDuplicateGroups(
-        assets: [PHAsset],
-        progressHandler: @escaping (Float) -> Void
-    ) -> [DuplicateGroup] {
-        var fingerprints: [(PHAsset, Data?)] = []
-        let total = Float(assets.count)
+    func findDuplicateGroups(assets: [PHAsset], fingerprints fps: [Fingerprint?], sizes: [Int64]) -> [DuplicateGroup] {
+        let n = assets.count
+        guard n > 1 else { return [] }
 
-        // 1. Generate fingerprints (progress 0…0.5)
-        for (idx, asset) in assets.enumerated() {
-            let fp = generateFingerprint(for: asset)
-            fingerprints.append((asset, fp))
-            progressHandler(Float(idx + 1) / total * 0.5)
+        var buckets = [[UInt16: [Int32]]](repeating: [:], count: 16)
+        for i in 0..<n {
+            guard let f = fps[i] else { continue }
+            for c in 0..<16 { buckets[c][f.chunk(c), default: []].append(Int32(i)) }
         }
 
-        // 2. Cluster by Hamming distance (progress 0.5…0.9)
-        var rawClusters: [[PHAsset]] = []
-        var used = Set<String>()
-        let totalClusters = Float(assets.count)
+        let aspect: [Float] = assets.map {
+            let w = Float(max($0.pixelWidth, 1)), h = Float(max($0.pixelHeight, 1))
+            return max(w, h) / min(w, h)
+        }
+        let isShot: [Bool] = assets.map { $0.mediaSubtypes.contains(.photoScreenshot) }
 
-        for (i, (asset1, fp1)) in fingerprints.enumerated() {
-            progressHandler(0.5 + 0.4 * (Float(i) / totalClusters))
+        var used = [Bool](repeating: false, count: n)
+        var seen = [Int](repeating: -1, count: n)
+        var clusters: [[Int]] = []
 
-            if used.contains(asset1.localIdentifier) { continue }
-            guard let fp1 = fp1 else { continue }
+        for i in 0..<n {
+            guard !used[i], let f1 = fps[i] else { continue }
 
-            var cluster = [asset1]
-            for (j, (asset2, fp2)) in fingerprints.enumerated() where j > i {
-                if used.contains(asset2.localIdentifier) { continue }
-                if let fp2 = fp2 {
-                    let distance = hammingDistance(fp1, fp2)
-                    if distance < similarityThreshold {
-                        cluster.append(asset2)
-                        used.insert(asset2.localIdentifier)
+            var cand = [Int]()
+            for c in 0..<16 {
+                if let b = buckets[c][f1.chunk(c)], b.count <= bucketCap {
+                    for j32 in b {
+                        let j = Int(j32)
+                        if j > i, seen[j] != i { seen[j] = i; cand.append(j) }
                     }
                 }
             }
-            if cluster.count > 1 {
-                rawClusters.append(cluster)
+            let end = min(n, i + 1 + timeWindow)
+            if i + 1 < end {
+                for j in (i + 1)..<end where seen[j] != i { seen[j] = i; cand.append(j) }
             }
-            used.insert(asset1.localIdentifier)
-        }
+            cand.sort()
 
-        // 3. For each cluster, pick the best asset and build DuplicateGroup
-        progressHandler(0.9)   // fixed: only Float argument
-        let groups = rawClusters.map { cluster -> DuplicateGroup in
-            let sorted = cluster.sorted { asset1, asset2 in
-                qualityScore(for: asset1) > qualityScore(for: asset2)
+            var cluster = [i]
+            for j in cand where !used[j] {
+                guard let f2 = fps[j] else { continue }
+                if abs(aspect[i] - aspect[j]) > aspectTolerance * max(aspect[i], aspect[j]) { continue }
+                // Screenshots look alike (same UI chrome) so require much tighter matches.
+                let strict = isShot[i] || isShot[j]
+                let dT = strict ? dHashThreshold / 2 : dHashThreshold
+                let aT = strict ? aHashThreshold / 2 : aHashThreshold
+                if f1.dDistance(to: f2) <= dT && f1.aDistance(to: f2) <= aT {
+                    cluster.append(j)
+                    used[j] = true
+                }
             }
-            let best = sorted.first!
-            let duplicates = Array(sorted.dropFirst())
-            return DuplicateGroup(bestAsset: best, duplicateAssets: duplicates)
+            used[i] = true
+            if cluster.count > 1 { clusters.append(cluster) }
         }
 
-        progressHandler(1.0)
-        return groups
-    }
-
-    // MARK: - Fingerprint Generation (16×16 average hash)
-    private func generateFingerprint(for asset: PHAsset) -> Data? {
-        let options = PHImageRequestOptions()
-        options.isSynchronous = true
-        options.deliveryMode = .highQualityFormat
-        options.resizeMode = .exact
-        options.isNetworkAccessAllowed = true
-
-        var hashData: Data?
-
-        PHImageManager.default().requestImage(
-            for: asset,
-            targetSize: CGSize(width: 300, height: 300),
-            contentMode: .aspectFit,
-            options: options
-        ) { image, info in
-            guard let cgImage = image?.cgImage else { return }
-            hashData = self.averageHash16x16(cgImage: cgImage)
-        }
-
-        return hashData
-    }
-
-    // 16×16 average hash → 256 bits → 32 bytes
-    private func averageHash16x16(cgImage: CGImage) -> Data? {
-        let size = 16
-        let width = size
-        let height = size
-        let bytesPerPixel = 1
-        let bytesPerRow = width * bytesPerPixel
-        let bitsPerComponent = 8
-
-        guard let context = CGContext(
-            data: nil,
-            width: width,
-            height: height,
-            bitsPerComponent: bitsPerComponent,
-            bytesPerRow: bytesPerRow,
-            space: CGColorSpaceCreateDeviceGray(),
-            bitmapInfo: CGImageAlphaInfo.none.rawValue
-        ) else { return nil }
-
-        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
-
-        guard let data = context.data else { return nil }
-        let pixels = data.bindMemory(to: UInt8.self, capacity: width * height)
-
-        // Compute average
-        var total: UInt = 0
-        for i in 0 ..< (width * height) {
-            total += UInt(pixels[i])
-        }
-        let avg = UInt8(total / UInt(width * height))
-
-        // Build a 256‑bit integer (as 32 bytes)
-        var hashBytes = [UInt8](repeating: 0, count: 32) // 256 bits
-        for i in 0 ..< (width * height) {
-            let byteIndex = i / 8
-            let bitIndex = i % 8
-            if pixels[i] > avg {
-                hashBytes[byteIndex] |= (1 << bitIndex)
+        return clusters.map { idxs in
+            // Best = favorite first, then resolution, then file size.
+            let ranked = idxs.sorted { a, b in
+                let fa = assets[a].isFavorite, fb = assets[b].isFavorite
+                if fa != fb { return fa }
+                let pa = assets[a].pixelWidth * assets[a].pixelHeight
+                let pb = assets[b].pixelWidth * assets[b].pixelHeight
+                if pa != pb { return pa > pb }
+                if sizes[a] != sizes[b] { return sizes[a] > sizes[b] }
+                return a < b
             }
+            return DuplicateGroup(bestAsset: assets[ranked[0]],
+                                  duplicateAssets: ranked.dropFirst().map { assets[$0] })
         }
-        return Data(hashBytes)
-    }
-
-    // MARK: - Hamming Distance (for 32‑byte data)
-    private func hammingDistance(_ data1: Data, _ data2: Data) -> Int {
-        guard data1.count == data2.count else { return Int.max }
-        var distance = 0
-        let bytes1 = [UInt8](data1)
-        let bytes2 = [UInt8](data2)
-        for i in 0 ..< bytes1.count {
-            var xor = bytes1[i] ^ bytes2[i]
-            while xor != 0 {
-                distance += Int(xor & 1)
-                xor >>= 1
-            }
-        }
-        return distance
-    }
-
-    // MARK: - Quality Scoring
-    private func qualityScore(for asset: PHAsset) -> Int {
-        // Prefer higher resolution
-        let pixelCount = asset.pixelWidth * asset.pixelHeight
-
-        // Try to get file size via PHAssetResource
-        var fileSize: Int64 = 0
-        if let resource = PHAssetResource.assetResources(for: asset).first,
-           let size = resource.value(forKey: "fileSize") as? Int64 {
-            fileSize = size
-        }
-
-        // Combine: give more weight to pixel count (primary), file size as tie‑breaker
-        return pixelCount * 1000 + Int(fileSize)
     }
 }

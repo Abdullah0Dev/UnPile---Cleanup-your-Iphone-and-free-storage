@@ -23,12 +23,21 @@ public class ExpoPhotoAnalyzerModule: Module {
         }
     }
 
-    //  Private Helpers 
+    // MARK: - Helpers
+
+    private func hasPhotoAccess() -> Bool {
+        let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        return status == .authorized || status == .limited
+    }
 
     private func performAnalysis(promise: Promise) {
-        let status = PHPhotoLibrary.authorizationStatus()
-        guard status == .authorized || status == .limited else {
+        guard hasPhotoAccess() else {
             promise.reject("PERMISSION_DENIED", "Photo library access is required. Please grant permission.")
+            return
+        }
+        // Previously a second call would hang forever; now it fails fast.
+        guard analyzer == nil else {
+            promise.reject("ALREADY_RUNNING", "A scan is already in progress.")
             return
         }
 
@@ -38,12 +47,9 @@ public class ExpoPhotoAnalyzerModule: Module {
         Publishers.CombineLatest(analyzer.$progress, analyzer.$category)
             .receive(on: DispatchQueue.main)
             .sink { [weak self] progress, category in
-                self?.sendEvent("onProgress", [
-                    "progress": progress,
-                    "category": category
-                ])
+                self?.sendEvent("onProgress", ["progress": progress, "category": category])
             }
-            .store(in: &self.cancellables)
+            .store(in: &cancellables)
 
         analyzer.analyzePhotos { [weak self] result in
             let dict = self?.convertResult(result) ?? [:]
@@ -54,8 +60,7 @@ public class ExpoPhotoAnalyzerModule: Module {
     }
 
     private func performDeletion(ids: [String], promise: Promise) {
-        let status = PHPhotoLibrary.authorizationStatus()
-        guard status == .authorized || status == .limited else {
+        guard hasPhotoAccess() else {
             promise.reject("PERMISSION_DENIED", "Photo library access required to delete photos.")
             return
         }
@@ -76,13 +81,12 @@ public class ExpoPhotoAnalyzerModule: Module {
                     "errors": [] as [String]
                 ])
             } else {
-                let errorMessage = error?.localizedDescription ?? "Unknown error"
-                promise.reject("DELETE_FAILED", errorMessage)
+                promise.reject("DELETE_FAILED", error?.localizedDescription ?? "Unknown error")
             }
         }
     }
 
-    //  Result conversion 
+    // MARK: - Result conversion (format unchanged)
 
     private func convertResult(_ result: AnalysisResult) -> [String: Any] {
         return [
@@ -100,7 +104,7 @@ public class ExpoPhotoAnalyzerModule: Module {
             "livePhotoCandidates": result.livePhotoCandidates,
             "totalSavingsBytes": result.totalSavingsBytes,
             "categorySavings": result.categorySavings,
-            "assetSizes": result.assetSizes  // 
+            "assetSizes": result.assetSizes
         ]
     }
 }

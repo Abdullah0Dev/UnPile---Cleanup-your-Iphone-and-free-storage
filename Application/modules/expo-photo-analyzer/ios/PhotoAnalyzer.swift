@@ -1,18 +1,13 @@
 import Photos
-import Vision
-import CoreImage
-import UIKit
 import Combine
+import Foundation
 
-// MARK: - Data Models
+// MARK: - Data Models (unchanged)
 
 public struct DuplicateGroup {
     public let bestAsset: PHAsset
     public let duplicateAssets: [PHAsset]
-
-    public var allAssets: [PHAsset] {
-        [bestAsset] + duplicateAssets
-    }
+    public var allAssets: [PHAsset] { [bestAsset] + duplicateAssets }
 }
 
 public struct AnalysisResult {
@@ -28,6 +23,14 @@ public struct AnalysisResult {
     public let assetSizes: [String: Int64]
 }
 
+private struct AssetScan {
+    var fingerprint: Fingerprint? = nil
+    var blurry = false
+    var clutter = false //ImageAnalysis
+    var screenshotCandidate = false
+    var liveCandidate = false
+}
+
 // MARK: - PhotoAnalyzer
 
 public class PhotoAnalyzer: ObservableObject {
@@ -38,10 +41,243 @@ public class PhotoAnalyzer: ObservableObject {
 
     private let screenshotClassifier = ScreenshotClassifier()
     private let livePhotoDetector = LivePhotoDetector()
+    private let blurDetector = BlurDetector()
+    private let clutterDetector = ClutterDetector()
+    private let duplicateDetector = DuplicateDetector()
+
+    private let stateLock = NSLock()
+    private var running = false
+    private var lastReported: Float = -1
+    private var lastCategory = ""
 
     public init() {}
 
-    // MARK: - Deduplication Helper
+    // MARK: Public API
+
+    public func startAnalysis() {
+        analyzePhotos { _ in }
+    }
+
+    public func analyzePhotos(completion: @escaping (AnalysisResult) -> Void) {
+        stateLock.lock()
+        if running { stateLock.unlock(); return }
+        running = true
+        stateLock.unlock()
+
+        DispatchQueue.main.async {
+            self.isScanning = true
+            self.progress = 0
+        }
+
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            let analysis = self.performScan()
+
+            DispatchQueue.main.async {
+                self.result = analysis
+                self.isScanning = false
+                self.stateLock.lock(); self.running = false; self.stateLock.unlock()
+                completion(analysis)
+            }
+        }
+    }
+
+    // MARK: Scan
+
+    private func performScan() -> AnalysisResult {
+        report(0, "Preparing...", force: true)
+
+        // Warm up models once, before workers start (first load compiles for the ANE).
+        _ = QualityAnalyzer.shared
+        _ = ContentClassifier.shared
+
+        let fetch = PHFetchOptions()
+        fetch.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+        let fetched = PHAsset.fetchAssets(with: .image, options: fetch)
+        var assets = [PHAsset]()
+        assets.reserveCapacity(fetched.count)
+        fetched.enumerateObjects { a, _, _ in assets.append(a) }
+        let n = assets.count
+
+        let albumIds = albumMemberIds()      // ONE pass instead of one query per photo
+        let now = Date()
+
+        var scans = [AssetScan](repeating: AssetScan(), count: n)
+        var sizes = [Int64](repeating: 0, count: n)
+
+        // ---- Single parallel pass: load each photo once, run every analyzer on it ----
+        let progressLock = NSLock()
+        var done = 0
+        let step = max(1, n / 200)
+
+        scans.withUnsafeMutableBufferPointer { sp in
+            sizes.withUnsafeMutableBufferPointer { zp in
+                parallelFor(n) { i in
+                    let asset = assets[i]
+                    let meta = AssetMetadata.read(asset)
+                    zp[i] = meta.size
+
+                    let isShot = screenshotClassifier.isScreenshot(asset)
+                    let inAlbum = albumIds.contains(asset.localIdentifier)
+
+                    let thumb = ThumbnailLoader.load(asset)
+                    let info = LazyImageInfo(image: thumb?.0, orientation: thumb?.1 ?? .up)
+
+                    var scan = AssetScan()
+                    if let cg = thumb?.0, let feats = ImageAnalysis.analyze(cg) {
+                        scan.fingerprint = feats.fingerprint
+                        if !isShot {
+                            scan.blurry = blurDetector.isBlurry(stats: feats.stats) { info.quality }
+                        }
+                    }
+
+                    if isShot {
+                        scan.screenshotCandidate = screenshotClassifier.isCandidate(
+                            asset, inAlbum: inAlbum, now: now) { info.quality }
+                    } else {
+                        scan.clutter = clutterDetector.isClutter(
+                            asset: asset, meta: meta, inAlbum: inAlbum, now: now, info: info)
+                    }
+
+                    if livePhotoDetector.isLivePhoto(asset) {
+                        scan.liveCandidate = livePhotoDetector.isCandidate(
+                            asset: asset, meta: meta, inAlbum: inAlbum, now: now, info: info)
+                    }
+
+                    sp[i] = scan
+
+                    progressLock.lock(); done += 1; let d = done; progressLock.unlock()
+                    if d % step == 0 || d == n {
+                        self.report(Float(d) / Float(max(n, 1)) * 0.92, "Analyzing photos...")
+                    }
+                }
+            }
+        }
+
+        // ---- Duplicates (fingerprints already computed; this takes milliseconds) ----
+        report(0.93, "Grouping duplicates...", force: true)
+        let duplicateGroups = duplicateDetector.findDuplicateGroups(
+            assets: assets, fingerprints: scans.map { $0.fingerprint }, sizes: sizes)
+
+        // ---- Collect id lists (same order as before: newest first) ----
+        var screenshotIds = [String](), candidateScreenshotIds = [String]()
+        var livePhotoIds = [String](), candidateLiveIds = [String]()
+        var blurry = [String](), clutter = [String]()
+        var sizeById = [String: Int64](minimumCapacity: n)
+
+        for i in 0..<n {
+            let id = assets[i].localIdentifier
+            sizeById[id] = sizes[i]
+            if screenshotClassifier.isScreenshot(assets[i]) {
+                screenshotIds.append(id)
+                if scans[i].screenshotCandidate { candidateScreenshotIds.append(id) }
+            }
+            if livePhotoDetector.isLivePhoto(assets[i]) {
+                livePhotoIds.append(id)
+                if scans[i].liveCandidate { candidateLiveIds.append(id) }
+            }
+            if scans[i].blurry { blurry.append(id) }
+            if scans[i].clutter { clutter.append(id) }
+        }
+
+        report(0.97, "Finishing...", force: true)
+
+        // ---- Deduplicate across categories ----
+        let duplicateIds = duplicateGroups.flatMap { $0.duplicateAssets.map { $0.localIdentifier } }
+        let deduped = deduplicateCandidates(
+            duplicateIds: duplicateIds,
+            screenshotCandidates: candidateScreenshotIds,
+            livePhotoCandidates: candidateLiveIds,
+            blurry: blurry,
+            clutter: clutter)
+
+        // ---- Savings from the size map we already have ----
+        func sum(_ ids: [String]) -> Int64 { ids.reduce(0) { $0 + (sizeById[$1] ?? 0) } }
+
+        let categorySavings: [String: Int64] = [
+            "screenshots": sum(deduped.screenshotCandidates),
+            "duplicates": sum(duplicateIds),
+            "blurry": sum(deduped.blurry),
+            "clutter": sum(deduped.clutter),
+            "livePhotos": sum(deduped.livePhotoCandidates)
+        ]
+
+        var candidateSet = Set<String>()
+        candidateSet.formUnion(deduped.screenshotCandidates)
+        candidateSet.formUnion(deduped.blurry)
+        candidateSet.formUnion(deduped.clutter)
+        candidateSet.formUnion(deduped.livePhotoCandidates)
+        candidateSet.formUnion(duplicateIds)
+        let totalSavings = sum(Array(candidateSet))
+
+        var allIds = Set<String>()
+        allIds.formUnion(screenshotIds)
+        allIds.formUnion(candidateScreenshotIds)
+        allIds.formUnion(duplicateGroups.flatMap { [$0.bestAsset.localIdentifier] + $0.duplicateAssets.map { $0.localIdentifier } })
+        allIds.formUnion(clutter)
+        allIds.formUnion(blurry)
+        allIds.formUnion(livePhotoIds)
+        allIds.formUnion(candidateLiveIds)
+
+        var assetSizes = [String: Int64]()
+        for id in allIds {
+            if let s = sizeById[id], s > 0 { assetSizes[id] = s }
+        }
+
+        report(1.0, "Done", force: true)
+
+        return AnalysisResult(
+            screenshots: screenshotIds,
+            screenshotCandidates: deduped.screenshotCandidates,
+            duplicateGroups: duplicateGroups,
+            clutter: deduped.clutter,
+            blurry: deduped.blurry,
+            livePhotos: livePhotoIds,
+            livePhotoCandidates: deduped.livePhotoCandidates,
+            totalSavingsBytes: totalSavings,
+            categorySavings: categorySavings,
+            assetSizes: assetSizes)
+    }
+
+    // MARK: Helpers
+
+    /// Persistent worker pool: 2–6 threads pulling the next index.
+    private func parallelFor(_ n: Int, _ body: (Int) -> Void) {
+        guard n > 0 else { return }
+        let workers = min(max(2, ProcessInfo.processInfo.activeProcessorCount), 6)
+        let lock = NSLock()
+        var next = 0
+        DispatchQueue.concurrentPerform(iterations: workers) { _ in
+            while true {
+                lock.lock(); let i = next; next += 1; lock.unlock()
+                if i >= n { break }
+                autoreleasepool { body(i) }
+            }
+        }
+    }
+
+    /// All asset ids that live in at least one album (same meaning as the old per-asset query).
+    private func albumMemberIds() -> Set<String> {
+        var ids = Set<String>()
+        let albums = PHAssetCollection.fetchAssetCollections(with: .album, subtype: .any, options: nil)
+        albums.enumerateObjects { collection, _, _ in
+            let members = PHAsset.fetchAssets(in: collection, options: nil)
+            members.enumerateObjects { a, _, _ in ids.insert(a.localIdentifier) }
+        }
+        return ids
+    }
+
+    private func report(_ p: Float, _ cat: String, force: Bool = false) {
+        stateLock.lock()
+        let should = force || cat != lastCategory || abs(p - lastReported) >= 0.005
+        if should { lastReported = p; lastCategory = cat }
+        stateLock.unlock()
+        guard should else { return }
+        DispatchQueue.main.async {
+            self.progress = p
+            self.category = cat
+        }
+    }
 
     private func deduplicateCandidates(
         duplicateIds: [String],
@@ -50,376 +286,11 @@ public class PhotoAnalyzer: ObservableObject {
         blurry: [String],
         clutter: [String]
     ) -> (screenshotCandidates: [String], livePhotoCandidates: [String], blurry: [String], clutter: [String]) {
-        var usedIds = Set<String>()
-
-        // 1. Duplicates take priority (they are already flagged for deletion)
-        usedIds.formUnion(duplicateIds)
-
-        // 2. Screenshot candidates
-        let filteredScreenshots = screenshotCandidates.filter { !usedIds.contains($0) }
-        usedIds.formUnion(filteredScreenshots)
-
-        // 3. Live Photo candidates
-        let filteredLive = livePhotoCandidates.filter { !usedIds.contains($0) }
-        usedIds.formUnion(filteredLive)
-
-        // 4. Blurry
-        let filteredBlurry = blurry.filter { !usedIds.contains($0) }
-        usedIds.formUnion(filteredBlurry)
-
-        // 5. Clutter
-        let filteredClutter = clutter.filter { !usedIds.contains($0) }
-
-        return (filteredScreenshots, filteredLive, filteredBlurry, filteredClutter)
-    }
-
-    // MARK: - Other Helpers
-
-    private func computeCategorySavings(
-        _ assets: [PHAsset],
-        screenshotCandidates: [String],
-        duplicateGroups: [DuplicateGroup],
-        blurry: [String],
-        clutter: [String],
-        livePhotoCandidates: [String]
-    ) -> [String: Int64] {
-        var savings: [String: Int64] = [:]
-
-        func size(for assetId: String) -> Int64 {
-            let assets = PHAsset.fetchAssets(withLocalIdentifiers: [assetId], options: nil)
-            guard let asset = assets.firstObject,
-                  let resource = PHAssetResource.assetResources(for: asset).first,
-                  let size = resource.value(forKey: "fileSize") as? Int64 else {
-                return 0
-            }
-            return size
-        }
-
-        let screenshotSize = screenshotCandidates.reduce(0) { $0 + size(for: $1) }
-        savings["screenshots"] = screenshotSize
-
-        let duplicateIds = duplicateGroups.flatMap { $0.duplicateAssets.map { $0.localIdentifier } }
-        let duplicateSize = duplicateIds.reduce(0) { $0 + size(for: $1) }
-        savings["duplicates"] = duplicateSize
-
-        let blurrySize = blurry.reduce(0) { $0 + size(for: $1) }
-        savings["blurry"] = blurrySize
-
-        let clutterSize = clutter.reduce(0) { $0 + size(for: $1) }
-        savings["clutter"] = clutterSize
-
-        let liveSize = livePhotoCandidates.reduce(0) { $0 + size(for: $1) }
-        savings["livePhotos"] = liveSize
-
-        return savings
-    }
-
-    private func computeAssetSizes(for ids: [String]) -> [String: Int64] {
-        var sizes: [String: Int64] = [:]
-        for id in ids {
-            let assets = PHAsset.fetchAssets(withLocalIdentifiers: [id], options: nil)
-            guard let asset = assets.firstObject,
-                  let resource = PHAssetResource.assetResources(for: asset).first,
-                  let size = resource.value(forKey: "fileSize") as? Int64 else {
-                continue
-            }
-            sizes[id] = size
-        }
-        return sizes
-    }
-
-    private func updateProgress(_ progress: Float, _ category: String) {
-        DispatchQueue.main.async {
-            self.progress = progress
-            self.category = category
-        }
-    }
-
-    private func detectDuplicates(_ assets: [PHAsset], progressHandler: @escaping (Float) -> Void) -> [DuplicateGroup] {
-        let detector = DuplicateDetector()
-        return detector.findDuplicateGroups(assets: assets, progressHandler: progressHandler)
-    }
-
-    private func detectBlur(_ assets: [PHAsset], progressHandler: @escaping (Float) -> Void) -> [String] {
-        let detector = BlurDetector()
-        return detector.findBlurry(assets: assets, progressHandler: progressHandler)
-    }
-
-    private func detectClutter(_ assets: [PHAsset], progressHandler: @escaping (Float) -> Void) -> [String] {
-        let detector = ClutterDetector()
-        detector.debugMode = false
-        detector.ageThresholdDays = 30
-        detector.maxFileSizeBytes = 500 * 1024
-        detector.qualityThreshold = 4.0
-        return detector.findClutter(assets: assets, progressHandler: progressHandler)
-    }
-
-    private func calculateTotalSavings(_ assets: [PHAsset],
-                                       screenshotCandidates: [String],
-                                       duplicateGroups: [DuplicateGroup],
-                                       blurry: [String],
-                                       clutter: [String],
-                                       livePhotoCandidates: [String]) -> Int64 {
-        var candidateIds = Set<String>()
-        candidateIds.formUnion(screenshotCandidates)
-        candidateIds.formUnion(blurry)
-        candidateIds.formUnion(clutter)
-        candidateIds.formUnion(livePhotoCandidates)
-
-        for group in duplicateGroups {
-            for asset in group.duplicateAssets {
-                candidateIds.insert(asset.localIdentifier)
-            }
-        }
-
-        var total: Int64 = 0
-        for asset in assets where candidateIds.contains(asset.localIdentifier) {
-            if let resource = PHAssetResource.assetResources(for: asset).first,
-               let size = resource.value(forKey: "fileSize") as? Int64 {
-                total += size
-            }
-        }
-        return total
-    }
-
-    // MARK: - For SwiftUI
-
-    public func startAnalysis() {
-        guard !isScanning else { return }
-        isScanning = true
-        progress = 0
-
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self = self else { return }
-
-            let fetchOptions = PHFetchOptions()
-            fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
-            let assets = PHAsset.fetchAssets(with: .image, options: fetchOptions)
-            let allAssets = assets.objects(at: IndexSet(0..<assets.count))
-
-            // 1. Screenshots
-            self.updateProgress(0.0, "Finding screenshots...")
-            let screenshotAssets = self.screenshotClassifier.detectScreenshots(from: allAssets)
-            let screenshotIds = screenshotAssets.map { $0.localIdentifier }
-            let candidateScreenshotAssets = self.screenshotClassifier.suggestCandidates(from: screenshotAssets)
-            let candidateScreenshotIds = candidateScreenshotAssets.map { $0.localIdentifier }
-            self.updateProgress(0.2, "Screenshots done")
-
-            // 2. Duplicates
-            self.updateProgress(0.25, "Scanning for duplicates...")
-            let duplicateGroups = self.detectDuplicates(allAssets) { sub in
-                let overall = 0.25 + sub * 0.35
-                self.updateProgress(overall, "Duplicates \(Int(sub*100))%")
-            }
-            self.updateProgress(0.6, "Duplicates done")
-
-            // 3. Blurry
-            self.updateProgress(0.65, "Checking photo quality...")
-            let blurry = self.detectBlur(allAssets) { sub in
-                let overall = 0.65 + sub * 0.2
-                self.updateProgress(overall, "Quality check \(Int(sub*100))%")
-            }
-            self.updateProgress(0.85, "Quality check done")
-
-            // 4. Live Photos
-            self.updateProgress(0.87, "Finding Live Photos...")
-            let livePhotoAssets = self.livePhotoDetector.detectLivePhotos(from: allAssets)
-            let livePhotoIds = livePhotoAssets.map { $0.localIdentifier }
-            let candidateLivePhotoAssets = self.livePhotoDetector.suggestCandidates(from: livePhotoAssets)
-            let candidateLivePhotoIds = candidateLivePhotoAssets.map { $0.localIdentifier }
-            self.updateProgress(0.93, "Live Photos done")
-
-            // 5. Clutter
-            self.updateProgress(0.93, "Finding clutter...")
-            let clutter = self.detectClutter(allAssets) { sub in
-                let overall = 0.93 + sub * 0.05
-                self.updateProgress(overall, "Clutter \(Int(sub*100))%")
-            }
-            self.updateProgress(0.98, "Clutter done")
-
-            // 6. Collect duplicate IDs for deduplication
-            let duplicateIds = duplicateGroups.flatMap { $0.duplicateAssets.map { $0.localIdentifier } }
-
-            // 7. Deduplicate
-            let deduped = self.deduplicateCandidates(
-                duplicateIds: duplicateIds,
-                screenshotCandidates: candidateScreenshotIds,
-                livePhotoCandidates: candidateLivePhotoIds,
-                blurry: blurry,
-                clutter: clutter
-            )
-
-            // 8. Compute savings using deduplicated lists
-            let totalSavings = self.calculateTotalSavings(
-                allAssets,
-                screenshotCandidates: deduped.screenshotCandidates,
-                duplicateGroups: duplicateGroups,
-                blurry: deduped.blurry,
-                clutter: deduped.clutter,
-                livePhotoCandidates: deduped.livePhotoCandidates
-            )
-
-            let categorySavings = self.computeCategorySavings(
-                allAssets,
-                screenshotCandidates: deduped.screenshotCandidates,
-                duplicateGroups: duplicateGroups,
-                blurry: deduped.blurry,
-                clutter: deduped.clutter,
-                livePhotoCandidates: deduped.livePhotoCandidates
-            )
-
-            // 9. Asset sizes (include all referenced assets)
-            let allIds = Set(
-                screenshotIds +
-                candidateScreenshotIds +
-                duplicateGroups.flatMap { [$0.bestAsset.localIdentifier] + $0.duplicateAssets.map { $0.localIdentifier } } +
-                clutter +
-                blurry +
-                livePhotoIds +
-                candidateLivePhotoIds
-            )
-            let assetSizes = self.computeAssetSizes(for: Array(allIds))
-
-            self.updateProgress(1.0, "Done")
-
-            let analysisResult = AnalysisResult(
-                screenshots: screenshotIds,
-                screenshotCandidates: deduped.screenshotCandidates,
-                duplicateGroups: duplicateGroups,
-                clutter: deduped.clutter,
-                blurry: deduped.blurry,
-                livePhotos: livePhotoIds,
-                livePhotoCandidates: deduped.livePhotoCandidates,
-                totalSavingsBytes: totalSavings,
-                categorySavings: categorySavings,
-                assetSizes: assetSizes
-            )
-
-            DispatchQueue.main.async {
-                self.result = analysisResult
-                self.isScanning = false
-            }
-        }
-    }
-
-    // MARK: - For React Native / Expo
-
-    public func analyzePhotos(completion: @escaping (AnalysisResult) -> Void) {
-        guard !isScanning else { return }
-        isScanning = true
-        progress = 0
-
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self = self else { return }
-
-            let fetchOptions = PHFetchOptions()
-            fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
-            let assets = PHAsset.fetchAssets(with: .image, options: fetchOptions)
-            let allAssets = assets.objects(at: IndexSet(0..<assets.count))
-
-            // 1. Screenshots
-            self.updateProgress(0.0, "Finding screenshots...")
-            let screenshotAssets = self.screenshotClassifier.detectScreenshots(from: allAssets)
-            let screenshotIds = screenshotAssets.map { $0.localIdentifier }
-            let candidateScreenshotAssets = self.screenshotClassifier.suggestCandidates(from: screenshotAssets)
-            let candidateScreenshotIds = candidateScreenshotAssets.map { $0.localIdentifier }
-            self.updateProgress(0.2, "Screenshots done")
-
-            // 2. Duplicates
-            self.updateProgress(0.25, "Scanning for duplicates...")
-            let duplicateGroups = self.detectDuplicates(allAssets) { sub in
-                let overall = 0.25 + sub * 0.35
-                self.updateProgress(overall, "Duplicates \(Int(sub*100))%")
-            }
-            self.updateProgress(0.6, "Duplicates done")
-
-            // 3. Blurry
-            self.updateProgress(0.65, "Checking photo quality...")
-            let blurry = self.detectBlur(allAssets) { sub in
-                let overall = 0.65 + sub * 0.2
-                self.updateProgress(overall, "Quality check \(Int(sub*100))%")
-            }
-            self.updateProgress(0.85, "Quality check done")
-
-            // 4. Live Photos
-            self.updateProgress(0.87, "Finding Live Photos...")
-            let livePhotoAssets = self.livePhotoDetector.detectLivePhotos(from: allAssets)
-            let livePhotoIds = livePhotoAssets.map { $0.localIdentifier }
-            let candidateLivePhotoAssets = self.livePhotoDetector.suggestCandidates(from: livePhotoAssets)
-            let candidateLivePhotoIds = candidateLivePhotoAssets.map { $0.localIdentifier }
-            self.updateProgress(0.93, "Live Photos done")
-
-            // 5. Clutter
-            self.updateProgress(0.93, "Finding clutter...")
-            let clutter = self.detectClutter(allAssets) { sub in
-                let overall = 0.93 + sub * 0.05
-                self.updateProgress(overall, "Clutter \(Int(sub*100))%")
-            }
-            self.updateProgress(0.98, "Clutter done")
-
-            // 6. Collect duplicate IDs for deduplication
-            let duplicateIds = duplicateGroups.flatMap { $0.duplicateAssets.map { $0.localIdentifier } }
-
-            // 7. Deduplicate
-            let deduped = self.deduplicateCandidates(
-                duplicateIds: duplicateIds,
-                screenshotCandidates: candidateScreenshotIds,
-                livePhotoCandidates: candidateLivePhotoIds,
-                blurry: blurry,
-                clutter: clutter
-            )
-
-            // 8. Compute savings using deduplicated lists
-            let totalSavings = self.calculateTotalSavings(
-                allAssets,
-                screenshotCandidates: deduped.screenshotCandidates,
-                duplicateGroups: duplicateGroups,
-                blurry: deduped.blurry,
-                clutter: deduped.clutter,
-                livePhotoCandidates: deduped.livePhotoCandidates
-            )
-
-            let categorySavings = self.computeCategorySavings(
-                allAssets,
-                screenshotCandidates: deduped.screenshotCandidates,
-                duplicateGroups: duplicateGroups,
-                blurry: deduped.blurry,
-                clutter: deduped.clutter,
-                livePhotoCandidates: deduped.livePhotoCandidates
-            )
-
-            // 9. Asset sizes (include all referenced assets)
-            let allIds = Set(
-                screenshotIds +
-                candidateScreenshotIds +
-                duplicateGroups.flatMap { [$0.bestAsset.localIdentifier] + $0.duplicateAssets.map { $0.localIdentifier } } +
-                clutter +
-                blurry +
-                livePhotoIds +
-                candidateLivePhotoIds
-            )
-            let assetSizes = self.computeAssetSizes(for: Array(allIds))
-
-            self.updateProgress(1.0, "Done")
-
-            let analysisResult = AnalysisResult(
-                screenshots: screenshotIds,
-                screenshotCandidates: deduped.screenshotCandidates,
-                duplicateGroups: duplicateGroups,
-                clutter: deduped.clutter,
-                blurry: deduped.blurry,
-                livePhotos: livePhotoIds,
-                livePhotoCandidates: deduped.livePhotoCandidates,
-                totalSavingsBytes: totalSavings,
-                categorySavings: categorySavings,
-                assetSizes: assetSizes
-            )
-
-            DispatchQueue.main.async {
-                self.result = analysisResult
-                self.isScanning = false
-                completion(analysisResult)
-            }
-        }
+        var used = Set<String>(duplicateIds)
+        let s = screenshotCandidates.filter { !used.contains($0) }; used.formUnion(s)
+        let l = livePhotoCandidates.filter { !used.contains($0) }; used.formUnion(l)
+        let b = blurry.filter { !used.contains($0) }; used.formUnion(b)
+        let c = clutter.filter { !used.contains($0) }
+        return (s, l, b, c)
     }
 }

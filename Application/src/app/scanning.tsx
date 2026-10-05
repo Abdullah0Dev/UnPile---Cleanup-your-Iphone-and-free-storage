@@ -10,22 +10,29 @@ const ScanningScreen = () => {
   const [analysisStarted, setAnalysisStarted] = useState(false);
 
   useEffect(() => {
-    if (!analysisStarted) {
-      // some delay to ensure the page loaded
-      const timer = setTimeout(() => {
-        startAnalysis();
-        setAnalysisStarted(true);
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, []);
+    let cancelled = false;
+    let navTimer: ReturnType<typeof setTimeout>;
 
-  // nav to results when analysis completes
-  useEffect(() => {
-    if (!isLoading && result) {
-      router.replace("/home-results");
-    }
-  }, [isLoading, result]);
+    const startTimer = setTimeout(async () => {
+      const t0 = Date.now();
+      const ok = await startAnalysis();
+      if (cancelled) return;
+      if (!ok) {
+        router.back();
+        return;
+      } // failed or busy: don't hang here
+      const wait = Math.max(0, 1500 - (Date.now() - t0)); // scan is fast now, so avoid a flash
+      navTimer = setTimeout(() => {
+        if (!cancelled) router.replace("/home-results");
+      }, wait);
+    }, 300);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(startTimer);
+      clearTimeout(navTimer);
+    };
+  }, []);
 
   return (
     <View style={styles.container}>
