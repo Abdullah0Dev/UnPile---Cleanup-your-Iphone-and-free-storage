@@ -8,28 +8,42 @@
 
 /* Begin PBXBuildFile section */
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		2D1A2F08896AB1599B3B4DA4 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 47A94D601D42C2DF6EAAFE31 /* PrivacyInfo.xcprivacy */; };
+		1E57B92253613493E4205727 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 50491FE93DE1CAA2CDE5DC74 /* PrivacyInfo.xcprivacy */; };
+		28A52F920D8F4439A86ADA56 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 61D6CB91C5F94FB780B3D3E3 /* InfoPlist.strings */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		3EBBF4E7BC3FCB41B47CCC62 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB7B16BBF6E2E343AB43962C /* ExpoModulesProvider.swift */; };
+		5A8DC84DFF32051926BC2F4F /* libPods-UnPile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7465D5F0167D543E3DA14858 /* libPods-UnPile.a */; };
+		8CC710D0CC28487AB28C4D88 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A8E5E5C9D57D472A8C1BC93C /* InfoPlist.strings */; };
+		93B2A93433794AA29C89CC37 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = BF3A4D881EAB4336A06DA806 /* InfoPlist.strings */; };
+		985CEAF5282A4D9281B579D7 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = F562F857AE284422BFE3DA92 /* InfoPlist.strings */; };
+		9887DC3058494F029A8277B4 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 01829C472F3F4F0B8E1EC6A6 /* InfoPlist.strings */; };
+		9CCB6458410C4F65BD8AC7F2 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = EAFB470923F94269A3CA6033 /* InfoPlist.strings */; };
+		B2A9773418424CFE8E0FD983 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 54886C8C5DCD4489AC308963 /* InfoPlist.strings */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		C811CFFAC315A4AC7761C478 /* libPods-UnPile.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B3FD3ADF71F38FD1A73F329F /* libPods-UnPile.a */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
+		F91195F7B5AE0CEB17E0E1B1 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41D5F8CBEF71E0AC6A7BCAD9 /* ExpoModulesProvider.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0E8A7D5B33B627C257AC2B5A /* Pods-UnPile.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-UnPile.release.xcconfig"; path = "Target Support Files/Pods-UnPile/Pods-UnPile.release.xcconfig"; sourceTree = "<group>"; };
+		01829C472F3F4F0B8E1EC6A6 /* InfoPlist.strings */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = de.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* UnPile.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UnPile.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = UnPile/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = UnPile/Info.plist; sourceTree = "<group>"; };
-		47A94D601D42C2DF6EAAFE31 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = UnPile/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		85C0833DF70BF42192659624 /* Pods-UnPile.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-UnPile.debug.xcconfig"; path = "Target Support Files/Pods-UnPile/Pods-UnPile.debug.xcconfig"; sourceTree = "<group>"; };
+		41D5F8CBEF71E0AC6A7BCAD9 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-UnPile/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		50491FE93DE1CAA2CDE5DC74 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = UnPile/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		54886C8C5DCD4489AC308963 /* InfoPlist.strings */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		61D6CB91C5F94FB780B3D3E3 /* InfoPlist.strings */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = ar.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		7465D5F0167D543E3DA14858 /* libPods-UnPile.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-UnPile.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		931CBABC718BF1C824401700 /* Pods-UnPile.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-UnPile.debug.xcconfig"; path = "Target Support Files/Pods-UnPile/Pods-UnPile.debug.xcconfig"; sourceTree = "<group>"; };
+		A8E5E5C9D57D472A8C1BC93C /* InfoPlist.strings */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = fr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = UnPile/SplashScreen.storyboard; sourceTree = "<group>"; };
-		B3FD3ADF71F38FD1A73F329F /* libPods-UnPile.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-UnPile.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
+		BF3A4D881EAB4336A06DA806 /* InfoPlist.strings */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = es.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		C6068CE95D902D679A14FDF2 /* Pods-UnPile.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-UnPile.release.xcconfig"; path = "Target Support Files/Pods-UnPile/Pods-UnPile.release.xcconfig"; sourceTree = "<group>"; };
+		EAFB470923F94269A3CA6033 /* InfoPlist.strings */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = tr.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = UnPile/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* UnPile-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "UnPile-Bridging-Header.h"; path = "UnPile/UnPile-Bridging-Header.h"; sourceTree = "<group>"; };
-		FB7B16BBF6E2E343AB43962C /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-UnPile/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		F562F857AE284422BFE3DA92 /* InfoPlist.strings */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.strings; name = InfoPlist.strings; path = ja.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,21 +51,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C811CFFAC315A4AC7761C478 /* libPods-UnPile.a in Frameworks */,
+				5A8DC84DFF32051926BC2F4F /* libPods-UnPile.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		0CAC56CFD741F47E9B787D58 /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				98F173F798077EF4F54B308C /* UnPile */,
-			);
-			name = ExpoModulesProviders;
-			sourceTree = "<group>";
-		};
 		13B07FAE1A68108700A75B9A /* UnPile */ = {
 			isa = PBXGroup;
 			children = (
@@ -61,7 +67,7 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				47A94D601D42C2DF6EAAFE31 /* PrivacyInfo.xcprivacy */,
+				50491FE93DE1CAA2CDE5DC74 /* PrivacyInfo.xcprivacy */,
 			);
 			name = UnPile;
 			sourceTree = "<group>";
@@ -70,9 +76,65 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				B3FD3ADF71F38FD1A73F329F /* libPods-UnPile.a */,
+				7465D5F0167D543E3DA14858 /* libPods-UnPile.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		388F05DD2736425EBD6B3625 /* ar.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				61D6CB91C5F94FB780B3D3E3 /* InfoPlist.strings */,
+			);
+			name = ar.lproj;
+			sourceTree = "<group>";
+		};
+		4099C45DC81DFA2B03A72374 /* ExpoModulesProviders */ = {
+			isa = PBXGroup;
+			children = (
+				DB00585F4FEDC466E5E4DE62 /* UnPile */,
+			);
+			name = ExpoModulesProviders;
+			sourceTree = "<group>";
+		};
+		465FFF0A23194FF19608EB24 /* en.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				54886C8C5DCD4489AC308963 /* InfoPlist.strings */,
+			);
+			name = en.lproj;
+			sourceTree = "<group>";
+		};
+		4B442239AAF245369D4DCAE2 /* tr.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				EAFB470923F94269A3CA6033 /* InfoPlist.strings */,
+			);
+			name = tr.lproj;
+			sourceTree = "<group>";
+		};
+		4FA3F4627BB64254AB4C2681 /* fr.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				A8E5E5C9D57D472A8C1BC93C /* InfoPlist.strings */,
+			);
+			name = fr.lproj;
+			sourceTree = "<group>";
+		};
+		5DDAF49EFA634221965EF57A /* es.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				BF3A4D881EAB4336A06DA806 /* InfoPlist.strings */,
+			);
+			name = es.lproj;
+			sourceTree = "<group>";
+		};
+		7FD2881AD30047DB94DF1CAA /* de.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				01829C472F3F4F0B8E1EC6A6 /* InfoPlist.strings */,
+			);
+			name = de.lproj;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -89,8 +151,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				9EC921195BB8ED439AEA083C /* Pods */,
-				0CAC56CFD741F47E9B787D58 /* ExpoModulesProviders */,
+				A286ADF0E26DFF1C8DCF559A /* Pods */,
+				4099C45DC81DFA2B03A72374 /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -105,19 +167,11 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		98F173F798077EF4F54B308C /* UnPile */ = {
+		A286ADF0E26DFF1C8DCF559A /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				FB7B16BBF6E2E343AB43962C /* ExpoModulesProvider.swift */,
-			);
-			name = UnPile;
-			sourceTree = "<group>";
-		};
-		9EC921195BB8ED439AEA083C /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				85C0833DF70BF42192659624 /* Pods-UnPile.debug.xcconfig */,
-				0E8A7D5B33B627C257AC2B5A /* Pods-UnPile.release.xcconfig */,
+				931CBABC718BF1C824401700 /* Pods-UnPile.debug.xcconfig */,
+				C6068CE95D902D679A14FDF2 /* Pods-UnPile.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -126,9 +180,32 @@
 			isa = PBXGroup;
 			children = (
 				BB2F792C24A3F905000567C9 /* Expo.plist */,
+				465FFF0A23194FF19608EB24 /* en.lproj */,
+				4FA3F4627BB64254AB4C2681 /* fr.lproj */,
+				7FD2881AD30047DB94DF1CAA /* de.lproj */,
+				5DDAF49EFA634221965EF57A /* es.lproj */,
+				388F05DD2736425EBD6B3625 /* ar.lproj */,
+				D7450F8A60F84DBEB2816D59 /* ja.lproj */,
+				4B442239AAF245369D4DCAE2 /* tr.lproj */,
 			);
 			name = Supporting;
 			path = UnPile/Supporting;
+			sourceTree = "<group>";
+		};
+		D7450F8A60F84DBEB2816D59 /* ja.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				F562F857AE284422BFE3DA92 /* InfoPlist.strings */,
+			);
+			name = ja.lproj;
+			sourceTree = "<group>";
+		};
+		DB00585F4FEDC466E5E4DE62 /* UnPile */ = {
+			isa = PBXGroup;
+			children = (
+				41D5F8CBEF71E0AC6A7BCAD9 /* ExpoModulesProvider.swift */,
+			);
+			name = UnPile;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -139,14 +216,14 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "UnPile" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				A90895B33F7241908033616D /* [Expo] Configure project */,
+				8C528CE0CD1083E8594D0A8C /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				4CF49BA644EA40B79B6E4787 /* [Expo Dev Launcher] Strip Local Network Keys for Release */,
-				4C10274F11914BA9ED2B5206 /* [CP] Embed Pods Frameworks */,
+				DA65AD464B67405EBB7847A4 /* [Expo Dev Launcher] Strip Local Network Keys for Release */,
+				A21D64F03FF198F5B80BB4C5 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -166,7 +243,9 @@
 				LastUpgradeCheck = 1130;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
+						DevelopmentTeam = 8NPYQ8TUZ6;
 						LastSwiftMigration = 1250;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -196,7 +275,14 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				2D1A2F08896AB1599B3B4DA4 /* PrivacyInfo.xcprivacy in Resources */,
+				B2A9773418424CFE8E0FD983 /* InfoPlist.strings in Resources */,
+				8CC710D0CC28487AB28C4D88 /* InfoPlist.strings in Resources */,
+				9887DC3058494F029A8277B4 /* InfoPlist.strings in Resources */,
+				93B2A93433794AA29C89CC37 /* InfoPlist.strings in Resources */,
+				28A52F920D8F4439A86ADA56 /* InfoPlist.strings in Resources */,
+				985CEAF5282A4D9281B579D7 /* InfoPlist.strings in Resources */,
+				9CCB6458410C4F65BD8AC7F2 /* InfoPlist.strings in Resources */,
+				1E57B92253613493E4205727 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -241,66 +327,6 @@
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
-		};
-		4C10274F11914BA9ED2B5206 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-UnPile/Pods-UnPile-frameworks.sh",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoFileSystem/ExpoFileSystem.framework/ExpoFileSystem",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoFont/ExpoFont.framework/ExpoFont",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoImage/ExpoImage.framework/ExpoImage",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoImage/SDWebImage.framework/SDWebImage",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoImage/SDWebImageAVIFCoder.framework/SDWebImageAVIFCoder",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoImage/SDWebImageSVGCoder.framework/SDWebImageSVGCoder",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoImage/SDWebImageWebPCoder.framework/SDWebImageWebPCoder",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoImage/libavif.framework/libavif",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoMediaLibrary/ExpoMediaLibrary.framework/ExpoMediaLibrary",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoModulesCore/ExpoModulesCore.framework/ExpoModulesCore",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoModulesJSI/ExpoModulesJSI.framework/ExpoModulesJSI",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoModulesWorklets/ExpoModulesWorklets.framework/ExpoModulesWorklets",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermesvm.framework/hermesvm",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ExpoFileSystem.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ExpoFont.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ExpoImage.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SDWebImage.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SDWebImageAVIFCoder.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SDWebImageSVGCoder.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SDWebImageWebPCoder.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libavif.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ExpoMediaLibrary.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ExpoModulesCore.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ExpoModulesJSI.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ExpoModulesWorklets.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermesvm.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-UnPile/Pods-UnPile-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		4CF49BA644EA40B79B6E4787 /* [Expo Dev Launcher] Strip Local Network Keys for Release */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[Expo Dev Launcher] Strip Local Network Keys for Release";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Strip dev-launcher-specific local network permission keys from non-Debug builds\n# This only removes _expo._tcp Bonjour services and the dev-launcher usage description.\n# Other Bonjour services and custom descriptions are preserved for production use.\n\nif [ \"$CONFIGURATION\" != \"Debug\" ]; then\n  PLIST_PATH=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\n  if [ -f \"$PLIST_PATH\" ]; then\n    # Check if NSBonjourServices exists\n    if /usr/libexec/PlistBuddy -c \"Print :NSBonjourServices\" \"$PLIST_PATH\" >/dev/null 2>&1; then\n      # Get the count of services\n      COUNT=$(/usr/libexec/PlistBuddy -c \"Print :NSBonjourServices\" \"$PLIST_PATH\" 2>/dev/null | grep \"^    \" | wc -l | tr -d ' ')\n\n      # Remove _expo._tcp\n      for ((i=COUNT-1; i>=0; i--)); do\n        SERVICE=$(/usr/libexec/PlistBuddy -c \"Print :NSBonjourServices:$i\" \"$PLIST_PATH\" 2>/dev/null || echo \"\")\n        if echo \"$SERVICE\" | grep -q \"_expo._tcp\"; then\n          /usr/libexec/PlistBuddy -c \"Delete :NSBonjourServices:$i\" \"$PLIST_PATH\" 2>/dev/null || true\n        fi\n      done\n\n      # If the array is now empty, remove it entirely\n      REMAINING=$(/usr/libexec/PlistBuddy -c \"Print :NSBonjourServices\" \"$PLIST_PATH\" 2>/dev/null | grep \"^    \" | wc -l | tr -d ' ')\n      if [ \"$REMAINING\" -eq \"0\" ]; then\n        /usr/libexec/PlistBuddy -c \"Delete :NSBonjourServices\" \"$PLIST_PATH\" 2>/dev/null || true\n      fi\n    fi\n\n    # Only delete the description if it matches the dev-launcher default text\n    DESC=$(/usr/libexec/PlistBuddy -c \"Print :NSLocalNetworkUsageDescription\" \"$PLIST_PATH\" 2>/dev/null || echo \"\")\n    if echo \"$DESC\" | grep -q \"Expo Dev Launcher\"; then\n      /usr/libexec/PlistBuddy -c \"Delete :NSLocalNetworkUsageDescription\" \"$PLIST_PATH\" 2>/dev/null || true\n    fi\n  fi\nfi\n";
 		};
 		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -352,7 +378,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-UnPile/Pods-UnPile-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		A90895B33F7241908033616D /* [Expo] Configure project */ = {
+		8C528CE0CD1083E8594D0A8C /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -376,6 +402,66 @@
 			shellPath = /bin/sh;
 			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-UnPile/expo-configure-project.sh\"\n";
 		};
+		A21D64F03FF198F5B80BB4C5 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-UnPile/Pods-UnPile-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoFileSystem/ExpoFileSystem.framework/ExpoFileSystem",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoFont/ExpoFont.framework/ExpoFont",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoImage/ExpoImage.framework/ExpoImage",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoImage/SDWebImage.framework/SDWebImage",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoImage/SDWebImageAVIFCoder.framework/SDWebImageAVIFCoder",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoImage/SDWebImageSVGCoder.framework/SDWebImageSVGCoder",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoImage/SDWebImageWebPCoder.framework/SDWebImageWebPCoder",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoImage/libavif.framework/libavif",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoMediaLibrary/ExpoMediaLibrary.framework/ExpoMediaLibrary",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoModulesCore/ExpoModulesCore.framework/ExpoModulesCore",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoModulesJSI/ExpoModulesJSI.framework/ExpoModulesJSI",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ExpoModulesWorklets/ExpoModulesWorklets.framework/ExpoModulesWorklets",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermesvm.framework/hermesvm",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ExpoFileSystem.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ExpoFont.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ExpoImage.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SDWebImage.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SDWebImageAVIFCoder.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SDWebImageSVGCoder.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SDWebImageWebPCoder.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/libavif.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ExpoMediaLibrary.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ExpoModulesCore.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ExpoModulesJSI.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ExpoModulesWorklets.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermesvm.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-UnPile/Pods-UnPile-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		DA65AD464B67405EBB7847A4 /* [Expo Dev Launcher] Strip Local Network Keys for Release */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[Expo Dev Launcher] Strip Local Network Keys for Release";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Strip dev-launcher-specific local network permission keys from non-Debug builds\n# This only removes _expo._tcp Bonjour services and the dev-launcher usage description.\n# Other Bonjour services and custom descriptions are preserved for production use.\n\nif [ \"$CONFIGURATION\" != \"Debug\" ]; then\n  PLIST_PATH=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\n  if [ -f \"$PLIST_PATH\" ]; then\n    # Check if NSBonjourServices exists\n    if /usr/libexec/PlistBuddy -c \"Print :NSBonjourServices\" \"$PLIST_PATH\" >/dev/null 2>&1; then\n      # Get the count of services\n      COUNT=$(/usr/libexec/PlistBuddy -c \"Print :NSBonjourServices\" \"$PLIST_PATH\" 2>/dev/null | grep \"^    \" | wc -l | tr -d ' ')\n\n      # Remove _expo._tcp\n      for ((i=COUNT-1; i>=0; i--)); do\n        SERVICE=$(/usr/libexec/PlistBuddy -c \"Print :NSBonjourServices:$i\" \"$PLIST_PATH\" 2>/dev/null || echo \"\")\n        if echo \"$SERVICE\" | grep -q \"_expo._tcp\"; then\n          /usr/libexec/PlistBuddy -c \"Delete :NSBonjourServices:$i\" \"$PLIST_PATH\" 2>/dev/null || true\n        fi\n      done\n\n      # If the array is now empty, remove it entirely\n      REMAINING=$(/usr/libexec/PlistBuddy -c \"Print :NSBonjourServices\" \"$PLIST_PATH\" 2>/dev/null | grep \"^    \" | wc -l | tr -d ' ')\n      if [ \"$REMAINING\" -eq \"0\" ]; then\n        /usr/libexec/PlistBuddy -c \"Delete :NSBonjourServices\" \"$PLIST_PATH\" 2>/dev/null || true\n      fi\n    fi\n\n    # Only delete the description if it matches the dev-launcher default text\n    DESC=$(/usr/libexec/PlistBuddy -c \"Print :NSLocalNetworkUsageDescription\" \"$PLIST_PATH\" 2>/dev/null || echo \"\")\n    if echo \"$DESC\" | grep -q \"Expo Dev Launcher\"; then\n      /usr/libexec/PlistBuddy -c \"Delete :NSLocalNetworkUsageDescription\" \"$PLIST_PATH\" 2>/dev/null || true\n    fi\n  fi\nfi\n";
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -384,7 +470,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				3EBBF4E7BC3FCB41B47CCC62 /* ExpoModulesProvider.swift in Sources */,
+				F91195F7B5AE0CEB17E0E1B1 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -393,11 +479,13 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 85C0833DF70BF42192659624 /* Pods-UnPile.debug.xcconfig */;
+			baseConfigurationReference = 931CBABC718BF1C824401700 /* Pods-UnPile.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = UnPile/UnPile.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8NPYQ8TUZ6;
 				ENABLE_BITCODE = NO;
@@ -414,7 +502,7 @@
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.4;
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.1.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -437,11 +525,13 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 0E8A7D5B33B627C257AC2B5A /* Pods-UnPile.release.xcconfig */;
+			baseConfigurationReference = C6068CE95D902D679A14FDF2 /* Pods-UnPile.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = UnPile/UnPile.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 8NPYQ8TUZ6;
 				INFOPLIST_FILE = UnPile/Info.plist;
@@ -453,7 +543,7 @@
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.4;
-				MARKETING_VERSION = 1.1.0;
+				MARKETING_VERSION = 1.1.1;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",

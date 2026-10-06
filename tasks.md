@@ -2,7 +2,9 @@
 5. the video and marketing while apple review the app
 6. test the arabic version
 in details category: selected image should be on top when it's only auto-selected not manually
-1. 
+1. add npx expo install expo-live-photo to make it able to play live photos
+2. add sliding to switch the image preview
+3. update the website to have the app link and everything... and include the layout and so on
 
 FOR NOW: English/Arabic || /Spanish/Germany/Japanese/Turkish
 

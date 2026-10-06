@@ -5,7 +5,7 @@ final class BlurDetector {
     var mlQualityThreshold: Float = 4.0
 
     // Whole-image metric: preserves the old detector's strong recall.
-    var lapBlurThreshold: Float = 290
+    var lapBlurThreshold: Float = 310
     var lapSharpThreshold: Float = 400
 
     // Tile metric: catches cases where the subject is sharp but the background is soft.

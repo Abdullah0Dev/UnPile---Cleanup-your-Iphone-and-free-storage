@@ -11,7 +11,7 @@ import { Image, ImageSource } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { I18nManager, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import OnboardingCredits from "@/components/ui/onboarding-credits";
@@ -126,12 +126,9 @@ const Home = () => {
   const titleEntrance = useEntrance(60);
   const statCardEntrance = useEntrance(140);
   const sectionHeaderEntrance = useEntrance(220);
-  const ctaEntrance = useEntrance(
-    140 + 5 * ROW_STAGGER_MS + 160,
-  );
+  const ctaEntrance = useEntrance(140 + 5 * ROW_STAGGER_MS + 160);
 
-  const [showCreditsOnboarding, setShowCreditsOnboarding] =
-    useState(false);
+  const [showCreditsOnboarding, setShowCreditsOnboarding] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
 
   const { result, clearResult } = useAnalysis();
@@ -142,18 +139,13 @@ const Home = () => {
 
     const checkOnboarding = async () => {
       if (result) {
-        const hasSeenIntro = await AsyncStorage.getItem(
-          "hasSeenCreditIntro",
-        );
+        const hasSeenIntro = await AsyncStorage.getItem("hasSeenCreditIntro");
 
         if (!hasSeenIntro && currentCredits === 500) {
           timer = setTimeout(async () => {
             setShowCreditsOnboarding(true);
 
-            await AsyncStorage.setItem(
-              "hasSeenCreditIntro",
-              "true",
-            );
+            await AsyncStorage.setItem("hasSeenCreditIntro", "true");
           }, 1500);
         }
       }
@@ -177,10 +169,7 @@ const Home = () => {
   // Compute deletable items per category
   const categoryStats = useMemo(() => {
     const sumSizes = (ids: string[]) =>
-      ids.reduce(
-        (sum, id) => sum + (assetSizes[id] || 0),
-        0,
-      );
+      ids.reduce((sum, id) => sum + (assetSizes[id] || 0), 0);
 
     // Screenshots
     const screenshotIds = result.screenshots || [];
@@ -205,23 +194,18 @@ const Home = () => {
     const blurryCount = blurryIds.length;
 
     // Live Photos
-    const liveIds = result.livePhotoCandidates || [];
+    const liveIds = result.livePhotos || [];
+    const liveCanIds = result.livePhotoCandidates || [];
     const liveSize = sumSizes(liveIds);
+    const liveCanSize = sumSizes(liveCanIds);
     const liveCount = liveIds.length;
+    const liveCanCount = liveCanIds.length;
 
     const totalFreeableBytes =
-      screenshotSize +
-      duplicateSize +
-      clutterSize +
-      blurrySize +
-      liveSize;
+      screenshotSize + duplicateSize + clutterSize + blurrySize + liveCanSize;
 
     const totalFreeableItems =
-      screenshotCount +
-      duplicateCount +
-      clutterCount +
-      blurryCount +
-      liveCount;
+      screenshotCount + duplicateCount + clutterCount + blurryCount + liveCanCount;
 
     const allRows: CategoryRowData[] = [
       {
@@ -256,9 +240,7 @@ const Home = () => {
       },
     ];
 
-    const rows = allRows.filter(
-      (row) => row.itemCount > 0,
-    );
+    const rows = allRows.filter((row) => row.itemCount > 0);
 
     return {
       rows,
@@ -267,11 +249,7 @@ const Home = () => {
     };
   }, [result, assetSizes]);
 
-  const {
-    rows,
-    totalFreeableBytes,
-    totalFreeableItems,
-  } = categoryStats;
+  const { rows, totalFreeableBytes, totalFreeableItems } = categoryStats;
 
   const handleGoBack = async () => {
     await clearResult();
@@ -279,11 +257,9 @@ const Home = () => {
     router.replace("/");
   };
 
-  const handleReviewItems = () =>
-    router.push("/delete-confirmation");
+  const handleReviewItems = () => router.push("/delete-confirmation");
 
-  const handleSeeAllCategories = () =>
-    router.push("/all-categories");
+  const handleSeeAllCategories = () => router.push("/all-categories");
 
   const handleUpgrade = () => {
     setShowCreditsOnboarding(false);
@@ -293,26 +269,60 @@ const Home = () => {
   return (
     <SafeAreaView style={styles.screen}>
       <Animated.View
-        style={[styles.header, headerEntrance]}
+        style={[
+          styles.header,
+          headerEntrance,
+          {
+            width: "100%",
+            height: 44,
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: Spacing.four,
+            position: "relative",
+            zIndex: 999,
+            elevation: 999,
+          },
+        ]}
       >
-        <Pressable onPress={handleGoBack}>
+        <Pressable
+          onPress={handleGoBack}
+          hitSlop={15}
+          style={[
+            {
+              position: "absolute",
+              top: 0,
+              width: 44,
+              height: 44,
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 999,
+              elevation: 999,
+            },
+            { start: 0 },
+          ]}
+        >
           <Image
+            pointerEvents="none"
             source={require("@/assets/icons/back-arrow.png")}
-            alt="back arrow"
-            style={{ width: 28, height: 28 }}
+            contentFit="contain"
+            style={[
+              {
+                width: 28,
+                height: 28,
+              },
+              I18nManager.isRTL && {
+                transform: [{ scaleX: -1 }],
+              },
+            ]}
           />
         </Pressable>
       </Animated.View>
 
-      <Animated.Text
-        style={[styles.title, titleEntrance]}
-      >
+      <Animated.Text style={[styles.title, titleEntrance]}>
         {t("scan_complete_screen.title")}
       </Animated.Text>
 
-      <Animated.View
-        style={[styles.statCard, statCardEntrance]}
-      >
+      <Animated.View style={[styles.statCard, statCardEntrance]}>
         <LinearGradient
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0.8 }}
@@ -331,9 +341,7 @@ const Home = () => {
           {t("scan_complete_screen.summary.subtitle")}
         </Text>
 
-        <Text style={styles.statValue}>
-          {formatBytes(totalFreeableBytes)}
-        </Text>
+        <Text style={styles.statValue}>{formatBytes(totalFreeableBytes)}</Text>
 
         <Text style={styles.statSubtitle}>
           {t("scan_complete_screen.summary.item_count", {
@@ -342,21 +350,14 @@ const Home = () => {
         </Text>
       </Animated.View>
 
-      <Animated.View
-        style={[
-          styles.sectionHeader,
-          sectionHeaderEntrance,
-        ]}
-      >
+      <Animated.View style={[styles.sectionHeader, sectionHeaderEntrance]}>
         <Text style={styles.sectionTitle}>
           {t("scan_complete_screen.categories_section.title")}
         </Text>
 
         <Pressable onPress={handleSeeAllCategories}>
           <Text style={styles.seeAllButton}>
-            {t(
-              "scan_complete_screen.categories_section.see_all",
-            )}
+            {t("scan_complete_screen.categories_section.see_all")}
           </Text>
         </Pressable>
       </Animated.View>
@@ -370,11 +371,7 @@ const Home = () => {
               ? t("scan_complete_screen.buttons.rescan_photos")
               : t("scan_complete_screen.buttons.review_items")
           }
-          onPress={
-            totalFreeableItems === 0
-              ? handleGoBack
-              : handleReviewItems
-          }
+          onPress={totalFreeableItems === 0 ? handleGoBack : handleReviewItems}
         />
 
         {!isSubscribed && (
@@ -399,9 +396,7 @@ const Home = () => {
 
       <OnboardingCredits
         isPresented={showCreditsOnboarding}
-        onDismiss={() =>
-          setShowCreditsOnboarding(false)
-        }
+        onDismiss={() => setShowCreditsOnboarding(false)}
         onUpgrade={handleUpgrade}
       />
 
@@ -440,14 +435,9 @@ export const CategoryRow = ({
 
   return (
     <Pressable onPress={handlePress}>
-      <Animated.View
-        style={[styles.categoryRow, rowEntrance]}
-      >
+      <Animated.View style={[styles.categoryRow, rowEntrance]}>
         <View style={styles.categoryIconWrap}>
-          <Image
-            style={{ width: 32, height: 32 }}
-            source={image}
-          />
+          <Image style={{ width: 32, height: 32 }} source={image} />
         </View>
 
         <View style={styles.categoryTextWrap}>
@@ -462,9 +452,7 @@ export const CategoryRow = ({
           </Text>
         </View>
 
-        <Text style={styles.categorySize}>
-          {formatBytes(sizeBytes)}
-        </Text>
+        <Text style={styles.categorySize}>{formatBytes(sizeBytes)}</Text>
       </Animated.View>
     </Pressable>
   );

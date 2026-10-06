@@ -2,7 +2,7 @@ import { Image, ImageSource } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Sparkles } from "lucide-react-native";
 import { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { I18nManager, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -33,11 +33,10 @@ import { CATEGORY_TRANSLATION_KEYS } from "./Home";
 const TILE_STAGGER_MS = 80;
 const GRID_BASE_DELAY = 140;
 
- 
-
 const AllCategories = () => {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
 
+  const isRTL = i18n.language === "ar";
   const headerEntrance = useEntrance(0);
   const { result, resetSelections } = useAnalysis();
   const { isLoadingSubscription, isSubscribed } = useCredits();
@@ -53,10 +52,7 @@ const AllCategories = () => {
   // Compute deletable items per category
   const categoryData = useMemo(() => {
     const sumSizes = (ids: string[]) =>
-      ids.reduce(
-        (sum, id) => sum + (assetSizes[id] || 0),
-        0,
-      );
+      ids.reduce((sum, id) => sum + (assetSizes[id] || 0), 0);
 
     const screenshotIds = result.screenshots || [];
     const screenshotSize = sumSizes(screenshotIds);
@@ -76,23 +72,23 @@ const AllCategories = () => {
     const blurrySize = sumSizes(blurryIds);
     const blurryCount = blurryIds.length;
 
-    const liveIds = result.livePhotoCandidates || [];
+    // Live Photos
+    const liveIds = result.livePhotos || [];
+    const liveCanIds = result.livePhotoCandidates || [];
     const liveSize = sumSizes(liveIds);
+    const liveCanSize = sumSizes(liveCanIds);
     const liveCount = liveIds.length;
+    const liveCanCount = liveCanIds.length;
 
     const totalFreeableBytes =
-      screenshotSize +
-      duplicateSize +
-      clutterSize +
-      blurrySize +
-      liveSize;
+      screenshotSize + duplicateSize + clutterSize + blurrySize + liveCanSize;
 
     const totalFreeableItems =
       screenshotCount +
       duplicateCount +
       clutterCount +
       blurryCount +
-      liveCount;
+      liveCanCount;
 
     const allRows = [
       {
@@ -134,14 +130,16 @@ const AllCategories = () => {
     };
   }, [result, assetSizes]);
 
-  const { rows, totalFreeableBytes, totalFreeableItems } =
-    categoryData;
+  const { rows, totalFreeableBytes, totalFreeableItems } = categoryData;
 
   const summaryCardEntrance = useEntrance(
     GRID_BASE_DELAY + rows.length * TILE_STAGGER_MS + 120,
   );
 
-  const handleGoBack = () => router.back();
+  const handleGoBack = () => {
+    router.back();
+    console.log("pressed!");
+  };
 
   const handleSmartDelete = async () => {
     if (isSubscribed) {
@@ -156,45 +154,76 @@ const AllCategories = () => {
   return (
     <SafeAreaView style={styles.screen}>
       <View style={{ paddingHorizontal: Spacing.three }}>
-        <Animated.View style={[styles.header, headerEntrance]}>
-          <Pressable onPress={handleGoBack}>
+        <Animated.View
+          style={[
+            styles.header,
+            headerEntrance,
+            {
+              width: "100%",
+              height: 44,
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: Spacing.four,
+              position: "relative",
+              zIndex: 999,
+              elevation: 999,
+            },
+          ]}
+        >
+          <Pressable
+            onPress={handleGoBack}
+            hitSlop={15}
+            style={[
+              {
+                position: "absolute",
+                top: 0,
+                width: 44,
+                height: 44,
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 999,
+                elevation: 999,
+              },
+              { start: 0 },
+            ]}
+          >
             <Image
+              pointerEvents="none"
               source={require("@/assets/icons/back-arrow.png")}
-              alt="back arrow"
-              style={{ width: 28, height: 28 }}
+              contentFit="contain"
+              style={[
+                {
+                  width: 28,
+                  height: 28,
+                },
+                I18nManager.isRTL && {
+                  transform: [{ scaleX: -1 }],
+                },
+              ]}
             />
           </Pressable>
 
           <Text style={styles.title}>
             {t("categories_overview_screen.header_title")}
           </Text>
-
-          <View />
         </Animated.View>
 
         <View style={styles.grid}>
-          {rows.map(
-            ({ key, itemCount, sizeBytes, image }, index) => (
-              <CategoryTile
-                key={key}
-                id={key}
-                itemCount={itemCount}
-                size={formatBytes(sizeBytes)}
-                image={image}
-                delay={
-                  GRID_BASE_DELAY +
-                  index * TILE_STAGGER_MS
-                }
-              />
-            ),
-          )}
+          {rows.map(({ key, itemCount, sizeBytes, image }, index) => (
+            <CategoryTile
+              key={key}
+              id={key}
+              itemCount={itemCount}
+              size={formatBytes(sizeBytes)}
+              image={image}
+              delay={GRID_BASE_DELAY + index * TILE_STAGGER_MS}
+            />
+          ))}
         </View>
       </View>
 
       {/* Bottom summary card */}
-      <Animated.View
-        style={[styles.summaryCard, summaryCardEntrance]}
-      >
+      <Animated.View style={[styles.summaryCard, summaryCardEntrance]}>
         <LinearGradient
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0.8 }}
@@ -210,28 +239,20 @@ const AllCategories = () => {
         />
 
         <Text style={styles.summaryValue}>
-          {t(
-            "categories_overview_screen.summary.size_can_free",
-            {
-              size: formatBytes(totalFreeableBytes),
-            },
-          )}
+          {t("categories_overview_screen.summary.size_can_free", {
+            size: formatBytes(totalFreeableBytes),
+          })}
         </Text>
 
         <Text style={styles.summarySubtitle}>
-          {t(
-            "categories_overview_screen.summary.item_count",
-            {
-              count: totalFreeableItems,
-            },
-          )}
+          {t("categories_overview_screen.summary.item_count", {
+            count: totalFreeableItems,
+          })}
         </Text>
 
         <View style={styles.smartDeleteWrap}>
           <GradientButton
-            title={t(
-              "categories_overview_screen.buttons.smart_delete",
-            )}
+            title={t("categories_overview_screen.buttons.smart_delete")}
             Icon={Sparkles}
             onPress={handleSmartDelete}
             disabled={isLoadingSubscription}
@@ -273,24 +294,17 @@ const CategoryTile = ({
   const translationKey = CATEGORY_TRANSLATION_KEYS[id];
 
   return (
-    <Animated.View
-      style={[styles.tileWrap, tileEntrance]}
-    >
+    <Animated.View style={[styles.tileWrap, tileEntrance]}>
       <Pressable onPress={handlePress}>
         <LinearGradient
           colors={["#120E38", Brand.appBackground]}
           style={styles.tile}
         >
           <View style={styles.tileIconWrap}>
-            <Image
-              style={styles.tileIconImage}
-              source={image}
-            />
+            <Image style={styles.tileIconImage} source={image} />
           </View>
 
-          <Text style={styles.tileLabel}>
-            {t(`${translationKey}.title`)}
-          </Text>
+          <Text style={styles.tileLabel}>{t(`${translationKey}.title`)}</Text>
 
           <Text style={styles.tileCount}>
             {t(`${translationKey}.item_count`, {

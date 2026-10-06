@@ -9,7 +9,7 @@ import { useEntrance, useHeroEntrance } from "@/hooks/use-entrance";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { I18nManager, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   Easing,
   runOnJS,
@@ -149,12 +149,52 @@ const ScanningProgress = ({
   return (
     <SafeAreaView style={styles.screen}>
       {/* Header */}
-      <Animated.View style={[styles.header, headerEntrance]}>
-        <Pressable onPress={handleGoBack}>
+      <Animated.View
+        style={[
+          styles.header,
+          headerEntrance,
+          {
+            width: "100%",
+            height: 44,
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: Spacing.four,
+            position: "relative",
+            zIndex: 999,
+            elevation: 999,
+          },
+        ]}
+      >
+        <Pressable
+          onPress={handleGoBack}
+          hitSlop={15}
+          style={[
+            {
+              position: "absolute",
+              top: 0,
+              width: 44,
+              height: 44,
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 999,
+              elevation: 999,
+            },
+            { start: 0 },
+          ]}
+        >
           <Image
+            pointerEvents="none"
             source={require("@/assets/icons/back-arrow.png")}
-            alt="back arrow"
-            style={{ width: 28, height: 28 }}
+            contentFit="contain"
+            style={[
+              {
+                width: 28,
+                height: 28,
+              },
+              I18nManager.isRTL && {
+                transform: [{ scaleX: -1 }],
+              },
+            ]}
           />
         </Pressable>
       </Animated.View>
@@ -201,28 +241,10 @@ const ScanningProgress = ({
               <Stop offset="100%" stopColor={Brand.primaryDark} />
             </SvgLinearGradient>
 
-            <SvgLinearGradient
-              id="sweepGrad"
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="0%"
-            >
-              <Stop
-                offset="0%"
-                stopColor={Brand.primary}
-                stopOpacity={0}
-              />
-              <Stop
-                offset="75%"
-                stopColor={Brand.glow}
-                stopOpacity={0.95}
-              />
-              <Stop
-                offset="100%"
-                stopColor="#ffffff"
-                stopOpacity={1}
-              />
+            <SvgLinearGradient id="sweepGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <Stop offset="0%" stopColor={Brand.primary} stopOpacity={0} />
+              <Stop offset="75%" stopColor={Brand.glow} stopOpacity={0.95} />
+              <Stop offset="100%" stopColor="#ffffff" stopOpacity={1} />
             </SvgLinearGradient>
           </Defs>
 

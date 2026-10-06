@@ -247,11 +247,11 @@ const LegalPage = () => {
               Text us on WhatsApp
             </a>
             <a
-              href="mailto:contact@unpile.com"
+              href="mailto:abdullah@devmindslab.com"
               className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-white/10 sm:w-auto"
             >
               <Mail className="h-4 w-4 text-cyan-400" />
-              contact@unpile.com
+              abdullah@devmindslab.com
             </a>
           </div>
         </motion.div>

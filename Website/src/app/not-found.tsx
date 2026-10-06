@@ -219,7 +219,7 @@ const NotFoundPage = () => {
         <p className="text-sm text-foreground-subtle">
           Still stuck?{" "}
           <a
-            href="mailto:contact@unpile.com"
+            href="mailto:abdullah@devmindslab.com"
             className="font-semibold text-primary-light underline underline-offset-2 transition-colors hover:text-primary"
           >
             Talk to us

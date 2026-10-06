@@ -31,8 +31,8 @@ const contactOptions: ContactOption[] = [
     icon: Mail,
     title: "Email me",
     description: "Questions, feedback, or press — we read everything.",
-    href: "mailto:contact@unpile.com",
-    linkLabel: "contact@unpile.com",
+    href: "mailto:abdullah@devmindslab.com",
+    linkLabel: "abdullah@devmindslab.com",
   },
   {
     icon: Handshake,

@@ -1,4 +1,13 @@
-import { StyleSheet, Text, View, TouchableOpacity, Pressable, Dimensions, Modal } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Pressable,
+  Dimensions,
+  Modal,
+  I18nManager,
+} from "react-native";
 import React, { useMemo, useState } from "react";
 import { Image } from "expo-image";
 import Animated from "react-native-reanimated";
@@ -27,7 +36,6 @@ import {
 import { useEntrance, useSheetEntrance } from "@/hooks/use-entrance";
 import { CATEGORY_TRANSLATION_KEYS } from "./Home";
 
-
 // Types
 export type CategoryVariant = CategoryKey;
 
@@ -43,7 +51,6 @@ type DuplicateGroup = {
   groupId: string;
   items: PhotoItem[];
 };
- 
 
 // Screen
 const CategoryDetails = () => {
@@ -61,9 +68,7 @@ const CategoryDetails = () => {
     getSelectedSize,
   } = useAnalysis();
 
-  const [previewImageId, setPreviewImageId] = useState<string | null>(
-    null,
-  );
+  const [previewImageId, setPreviewImageId] = useState<string | null>(null);
 
   // Guard: no result or invalid variant → redirect
   if (!result || !variant) {
@@ -108,14 +113,10 @@ const CategoryDetails = () => {
 
   const meta = useMemo(() => {
     const totalItems = rawItems.length;
-    const selectedCount = rawItems.filter(
-      (i) => i.selected,
-    ).length;
+    const selectedCount = rawItems.filter((i) => i.selected).length;
 
     const selectedSizeBytes = getSelectedSize(variant);
-    const selectedSizeFormatted = formatBytes(
-      selectedSizeBytes,
-    );
+    const selectedSizeFormatted = formatBytes(selectedSizeBytes);
 
     return {
       titleKey: CATEGORY_TRANSLATION_KEYS[variant],
@@ -136,8 +137,7 @@ const CategoryDetails = () => {
 
   const title = t(`${titleKey}.title`);
 
-  const allSelected =
-    itemCount > 0 && selectedCount === itemCount;
+  const allSelected = itemCount > 0 && selectedCount === itemCount;
 
   const handleToggleSelectAll = () => {
     setAllSelected(variant, !allSelected);
@@ -164,10 +164,7 @@ const CategoryDetails = () => {
   const handleGoBack = () => router.back();
 
   const renderHeaderRight = () => (
-    <Pressable
-      hitSlop={8}
-      onPress={handleToggleSelectAll}
-    >
+    <Pressable hitSlop={8} onPress={handleToggleSelectAll}>
       <Text style={styles.headerAction}>
         {allSelected
           ? t("review_screen.header.deselect_all")
@@ -189,11 +186,7 @@ const CategoryDetails = () => {
         },
       ]}
     >
-      <BlurView
-        intensity={40}
-        tint="dark"
-        style={StyleSheet.absoluteFill}
-      />
+      <BlurView intensity={40} tint="dark" style={StyleSheet.absoluteFill} />
 
       <LinearGradient
         start={{ x: 0, y: 0 }}
@@ -218,9 +211,7 @@ const CategoryDetails = () => {
             })}
           </Text>
 
-          <Text style={styles.footerSize}>
-            {selectedSizeFormatted}
-          </Text>
+          <Text style={styles.footerSize}>{selectedSizeFormatted}</Text>
         </View>
 
         <View style={{ width: "50%" }}>
@@ -241,17 +232,12 @@ const CategoryDetails = () => {
   const COLUMNS = 4;
 
   const TILE_SIZE =
-    (SCREEN_WIDTH -
-      GRID_PADDING * 2 -
-      GRID_GAP * (COLUMNS - 1)) /
-    COLUMNS;
+    (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * (COLUMNS - 1)) / COLUMNS;
 
   const DUPLICATE_COLUMNS = 3;
 
   const DUPLICATE_TILE_SIZE =
-    (SCREEN_WIDTH -
-      GRID_PADDING * 2 -
-      GRID_GAP * (DUPLICATE_COLUMNS - 1)) /
+    (SCREEN_WIDTH - GRID_PADDING * 2 - GRID_GAP * (DUPLICATE_COLUMNS - 1)) /
     DUPLICATE_COLUMNS;
 
   // Render: Duplicates
@@ -259,24 +245,90 @@ const CategoryDetails = () => {
     return (
       <SafeAreaView style={styles.screen}>
         <Animated.View
-          style={[styles.header, headerEntrance]}
+          style={[
+            styles.header,
+            headerEntrance,
+            {
+              width: "100%",
+              height: 44,
+              alignItems: "center",
+              justifyContent: "center",
+              position: "relative",
+              zIndex: 999,
+              elevation: 999,
+            },
+          ]}
         >
-          <Pressable onPress={handleGoBack}>
+          {/* Back button */}
+          <Pressable
+            onPress={handleGoBack}
+            hitSlop={15}
+            style={{
+              position: "absolute",
+              top: 0,
+              start: 0,
+              width: 44,
+              height: 44,
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 999,
+              elevation: 999,
+            }}
+          >
             <Image
+              pointerEvents="none"
               source={require("@/assets/icons/back-arrow.png")}
-              alt="back arrow"
-              style={{ width: 28, height: 28 }}
+              contentFit="contain"
+              style={{
+                width: 28,
+                height: 28,
+                transform: [
+                  {
+                    scaleX: I18nManager.isRTL ? -1 : 1,
+                  },
+                ],
+              }}
             />
           </Pressable>
 
-          <Text style={styles.title}>{title}</Text>
+          {/* Centered title */}
+          <Text
+            style={[
+              styles.title,
+              {
+                paddingHorizontal: 60,
+                textAlign: "center",
+              },
+            ]}
+            numberOfLines={1}
+          >
+            {title}
+          </Text>
 
-          {renderHeaderRight()}
+          {/* Select / Deselect */}
+          <Pressable
+            hitSlop={10}
+            onPress={handleToggleSelectAll}
+            style={{
+              position: "absolute",
+              top: 0,
+              end: 0,
+              minHeight: 44,
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: 999,
+              elevation: 999,
+            }}
+          >
+            <Text style={styles.headerAction}>
+              {allSelected
+                ? t("review_screen.header.deselect_all")
+                : t("review_screen.header.select_all")}
+            </Text>
+          </Pressable>
         </Animated.View>
 
-        <Animated.Text
-          style={[styles.subtitle, subtitleEntrance]}
-        >
+        <Animated.Text style={[styles.subtitle, subtitleEntrance]}>
           {t("review_screen.status_bar", {
             total: itemCount.toLocaleString(),
             selected: selectedCount.toLocaleString(),
@@ -287,16 +339,9 @@ const CategoryDetails = () => {
         <FlashList
           data={duplicateGroups}
           keyExtractor={(g) => g.groupId}
-          contentContainerStyle={
-            styles.duplicatesListContent
-          }
-          ListFooterComponent={
-            <View style={{ height: 100 }} />
-          }
-          renderItem={({
-            item,
-            index,
-          }: ListRenderItemInfo<DuplicateGroup>) => (
+          contentContainerStyle={styles.duplicatesListContent}
+          ListFooterComponent={<View style={{ height: 100 }} />}
+          renderItem={({ item, index }: ListRenderItemInfo<DuplicateGroup>) => (
             <DuplicateGroupRow
               group={item}
               index={index}
@@ -322,24 +367,90 @@ const CategoryDetails = () => {
   return (
     <SafeAreaView style={styles.screen}>
       <Animated.View
-        style={[styles.header, headerEntrance]}
+        style={[
+          styles.header,
+          headerEntrance,
+          {
+            width: "100%",
+            height: 44,
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
+            zIndex: 999,
+            elevation: 999,
+          },
+        ]}
       >
-        <Pressable onPress={handleGoBack}>
+        {/* Back button */}
+        <Pressable
+          onPress={handleGoBack}
+          hitSlop={15}
+          style={{
+            position: "absolute",
+            top: 0,
+            start: 0,
+            width: 44,
+            height: 44,
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 999,
+            elevation: 999,
+          }}
+        >
           <Image
+            pointerEvents="none"
             source={require("@/assets/icons/back-arrow.png")}
-            alt="back arrow"
-            style={{ width: 28, height: 28 }}
+            contentFit="contain"
+            style={{
+              width: 28,
+              height: 28,
+              transform: [
+                {
+                  scaleX: I18nManager.isRTL ? -1 : 1,
+                },
+              ],
+            }}
           />
         </Pressable>
 
-        <Text style={styles.title}>{title}</Text>
+        {/* Centered title */}
+        <Text
+          style={[
+            styles.title,
+            {
+              paddingHorizontal: 60,
+              textAlign: "center",
+            },
+          ]}
+          numberOfLines={1}
+        >
+          {title}
+        </Text>
 
-        {renderHeaderRight()}
+        {/* Select / Deselect */}
+        <Pressable
+          hitSlop={10}
+          onPress={handleToggleSelectAll}
+          style={{
+            position: "absolute",
+            top: 0,
+            end: 0,
+            minHeight: 44,
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 999,
+            elevation: 999,
+          }}
+        >
+          <Text style={styles.headerAction}>
+            {allSelected
+              ? t("review_screen.header.deselect_all")
+              : t("review_screen.header.select_all")}
+          </Text>
+        </Pressable>
       </Animated.View>
 
-      <Animated.Text
-        style={[styles.subtitle, subtitleEntrance]}
-      >
+      <Animated.Text style={[styles.subtitle, subtitleEntrance]}>
         {t("review_screen.status_bar", {
           total: itemCount,
           selected: selectedCount,
@@ -354,23 +465,15 @@ const CategoryDetails = () => {
         contentContainerStyle={{
           paddingBottom: Spacing.four,
         }}
-        ListFooterComponent={
-          <View style={{ height: 60 }} />
-        }
-        renderItem={({
-          item,
-          index,
-        }: ListRenderItemInfo<PhotoItem>) => {
+        ListFooterComponent={<View style={{ height: 60 }} />}
+        renderItem={({ item, index }: ListRenderItemInfo<PhotoItem>) => {
           const row = Math.floor(index / COLUMNS);
-          const isLastInRow =
-            (index + 1) % COLUMNS === 0;
+          const isLastInRow = (index + 1) % COLUMNS === 0;
 
           return (
             <View
               style={{
-                marginRight: isLastInRow
-                  ? 0
-                  : GRID_GAP,
+                marginRight: isLastInRow ? 0 : GRID_GAP,
                 marginBottom: GRID_GAP,
               }}
             >
@@ -415,7 +518,7 @@ const ImagePreviewModal = ({
   return (
     <Modal visible={!!imageId} transparent animationType="fade">
       <SafeAreaView
-        style={{ 
+        style={{
           flex: 1,
           backgroundColor: "rgba(0,0,0,0.95)",
         }}
@@ -455,19 +558,11 @@ const ImagePreviewModal = ({
 };
 
 // Selection badge
-const SelectionBadge = ({
-  selected,
-}: {
-  selected: boolean;
-}) => {
+const SelectionBadge = ({ selected }: { selected: boolean }) => {
   if (selected) {
     return (
       <View style={styles.badgeSelected}>
-        <Check
-          size={12}
-          strokeWidth={3}
-          color={Brand.textOnPrimary}
-        />
+        <Check size={12} strokeWidth={3} color={Brand.textOnPrimary} />
       </View>
     );
   }
@@ -489,10 +584,7 @@ const PhotoThumbnail = ({
   variant: CategoryVariant;
   size: number;
   row: number;
-  onToggle: (
-    category: CategoryVariant,
-    id: string,
-  ) => void;
+  onToggle: (category: CategoryVariant, id: string) => void;
   category: CategoryVariant;
   onLongPress: (id: string) => void;
 }) => {
@@ -507,17 +599,12 @@ const PhotoThumbnail = ({
   );
 
   return (
-    <Animated.View
-      style={shouldAnimate ? entrance : undefined}
-    >
+    <Animated.View style={shouldAnimate ? entrance : undefined}>
       <Pressable
         onPress={() => onToggle(category, item.id)}
         onLongPress={() => onLongPress(item.id)}
         delayLongPress={500}
-        style={[
-          styles.thumbnail,
-          { width: size, height: size },
-        ]}
+        style={[styles.thumbnail, { width: size, height: size }]}
       >
         <Image
           source={{ uri: item.image }}
@@ -538,24 +625,18 @@ const PhotoThumbnail = ({
         {isLive && (
           <View style={styles.liveBadge}>
             <View style={styles.liveDot} />
-            <Text style={styles.liveBadgeText}>
-              LIVE
-            </Text>
+            <Text style={styles.liveBadgeText}>LIVE</Text>
           </View>
         )}
 
         {item.isBest && (
           <View style={styles.bestBadge}>
-            <Text style={styles.bestBadgeText}>
-              👑
-            </Text>
+            <Text style={styles.bestBadgeText}>👑</Text>
           </View>
         )}
 
         <View style={styles.thumbnailBadgeWrap}>
-          <SelectionBadge
-            selected={item.selected}
-          />
+          <SelectionBadge selected={item.selected} />
         </View>
       </Pressable>
     </Animated.View>
@@ -573,10 +654,7 @@ const DuplicateGroupRow = ({
 }: {
   group: DuplicateGroup;
   index: number;
-  onToggle: (
-    category: CategoryVariant,
-    id: string,
-  ) => void;
+  onToggle: (category: CategoryVariant, id: string) => void;
   category: CategoryVariant;
   tileSize: number;
   onLongPress: (id: string) => void;
@@ -592,15 +670,10 @@ const DuplicateGroupRow = ({
 
   return (
     <Animated.View
-      style={[
-        styles.duplicateGroup,
-        shouldAnimate ? entrance : undefined,
-      ]}
+      style={[styles.duplicateGroup, shouldAnimate ? entrance : undefined]}
     >
       <View style={styles.bestLabelRow}>
-        <Text style={styles.bestLabelIcon}>
-          👑
-        </Text>
+        <Text style={styles.bestLabelIcon}>👑</Text>
 
         <Text style={styles.bestLabelText}>
           {t("review_screen.labels.best_photo")}
@@ -611,12 +684,8 @@ const DuplicateGroupRow = ({
         {group.items.map((item) => (
           <Pressable
             key={item.id}
-            onPress={() =>
-              onToggle(category, item.id)
-            }
-            onLongPress={() =>
-              onLongPress(item.id)
-            }
+            onPress={() => onToggle(category, item.id)}
+            onLongPress={() => onLongPress(item.id)}
             delayLongPress={500}
             style={[
               styles.thumbnail,
@@ -635,18 +704,12 @@ const DuplicateGroupRow = ({
 
             {item.isBest && (
               <View style={styles.bestBadge}>
-                <Text style={styles.bestBadgeText}>
-                  👑
-                </Text>
+                <Text style={styles.bestBadgeText}>👑</Text>
               </View>
             )}
 
-            <View
-              style={styles.thumbnailBadgeWrap}
-            >
-              <SelectionBadge
-                selected={item.selected}
-              />
+            <View style={styles.thumbnailBadgeWrap}>
+              <SelectionBadge selected={item.selected} />
             </View>
           </Pressable>
         ))}
