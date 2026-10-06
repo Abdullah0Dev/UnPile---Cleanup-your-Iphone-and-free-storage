@@ -91,14 +91,16 @@ const GetStarted = () => {
 
         <Animated.View style={[styles.logoTextContainer, wordmarkEntrance]}>
           <Text style={styles.logoText}>
-            {t("get_started_screen.title.part_1")}
+            {/* {t("get_started_screen.title.part_1")} */}
+            Un
           </Text>
 
           <GradientText
             colors={Gradients.primaryButton}
             style={styles.logoText}
           >
-            {t("get_started_screen.title.part_2")}
+            {/* {t("get_started_screen.title.part_2")} */}
+            Pile
           </GradientText>
         </Animated.View>
 

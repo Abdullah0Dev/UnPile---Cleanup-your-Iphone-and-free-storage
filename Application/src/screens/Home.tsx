@@ -337,7 +337,7 @@ const Home = () => {
 
         <Text style={styles.statSubtitle}>
           {t("scan_complete_screen.summary.item_count", {
-            count: totalFreeableItems,
+            count: totalFreeableItems.toLocaleString(),
           })}
         </Text>
       </Animated.View>
@@ -391,7 +391,7 @@ const Home = () => {
             ]}
           >
             {t("scan_complete_screen.footer.credits_remaining", {
-              count: currentCredits,
+              count: currentCredits.toLocaleString(),
             })}
           </GradientText>
         )}
@@ -457,7 +457,7 @@ export const CategoryRow = ({
 
           <Text style={styles.categoryCount}>
             {t(`${translationKey}.item_count`, {
-              count: itemCount,
+              count: itemCount.toLocaleString(),
             })}
           </Text>
         </View>

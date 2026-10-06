@@ -294,7 +294,7 @@ const CategoryTile = ({
 
           <Text style={styles.tileCount}>
             {t(`${translationKey}.item_count`, {
-              count: itemCount,
+              count: itemCount.toLocaleString(),
             })}
           </Text>
 

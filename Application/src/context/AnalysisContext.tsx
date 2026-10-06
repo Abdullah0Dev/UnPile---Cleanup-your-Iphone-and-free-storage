@@ -124,8 +124,7 @@ export const AnalysisProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const runningRef = useRef(false);
 
-const startAnalysis = useCallback(
-  async (): Promise<boolean> => {
+  const startAnalysis = useCallback(async (): Promise<boolean> => {
     if (runningRef.current) {
       return false;
     }
@@ -140,55 +139,32 @@ const startAnalysis = useCallback(
     setResult(null);
     setOverrides({});
 
-    const subscription =
-      ExpoPhotoAnalyzerModule.addListener(
-        "onProgress",
-        (e: any) => {
-          setProgress((previous) =>
-            Math.max(
-              previous,
-              e.progress ?? 0
-            )
-          );
+    const subscription = ExpoPhotoAnalyzerModule.addListener(
+      "onProgress",
+      (e: any) => {
+        setProgress((previous) => Math.max(previous, e.progress ?? 0));
 
-          setCategory(
-            e.stage ?? ""
-          );
+        setCategory(e.stage ?? "");
 
-          setTotalItems(
-            e.totalItems ?? 0
-          );
+        setTotalItems(e.totalItems ?? 0);
 
-          setProcessedItems(
-            e.processedItems ?? 0
-          );
-        }
-      );
+        setProcessedItems(e.processedItems ?? 0);
+      },
+    );
 
     let ok = false;
 
     try {
-      const data =
-        await ExpoPhotoAnalyzerModule.analyzePhotos();
+      const data = await ExpoPhotoAnalyzerModule.analyzePhotos();
 
       setResult(data);
 
-      await AsyncStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(data)
-      );
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 
       ok = true;
-
     } catch (error) {
-
-      console.error(
-        "Analysis failed:",
-        error
-      );
-
+      console.error("Analysis failed:", error);
     } finally {
-
       subscription.remove();
 
       runningRef.current = false;
@@ -197,9 +173,7 @@ const startAnalysis = useCallback(
     }
 
     return ok;
-  },
-  []
-);
+  }, []);
 
   const clearResult = async () => {
     setResult(null);
@@ -295,8 +269,10 @@ const startAnalysis = useCallback(
     });
 
     // Reorder screenshots to mix selected and unselected
+    // Only promote screenshots that were selected by default.
+    // User-selected items stay in their original position.
     if (category === "screenshots") {
-      items = interleaveItems(items);
+      items = promoteDefaultSelectedItems(items);
     }
     return items;
   };
@@ -473,18 +449,16 @@ const startAnalysis = useCallback(
     });
   };
   // Helper: interleave selected and unselected items
-  function interleaveItems(items: CategoryItem[]): CategoryItem[] {
-    const selected = items.filter((item) => item.selected);
-    const unselected = items.filter((item) => !item.selected);
-    const result: CategoryItem[] = [];
-    let i = 0,
-      j = 0;
-    // Alternate: selected, unselected, selected, unselected, ...
-    while (i < selected.length || j < unselected.length) {
-      if (i < selected.length) result.push(selected[i++]);
-      if (j < unselected.length) result.push(unselected[j++]);
-    }
-    return result;
+  function promoteDefaultSelectedItems(items: CategoryItem[]): CategoryItem[] {
+    const defaultSelected = items.filter((item) =>
+      getDefaultSelected("screenshots", item.id),
+    );
+
+    const remaining = items.filter(
+      (item) => !getDefaultSelected("screenshots", item.id),
+    );
+
+    return [...defaultSelected, ...remaining];
   }
   //  Size helpers
 

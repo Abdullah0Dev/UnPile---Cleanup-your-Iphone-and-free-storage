@@ -214,7 +214,7 @@ const CategoryDetails = () => {
         <View style={styles.footerLeft}>
           <Text style={styles.footerCount}>
             {t("review_screen.bottom_bar.selected_count", {
-              count: selectedCount,
+              count: selectedCount.toLocaleString(),
             })}
           </Text>
 
@@ -278,8 +278,8 @@ const CategoryDetails = () => {
           style={[styles.subtitle, subtitleEntrance]}
         >
           {t("review_screen.status_bar", {
-            total: itemCount,
-            selected: selectedCount,
+            total: itemCount.toLocaleString(),
+            selected: selectedCount.toLocaleString(),
             size: selectedSizeFormatted,
           })}
         </Animated.Text>

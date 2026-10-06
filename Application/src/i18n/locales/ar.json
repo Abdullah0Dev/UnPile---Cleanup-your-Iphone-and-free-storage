@@ -1,12 +1,12 @@
 {
   "get_started_screen": {
     "title": {
-      "part_1": "تخلص",
-      "part_2": "من الفوضى"
+      "part_1": "Un",
+      "part_2": "Pile"
     },
     "subtitle": {
-      "part_1": "نظف مكتبة الصور.",
-      "part_2": "وفر مساحة في ثوانٍ."
+      "part_1": "اعثر على الصور المكررة ولقطات",
+      "part_2": "الشاشة والصور غير الضرورية واحذفها بسهولة."
     },
     "button": {
       "title": {
@@ -70,15 +70,15 @@
       },
       "trial_plan": {
         "title": "تجربة 3 أيام",
-  "subtitle": "ثم {price} أسبوعيًا",
+        "subtitle": "ثم {price} أسبوعيًا",
         "tag": "قصير المدى"
       }
     },
     "restore_purchases": {
-  "title": "استعادة المشتريات",
-  "message": "لم تتم استعادة أي مشتريات.",
-  "button": "موافق"
-},
+      "title": "استعادة المشتريات",
+      "message": "لم تتم استعادة أي مشتريات.",
+      "button": "موافق"
+    },
     "toggle": {
       "free_trial_enabled": "تم تفعيل التجربة المجانية"
     },
@@ -110,7 +110,7 @@
   },
   "delete_confirmation_dialog": {
     "title_singular": "حذف {count} عنصر؟",
-    "title_plural": "حذف {count} عناصر؟",
+    "title_plural": "حذف {count} عنصر؟",
     "subtitle": "سيتم نقل الصور إلى سلة المهملات ويمكن استعادتها لمدة 30 يوماً.",
     "credits_available": "النقاط المتاحة: {count}",
     "premium_required": "تحتاج إلى المزيد من النقاط. افتح الوصول الكامل مع Premium.",
@@ -146,33 +146,33 @@
     "categories": {
       "screenshots": {
         "title": "لقطات الشاشة",
-        "item_count": "{count} عناصر",
+        "item_count": "{count} عنصر",
         "size": "{size}"
       },
       "clutter": {
         "title": "الفوضى",
-        "item_count": "{count} عناصر",
+        "item_count": "{count} عنصر",
         "size": "{size}"
       },
       "duplicates": {
         "title": "المكررة",
-        "item_count": "{count} عناصر",
+        "item_count": "{count} عنصر",
         "size": "{size}"
       },
       "blurry_photos": {
         "title": "الصور الضبابية",
-        "item_count": "{count} عناصر",
+        "item_count": "{count} عنصر",
         "size": "{size}"
       },
       "live_photos": {
         "title": "الصور الحية",
-        "item_count": "{count} عناصر",
+        "item_count": "{count} عنصر",
         "size": "{size}"
       }
     },
     "summary": {
       "size_can_free": "يمكن توفير {size}",
-      "item_count": "{count} عناصر"
+      "item_count": "{count} عنصر"
     },
     "buttons": {
       "smart_delete": "حذف ذكي"
@@ -183,18 +183,18 @@
     "summary": {
       "subtitle": "يمكنك توفير",
       "size_can_free": "{size}",
-      "item_count": "{count} عناصر"
+      "item_count": "{count} عنصر"
     },
     "categories_section": {
       "title": "الفئات",
       "see_all": "عرض الكل"
     },
     "empty_state": {
-      "subtitle": "لا توجد عناصر لحذفها.",
+      "subtitle": "لا توجد عنصر لحذفها.",
       "hint": "كل شيء مرتب. الحمد لله"
     },
     "buttons": {
-      "review_items": "مراجعة العناصر",
+      "review_items": "مراجعة العنصر",
       "rescan_photos": "إعادة الفحص"
     },
     "footer": {
