@@ -21,41 +21,13 @@
     },
 
     "locales": {
-      "en": {
-        "ios": {
-          "NSPhotoLibraryUsageDescription": "UnPile needs access to your photo library to scan for duplicates, blurry images, and clutter so you can review and delete them."
-        }
-      },
-      "fr": {
-        "ios": {
-          "NSPhotoLibraryUsageDescription": "UnPile a besoin d’accéder à votre photothèque pour rechercher les doublons, les photos floues et les photos inutiles afin que vous puissiez les vérifier et les supprimer."
-        }
-      },
-      "de": {
-        "ios": {
-          "NSPhotoLibraryUsageDescription": "UnPile benötigt Zugriff auf deine Fotomediathek, um Duplikate, verschwommene Fotos und unnötige Fotos zu erkennen, damit du sie überprüfen und löschen kannst."
-        }
-      },
-      "es": {
-        "ios": {
-          "NSPhotoLibraryUsageDescription": "UnPile necesita acceder a tu fototeca para buscar duplicados, fotos borrosas y fotos innecesarias, para que puedas revisarlos y eliminarlos."
-        }
-      },
-      "ar": {
-        "ios": {
-          "NSPhotoLibraryUsageDescription": "يحتاج UnPile إلى الوصول إلى مكتبة الصور للبحث عن الصور المكررة والصور الضبابية والصور غير الضرورية، حتى تتمكن من مراجعتها وحذفها."
-        }
-      },
-      "ja": {
-        "ios": {
-          "NSPhotoLibraryUsageDescription": "UnPileは、重複した写真やぼやけた写真、不要な写真を見つけて確認・削除できるよう、写真へのアクセスを必要とします。"
-        }
-      },
-      "tr": {
-        "ios": {
-          "NSPhotoLibraryUsageDescription": "UnPile, yinelenen, bulanık ve gereksiz fotoğrafları bulup inceleyebilmeniz ve silebilmeniz için fotoğraf arşivinize erişim gerektirir."
-        }
-      }
+      "en": "./src/i18n/native/en.json",
+      "fr": "./src/i18n/native/fr.json",
+      "de": "./src/i18n/native/de.json",
+      "es": "./src/i18n/native/es.json",
+      "ar": "./src/i18n/native/ar.json",
+      "ja": "./src/i18n/native/ja.json",
+      "tr": "./src/i18n/native/tr.json"
     },
 
     "web": {
@@ -88,24 +60,8 @@
         "expo-localization",
         {
           "supportedLocales": {
-            "ios": [
-              "en",
-              "ar",
-              "de",
-              "es",
-              "fr",
-              "ja",
-              "tr"
-            ],
-            "android": [
-              "en",
-              "ar",
-              "de",
-              "es",
-              "fr",
-              "ja",
-              "tr"
-            ]
+            "ios": ["en", "ar", "de", "es", "fr", "ja", "tr"],
+            "android": ["en", "ar", "de", "es", "fr", "ja", "tr"]
           },
           "supportsRTL": true
         }

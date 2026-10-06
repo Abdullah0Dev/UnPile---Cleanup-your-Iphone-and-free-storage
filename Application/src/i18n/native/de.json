@@ -1,0 +1,5 @@
+{
+  "ios": {
+    "NSPhotoLibraryUsageDescription": "UnPile benötigt Zugriff auf deine Fotomediathek, um Duplikate, verschwommene Fotos und unnötige Fotos zu erkennen, damit du sie überprüfen und löschen kannst."
+  }
+}

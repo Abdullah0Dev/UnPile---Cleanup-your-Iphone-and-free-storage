@@ -1,0 +1,5 @@
+{
+  "ios": {
+    "NSPhotoLibraryUsageDescription": "UnPileは、重複した写真やぼやけた写真、不要な写真を見つけて確認・削除できるよう、写真へのアクセスを必要とします。"
+  }
+}
