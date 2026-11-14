@@ -43,10 +43,10 @@ const Navbar = () => {
       </div>
 
       <Link
-        href="#join-waitlist"
+        href="/download"
         className="rounded-[10px] bg-[#2dd4bf] px-5 py-2.5 text-sm font-semibold text-[#0a0a0f] transition-all hover:bg-[#14b8a6] hover:shadow-lg hover:shadow-[#2dd4bf]/30"
       >
-        Join Waitlist
+        Download App
       </Link>
     </nav>
   );

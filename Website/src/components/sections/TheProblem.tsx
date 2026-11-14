@@ -61,9 +61,9 @@ const cards: ProblemCard[] = [
   },
   {
     icon: PlayCircle,
-    title: "Large videos collect dust",
-    description: "Big files you rarely watch.",
-    count: "+43",
+    title: "Old Blurry Photos collect dust",
+    description: "photos you rarely see, or use.",
+    count: "+443",
     thumbs: [
       "bg-gradient-to-br from-emerald-800 to-slate-900",
       "bg-gradient-to-br from-teal-700 to-slate-900",

@@ -1,5 +1,7 @@
-1. do this every monday:
-2. automate this later
+1. ADD language support to the 7 languages you SUPPORT!!
+2. do this every monday:
+3. automate this later
+4. change it to have real app stuff
 
  use this prompt in ChatGPT or Claude:
 
