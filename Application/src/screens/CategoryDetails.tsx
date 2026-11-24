@@ -8,7 +8,7 @@ import {
   Modal,
   I18nManager,
 } from "react-native";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Image } from "expo-image";
 import Animated from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,6 +19,10 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Check } from "lucide-react-native";
 import { FlashList, ListRenderItemInfo } from "@shopify/flash-list";
 import { useTranslation } from "react-i18next";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// Duplicate group row
+import { ScrollView, LayoutChangeEvent } from "react-native";
 
 import { GradientButton } from "@/components/ui/gradient-button";
 import {
@@ -35,6 +39,7 @@ import {
 } from "@/context/AnalysisContext";
 import { useEntrance, useSheetEntrance } from "@/hooks/use-entrance";
 import { CATEGORY_TRANSLATION_KEYS } from "./Home";
+import { TipToast } from "@/components/ui/tip-toast";
 
 // Types
 export type CategoryVariant = CategoryKey;
@@ -69,6 +74,7 @@ const CategoryDetails = () => {
   } = useAnalysis();
 
   const [previewImageId, setPreviewImageId] = useState<string | null>(null);
+  const [showTip, setShowTip] = useState(false);
 
   // Guard: no result or invalid variant → redirect
   if (!result || !variant) {
@@ -110,6 +116,28 @@ const CategoryDetails = () => {
 
     return groups;
   }, [rawItems, variant]);
+
+  // tip toast
+  const TIP_KEY = "tip_long_press_seen";
+
+  useEffect(() => {
+    let cancelled = false;
+
+    AsyncStorage.getItem(TIP_KEY)
+      .then((seen) => {
+        if (!cancelled && !seen) setShowTip(true);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleTipHide = useCallback(() => {
+    setShowTip(false);
+    AsyncStorage.setItem(TIP_KEY, "1").catch(() => {});
+  }, []);
 
   const meta = useMemo(() => {
     const totalItems = rawItems.length;
@@ -244,6 +272,7 @@ const CategoryDetails = () => {
   if (variant === "duplicates") {
     return (
       <SafeAreaView style={styles.screen}>
+        <TipToast visible={showTip} onHide={handleTipHide} />
         <Animated.View
           style={[
             styles.header,
@@ -262,6 +291,9 @@ const CategoryDetails = () => {
           {/* Back button */}
           <Pressable
             onPress={handleGoBack}
+            accessible
+            accessibilityRole="button"
+            accessibilityLabel={t("a11y.back")}
             hitSlop={15}
             style={{
               position: "absolute",
@@ -366,6 +398,7 @@ const CategoryDetails = () => {
   // Render: Other categories
   return (
     <SafeAreaView style={styles.screen}>
+      <TipToast visible={showTip} onHide={handleTipHide} />
       <Animated.View
         style={[
           styles.header,
@@ -384,6 +417,9 @@ const CategoryDetails = () => {
         {/* Back button */}
         <Pressable
           onPress={handleGoBack}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel={t("a11y.back")}
           hitSlop={15}
           style={{
             position: "absolute",
@@ -643,6 +679,9 @@ const PhotoThumbnail = ({
   );
 };
 
+// Must match the `gap` in styles.duplicateGroupRow (use 0 if you don't use gap)
+const TILE_GAP = 8;
+
 // Duplicate group row
 const DuplicateGroupRow = ({
   group,
@@ -661,12 +700,57 @@ const DuplicateGroupRow = ({
 }) => {
   const { t } = useTranslation();
 
+  const [rowWidth, setRowWidth] = useState(0);
+
   const shouldAnimate = index < 6;
 
   const entrance = useEntrance(
     shouldAnimate ? 260 + index * 90 : 0,
     shouldAnimate ? 12 : 0,
   );
+
+  const count = group.items.length;
+  const contentWidth = count * tileSize + Math.max(count - 1, 0) * TILE_GAP;
+  const isOverflowing = rowWidth > 0 && contentWidth > rowWidth;
+
+  const handleLayout = (e: LayoutChangeEvent) => {
+    const w = e.nativeEvent.layout.width;
+    if (w !== rowWidth) setRowWidth(w);
+  };
+
+  const renderItems = () =>
+    group.items.map((item) => (
+      <Pressable
+        key={item.id}
+        onPress={() => onToggle(category, item.id)}
+        onLongPress={() => onLongPress(item.id)}
+        delayLongPress={500}
+        style={[
+          styles.thumbnail,
+          {
+            width: tileSize,
+            height: tileSize,
+          },
+        ]}
+      >
+        <Image
+          source={{ uri: item.image }}
+          style={StyleSheet.absoluteFill}
+          contentFit="cover"
+          recyclingKey={item.id}
+        />
+
+        {item.isBest && (
+          <View style={styles.bestBadge}>
+            <Text style={styles.bestBadgeText}>👑</Text>
+          </View>
+        )}
+
+        <View style={styles.thumbnailBadgeWrap}>
+          <SelectionBadge selected={item.selected} />
+        </View>
+      </Pressable>
+    ));
 
   return (
     <Animated.View
@@ -680,40 +764,20 @@ const DuplicateGroupRow = ({
         </Text>
       </View>
 
-      <View style={styles.duplicateGroupRow}>
-        {group.items.map((item) => (
-          <Pressable
-            key={item.id}
-            onPress={() => onToggle(category, item.id)}
-            onLongPress={() => onLongPress(item.id)}
-            delayLongPress={500}
-            style={[
-              styles.thumbnail,
-              {
-                width: tileSize,
-                height: tileSize,
-              },
-            ]}
-          >
-            <Image
-              source={{ uri: item.image }}
-              style={StyleSheet.absoluteFill}
-              contentFit="cover"
-              recyclingKey={item.id}
-            />
-
-            {item.isBest && (
-              <View style={styles.bestBadge}>
-                <Text style={styles.bestBadgeText}>👑</Text>
-              </View>
-            )}
-
-            <View style={styles.thumbnailBadgeWrap}>
-              <SelectionBadge selected={item.selected} />
-            </View>
-          </Pressable>
-        ))}
-      </View>
+      {isOverflowing ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          onLayout={handleLayout}
+          contentContainerStyle={styles.duplicateGroupRow}
+        >
+          {renderItems()}
+        </ScrollView>
+      ) : (
+        <View style={styles.duplicateGroupRow} onLayout={handleLayout}>
+          {renderItems()}
+        </View>
+      )}
     </Animated.View>
   );
 };

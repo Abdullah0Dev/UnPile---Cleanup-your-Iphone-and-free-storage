@@ -1,4 +1,7 @@
 {
+  "a11y": {
+    "back": "Atrás"
+  },
   "get_started_screen": {
     "title": {
       "part_1": "Un",
@@ -70,15 +73,15 @@
       },
       "trial_plan": {
         "title": "Prueba de 3 días",
-  "subtitle": "luego {price} por semana",
+        "subtitle": "luego {price} por semana",
         "tag": "Corto plazo"
       }
     },
     "restore_purchases": {
-  "title": "Restaurar compras",
-  "message": "No se restauraron compras.",
-  "button": "OK"
-},
+      "title": "Restaurar compras",
+      "message": "No se restauraron compras.",
+      "button": "OK"
+    },
     "toggle": {
       "free_trial_enabled": "Prueba gratuita activada"
     },
@@ -91,7 +94,7 @@
     },
     "footer": {
       "restore": "Restaurar",
-     "terms_privacy": "Términos y privacidad"
+      "terms_privacy": "Términos y privacidad"
     }
   },
   "success_screen": {
@@ -122,6 +125,10 @@
     }
   },
   "review_screen": {
+    "tip": {
+      "title": "Consejo",
+      "long_press": "¡Mantén pulsada la imagen para verla a pantalla completa!"
+    },
     "header": {
       "screenshots": "Capturas de pantalla",
       "duplicates": "Duplicados",

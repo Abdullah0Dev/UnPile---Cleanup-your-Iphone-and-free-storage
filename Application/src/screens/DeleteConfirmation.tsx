@@ -52,19 +52,15 @@ const DeleteConfirmation = () => {
     totalSize?: string;
   }>();
 
-  const {
-    result,
-    getCategoryItems,
-    getSelectedItems,
-    removeItems,
-  } = useAnalysis();
+  const { result, getCategoryItems, getSelectedItems, removeItems } =
+    useAnalysis();
 
   // Determine if single category or everything
   const isSingleCategory = Boolean(params.variant);
   const variant = params.variant as CategoryVariant | undefined;
 
   const [showPaywall, setShowPaywall] = useState(false);
-
+  const [IsDeleting, setIsDeleting] = useState(false);
   const {
     credits: currentCredits,
     consumeCredits,
@@ -108,10 +104,7 @@ const DeleteConfirmation = () => {
       selectedIds = selected.map((item) => item.id);
       totalItems = selected.length;
 
-      totalSizeBytes = selectedIds.reduce(
-        (sum, id) => sum + getSize(id),
-        0,
-      );
+      totalSizeBytes = selectedIds.reduce((sum, id) => sum + getSize(id), 0);
 
       rows.push({
         key: variant,
@@ -124,10 +117,7 @@ const DeleteConfirmation = () => {
         const ids = getSelectedItems(cat);
 
         if (ids.length > 0) {
-          const size = ids.reduce(
-            (sum, id) => sum + getSize(id),
-            0,
-          );
+          const size = ids.reduce((sum, id) => sum + getSize(id), 0);
 
           rows.push({
             key: cat,
@@ -152,26 +142,15 @@ const DeleteConfirmation = () => {
       totalSizeFormatted,
       categoryRows: rows,
     };
-  }, [
-    result,
-    isSingleCategory,
-    variant,
-    getCategoryItems,
-    getSelectedItems,
-  ]);
+  }, [result, isSingleCategory, variant, getCategoryItems, getSelectedItems]);
 
-  const {
-    selectedIds,
-    totalItems,
-    totalSizeBytes,
-    categoryRows,
-  } = selectedData;
+  const { selectedIds, totalItems, totalSizeBytes, categoryRows } =
+    selectedData;
 
   const isLimitReached =
     isSubscribed && !isLoadingSubscription
       ? false
-      : currentCredits === 0 ||
-        totalItems > currentCredits;
+      : currentCredits === 0 || totalItems > currentCredits;
 
   // Entrances
   const iconEntrance = useHeroEntrance(0);
@@ -182,18 +161,14 @@ const DeleteConfirmation = () => {
   const buttonsEntrance = useEntrance(
     isSingleCategory
       ? 320
-      : listBaseDelay +
-          categoryRows.length * ROW_STAGGER_MS +
-          140,
+      : listBaseDelay + categoryRows.length * ROW_STAGGER_MS + 140,
   );
 
   // Handlers
   const handleDelete = async () => {
+    setIsDeleting(true);
     try {
-      const result =
-        await ExpoPhotoAnalyzerModule.deletePhotos(
-          selectedIds,
-        );
+      const result = await ExpoPhotoAnalyzerModule.deletePhotos(selectedIds);
 
       if (result.success) {
         removeItems(selectedIds);
@@ -213,6 +188,8 @@ const DeleteConfirmation = () => {
       }
     } catch (error) {
       console.error("Delete failed:", error);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -235,12 +212,7 @@ const DeleteConfirmation = () => {
           />
         </Animated.View>
 
-        <Animated.View
-          style={[
-            styles.logoTextContainer,
-            titleEntrance,
-          ]}
-        >
+        <Animated.View style={[styles.logoTextContainer, titleEntrance]}>
           <Text style={styles.logoText}>
             {t(
               totalItems === 1
@@ -253,12 +225,7 @@ const DeleteConfirmation = () => {
           </Text>
         </Animated.View>
 
-        <Animated.View
-          style={[
-            styles.subtitleContainer,
-            subtitleEntrance,
-          ]}
-        >
+        <Animated.View style={[styles.subtitleContainer, subtitleEntrance]}>
           <Text
             style={[
               styles.logoSubtitle,
@@ -290,12 +257,9 @@ const DeleteConfirmation = () => {
                 fontWeight: "500",
               }}
             >
-              {t(
-                "delete_confirmation_dialog.credits_available",
-                {
-                  count: currentCredits.toLocaleString(),
-                },
-              )}
+              {t("delete_confirmation_dialog.credits_available", {
+                count: currentCredits.toLocaleString(),
+              })}
             </GradientText>
 
             {isLimitReached && (
@@ -307,54 +271,34 @@ const DeleteConfirmation = () => {
                   textAlign: "center",
                 }}
               >
-                {t(
-                  "delete_confirmation_dialog.premium_required",
-                )}
+                {t("delete_confirmation_dialog.premium_required")}
               </Text>
             )}
           </Animated.View>
         )}
 
         {categoryRows.length > 0 && (
-          <CategoriesList
-            categoryRows={categoryRows}
-            marginTop
-          />
+          <CategoriesList categoryRows={categoryRows} marginTop />
         )}
       </View>
 
-      <Animated.View
-        style={[
-          styles.buttonGroup,
-          buttonsEntrance,
-        ]}
-      >
+      <Animated.View style={[styles.buttonGroup, buttonsEntrance]}>
         <GradientButton
           title={
             isLimitReached
-              ? t(
-                  "delete_confirmation_dialog.buttons.unlock_unlimited",
-                )
+              ? t("delete_confirmation_dialog.buttons.unlock_unlimited")
               : isSingleCategory
-                ? t(
-                    "delete_confirmation_dialog.buttons.delete",
-                  )
-                : t(
-                    "delete_confirmation_dialog.buttons.delete_everything",
-                  )
+                ? t("delete_confirmation_dialog.buttons.delete")
+                : t("delete_confirmation_dialog.buttons.delete_everything")
           }
-          onPress={
-            isLimitReached
-              ? handleUpgradePress
-              : handleDelete
-          }
+          onPress={isLimitReached ? handleUpgradePress : handleDelete}
+          // WORK HERE => indictor + lower opacity
+          loading={IsDeleting}
           disabled={totalItems === 0}
         />
 
         <GradientButton
-          title={t(
-            "delete_confirmation_dialog.buttons.cancel",
-          )}
+          title={t("delete_confirmation_dialog.buttons.cancel")}
           type="secondary"
           onPress={handleCancel}
         />
@@ -371,9 +315,7 @@ const DeleteConfirmation = () => {
 export default DeleteConfirmation;
 
 // Get category icon
-function getCategoryIcon(
-  category: CategoryVariant,
-): ImageSource {
+function getCategoryIcon(category: CategoryVariant): ImageSource {
   const map: Record<CategoryVariant, ImageSource> = {
     screenshots: ScreenshotsIcon,
     duplicates: DuplicatesIcon,

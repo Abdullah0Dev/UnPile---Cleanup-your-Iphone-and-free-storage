@@ -1,4 +1,7 @@
 {
+  "a11y": {
+    "back": "Zurück"
+  },
   "get_started_screen": {
     "title": {
       "part_1": "Un",
@@ -70,15 +73,15 @@
       },
       "trial_plan": {
         "title": "3-Tage-Testversion",
-  "subtitle": "danach {price} pro Woche",
+        "subtitle": "danach {price} pro Woche",
         "tag": "Kurzfristig"
       }
     },
     "restore_purchases": {
-  "title": "Käufe wiederherstellen",
-  "message": "Es wurden keine Käufe wiederhergestellt.",
-  "button": "OK"
-},
+      "title": "Käufe wiederherstellen",
+      "message": "Es wurden keine Käufe wiederhergestellt.",
+      "button": "OK"
+    },
     "toggle": {
       "free_trial_enabled": "Kostenlose Testversion aktiviert"
     },
@@ -122,6 +125,10 @@
     }
   },
   "review_screen": {
+    "tip": {
+      "title": "Tipp",
+      "long_press": "Bild lange drücken, um es im Vollbild anzuzeigen!"
+    },
     "header": {
       "screenshots": "Screenshots",
       "duplicates": "Duplikate",

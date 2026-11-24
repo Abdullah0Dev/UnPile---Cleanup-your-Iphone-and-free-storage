@@ -1,4 +1,7 @@
 {
+  "a11y": {
+    "back": "戻る"
+  },
   "get_started_screen": {
     "title": {
       "part_1": "Un",
@@ -70,15 +73,15 @@
       },
       "trial_plan": {
         "title": "3日間トライアル",
-  "subtitle": "その後 {price}／週",
+        "subtitle": "その後 {price}／週",
         "tag": "短期間"
       }
     },
     "restore_purchases": {
-  "title": "購入を復元",
-  "message": "復元できる購入はありませんでした。",
-  "button": "OK"
-},
+      "title": "購入を復元",
+      "message": "復元できる購入はありませんでした。",
+      "button": "OK"
+    },
     "toggle": {
       "free_trial_enabled": "無料トライアル有効"
     },
@@ -122,6 +125,10 @@
     }
   },
   "review_screen": {
+    "tip": {
+      "title": "ヒント",
+      "long_press": "画像を長押しすると全画面で表示できます!"
+    },
     "header": {
       "screenshots": "スクリーンショット",
       "duplicates": "重複写真",

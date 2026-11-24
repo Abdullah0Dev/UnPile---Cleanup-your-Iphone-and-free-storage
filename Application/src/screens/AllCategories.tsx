@@ -172,6 +172,9 @@ const AllCategories = () => {
         >
           <Pressable
             onPress={handleGoBack}
+            accessible
+            accessibilityRole="button"
+            accessibilityLabel={t("a11y.back")}
             hitSlop={15}
             style={[
               {

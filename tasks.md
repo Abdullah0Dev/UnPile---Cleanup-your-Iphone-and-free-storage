@@ -1,10 +1,14 @@
-2. make the app scanning super fast => fix the scanning
-5. the video and marketing while apple review the app
-6. test the arabic version
+## IMPORTANT
+5. inshallah work hard on ASO specially Arabic + English
+6. LAU
+
+7. test the arabic version
 in details category: selected image should be on top when it's only auto-selected not manually
 1. add npx expo install expo-live-photo to make it able to play live photos
-2. add sliding to switch the image preview
-3. update the website to have the app link and everything... and include the layout and so on
+2. 
+3. add func to turn live photos to still photos to optimize storage
+4. add sliding to switch the image preview
+5. 
 
 FOR NOW: English/Arabic || /Spanish/Germany/Japanese/Turkish
 
@@ -23,3 +27,24 @@ so kinda it's gonna be answering user most needed question and features with som
 
 share the code for get started screen/scanning/home tab/details of each category and see all and review items/and confirm delete/DONE screen 
 <!-- react-i18next i18next -->
+
+
+first to anyone think he can't do it.. you can.. I was looking at success stories here and learn from people and subhanallah I got this without spending any MONEY.. 
+
+currently most of my users are organic:
+ASO mainly
+make people talk about the app
+can't do anything in reddit always remove my post, idk why!!
+
+anyone use a good marketing channel that works.. 
+
+Any user of my app here??
+https://apps.apple.com/app/apple-store/id6813002849?pt=127614658&ct=fb&mt=8 
+
+@everyone Appreciate any feedback.. and if you'd like to have a discount code you can comment
+
+
+@everyone Appreciate any feedback on my app, it's for removing duplicate/blurry/clutters/screenshots photos and it's 100% OFFLINE.. 
+https://apps.apple.com/app/apple-store/id6813002849?pt=127614658&ct=fb&mt=8 
+
+comment if you want a discount code

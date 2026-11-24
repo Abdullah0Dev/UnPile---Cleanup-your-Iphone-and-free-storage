@@ -7,6 +7,7 @@ import {
   View,
   StyleProp,
   TextStyle,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
@@ -25,7 +26,8 @@ interface GradientButtonProps extends PressableProps {
   type?: "primary" | "secondary";
   onPress?: () => void;
   Icon?: ForwardRefExoticComponent<LucideProps & RefAttributes<SVGSVGElement>>;
-  textStyle?: StyleProp<TextStyle>
+  textStyle?: StyleProp<TextStyle>;
+  loading?: boolean;
 }
 
 export const GradientButton = ({
@@ -34,13 +36,19 @@ export const GradientButton = ({
   onPress,
   textStyle,
   Icon,
+  loading = false,
+  disabled,
   ...rest
 }: GradientButtonProps) => {
   const scale = useSharedValue(1);
   const rippleScale = useSharedValue(0);
   const rippleOpacity = useSharedValue(0);
 
+  const isDisabled = loading || !!disabled;
+
   const handlePress = () => {
+    if (isDisabled) return;
+
     scale.value = withSequence(
       withTiming(0.94, { duration: 80 }),
       withSpring(1, { damping: 8, stiffness: 180 }),
@@ -69,8 +77,14 @@ export const GradientButton = ({
   }));
 
   return (
-    <Pressable onPress={handlePress} {...rest}>
-      <Animated.View style={[styles.buttonContainer, animatedContainerStyle]}>
+    <Pressable onPress={handlePress} disabled={isDisabled} {...rest}>
+      <Animated.View
+        style={[
+          styles.buttonContainer,
+          animatedContainerStyle,
+          isDisabled && styles.disabled,
+        ]}
+      >
         <LinearGradient
           colors={
             type === "primary"
@@ -82,7 +96,12 @@ export const GradientButton = ({
           style={styles.gradient}
         >
           <Animated.View style={[styles.ripple, rippleStyle]} />
-          {Icon ? (
+          {loading ? (
+            <View style={styles.textContainer}>
+              <ActivityIndicator size="small" color={Brand.textOnPrimary} />
+              <Text style={[styles.buttonText, textStyle]}> {title} </Text>
+            </View>
+          ) : Icon ? (
             <View style={styles.textContainer}>
               <Icon size={16} color={Brand.textOnPrimary} />
               <Text style={[styles.buttonText, textStyle]}> {title} </Text>
@@ -105,6 +124,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 26,
     elevation: 10,
+  },
+  disabled: {
+    opacity: 0.6,
   },
   gradient: {
     paddingVertical: 20,

@@ -205,7 +205,11 @@ const Home = () => {
       screenshotSize + duplicateSize + clutterSize + blurrySize + liveCanSize;
 
     const totalFreeableItems =
-      screenshotCount + duplicateCount + clutterCount + blurryCount + liveCanCount;
+      screenshotCount +
+      duplicateCount +
+      clutterCount +
+      blurryCount +
+      liveCanCount;
 
     const allRows: CategoryRowData[] = [
       {
@@ -287,6 +291,9 @@ const Home = () => {
         <Pressable
           onPress={handleGoBack}
           hitSlop={15}
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel={t("a11y.back")}
           style={[
             {
               position: "absolute",

@@ -1,4 +1,7 @@
 {
+  "a11y": {
+    "back": "رجوع"
+  },
   "get_started_screen": {
     "title": {
       "part_1": "Pile",
@@ -122,6 +125,10 @@
     }
   },
   "review_screen": {
+    "tip": {
+      "title": "نصيحة",
+      "long_press": "اضغط مطولًا على الصورة لعرضها بملء الشاشة!"
+    },
     "header": {
       "screenshots": "لقطات الشاشة",
       "duplicates": "المكررة",
